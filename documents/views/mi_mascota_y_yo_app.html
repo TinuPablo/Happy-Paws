@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi mascota y yo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --brown-lightest: #FDF6EE;
+      --brown-light: #F5E6D0;
+      --brown-mid: #C8956C;
+      --brown-main: #9B6B47;
+      --brown-dark: #6B3F1F;
+      --brown-darker: #4A2A0E;
+      --cream: #FAF3E8;
+      --white: #FFFFFF;
+      --text-dark: #3D2010;
+      --text-mid: #6B4A2F;
+      --text-light: #A07850;
+      --green-ok: #5A8A5A;
+      --red-alert: #C0392B;
+      --gold: #D4A843;
+    }
+    body {
+      background: #EDE0CF;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .app-shell {
+      width: 420px;
+      background: var(--brown-lightest);
+      min-height: 640px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      border: 2px solid var(--brown-light);
+      box-shadow: 0 8px 40px rgba(75,40,14,0.18);
+    }
+
+    .screen { display: none; flex-direction: column; min-height: 640px; }
+    .screen.active { display: flex; }
+
+    .topbar {
+      background: var(--brown-dark);
+      color: #FDF6EE;
+      padding: 14px 20px 12px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 16px; font-weight: 500;
+      letter-spacing: 0.2px;
+      flex-shrink: 0;
+    }
+    .topbar .back-btn {
+      background: none; border: none; color: #FDF6EE;
+      font-size: 20px; cursor: pointer; padding: 0 6px 0 0;
+      line-height: 1;
+    }
+    .topbar-title { flex: 1; }
+    .topbar-icon { font-size: 20px; opacity: 0.85; }
+
+    .content { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+
+    .bottom-nav {
+      background: var(--brown-dark);
+      display: flex;
+      border-top: 2px solid var(--brown-darker);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      flex: 1; border: none; background: none;
+      color: rgba(253,246,238,0.55);
+      padding: 10px 4px 8px;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      transition: color 0.15s;
+    }
+    .nav-btn i { font-size: 22px; }
+    .nav-btn.active { color: #FDF6EE; }
+    .nav-btn span { font-size: 10px; }
+
+    .section-title {
+      font-size: 13px; font-weight: 500; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin: 18px 0 10px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--brown-light);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .hero-card {
+      background: var(--brown-dark);
+      border-radius: 20px;
+      padding: 20px;
+      margin: 16px 0 10px;
+      color: var(--brown-lightest);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card .paw-bg {
+      position: absolute; right: -10px; bottom: -10px;
+      font-size: 100px; opacity: 0.12; pointer-events: none;
+    }
+    .hero-card h2 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+    .hero-card p { font-size: 13px; opacity: 0.75; }
+    .pet-avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--brown-mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      border: 3px solid var(--brown-light);
+      margin-bottom: 10px;
+    }
+
+    .points-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--gold);
+      color: var(--brown-darker);
+      font-size: 13px; font-weight: 500;
+      padding: 4px 12px; border-radius: 20px;
+      margin-top: 10px;
+    }
+
+    .reminder-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .reminder-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: var(--brown-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0; color: var(--brown-dark);
+    }
+    .reminder-info { flex: 1; }
+    .reminder-info strong { font-size: 14px; color: var(--text-dark); font-weight: 500; }
+    .reminder-info span { display: block; font-size: 12px; color: var(--text-light); }
+    .check-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--brown-mid);
+      background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--brown-mid); font-size: 16px;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .check-btn.done {
+      background: var(--green-ok); border-color: var(--green-ok); color: white;
+    }
+
+    .virtual-pet-stage {
+      background: var(--cream);
+      border: 1px solid var(--brown-light);
+      border-radius: 20px;
+      padding: 24px 16px;
+      text-align: center;
+      margin: 16px 0 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pet-display { font-size: 80px; line-height: 1; margin-bottom: 8px; display: block; }
+    .pet-name { font-size: 18px; font-weight: 500; color: var(--text-dark); }
+    .pet-status { font-size: 13px; color: var(--text-mid); margin-top: 2px; }
+
+    .mood-bar {
+      background: var(--brown-light);
+      border-radius: 8px; height: 8px; margin-top: 10px;
+      overflow: hidden;
+    }
+    .mood-fill {
+      height: 100%; border-radius: 8px;
+      background: var(--brown-main);
+      transition: width 0.4s ease;
+    }
+
+    .action-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px; margin: 12px 0;
+    }
+    .action-btn {
+      background: var(--white);
+      border: 1px solid var(--brown-light);
+      border-radius: 14px;
+      padding: 12px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s;
+    }
+    .action-btn:hover { background: var(--brown-light); }
+    .action-btn i { font-size: 22px; color: var(--brown-dark); display: block; margin-bottom: 4px; }
+    .action-btn span { font-size: 11px; color: var(--text-mid); }
+
+    .shop-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin: 10px 0;
+    }
+    .shop-item {
+      background: var(--white);
+      border: 1px solid var(--brown-light);
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .shop-item:hover { border-color: var(--brown-main); }
+    .shop-item .item-emoji { font-size: 36px; display: block; margin-bottom: 6px; }
+    .shop-item .item-name { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+    .shop-item .item-cost {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 12px; color: var(--brown-dark);
+      background: var(--brown-light); border-radius: 10px;
+      padding: 2px 8px; margin-top: 5px;
+    }
+
+    .tip-card {
+      background: var(--cream);
+      border-left: 3px solid var(--brown-main);
+      border-radius: 0 14px 14px 0;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .tip-card h4 { font-size: 14px; font-weight: 500; color: var(--text-dark); margin-bottom: 4px; }
+    .tip-card p { font-size: 13px; color: var(--text-mid); line-height: 1.5; }
+    .tip-tag {
+      display: inline-block;
+      font-size: 11px;
+      background: var(--brown-light);
+      color: var(--brown-dark);
+      border-radius: 8px; padding: 2px 8px;
+      margin-bottom: 6px;
+    }
+
+    .profile-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--brown-mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      border: 3px solid var(--brown-light);
+      margin: 0 auto 10px;
+    }
+    .stat-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      margin: 10px 0;
+    }
+    .stat-box {
+      background: var(--brown-light);
+      border-radius: 12px; padding: 10px 8px;
+      text-align: center;
+    }
+    .stat-box strong { display: block; font-size: 20px; font-weight: 500; color: var(--brown-dark); }
+    .stat-box span { font-size: 11px; color: var(--text-mid); }
+
+    .setting-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--brown-light);
+      cursor: pointer;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row i { font-size: 20px; color: var(--brown-main); flex-shrink: 0; }
+    .setting-row .setting-label { flex: 1; font-size: 14px; color: var(--text-dark); }
+    .setting-row .setting-arrow { font-size: 16px; color: var(--text-light); }
+
+    .toggle {
+      width: 42px; height: 24px;
+      background: var(--brown-main);
+      border-radius: 12px; position: relative;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .toggle::after {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: white; top: 3px; right: 3px;
+      transition: right 0.2s, left 0.2s;
+    }
+    .toggle.off { background: var(--brown-light); }
+    .toggle.off::after { right: auto; left: 3px; }
+
+    .notification-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%; transform: translateX(-50%);
+      width: 360px;
+      background: var(--brown-dark);
+      color: var(--brown-lightest);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 13px;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(75,40,14,0.3);
+      animation: slideUp 0.3s ease;
+    }
+    .notification-toast.show { display: block; }
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+    }
+    .toast-title { font-weight: 500; margin-bottom: 2px; font-size: 14px; }
+
+    .btn-primary {
+      background: var(--brown-dark);
+      color: var(--brown-lightest);
+      border: none; border-radius: 14px;
+      padding: 12px 20px;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer; width: 100%;
+      margin-top: 8px;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+
+    .streak-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #FFF0D6; color: #7A4A00;
+      font-size: 12px; font-weight: 500;
+      border-radius: 10px; padding: 3px 10px;
+    }
+
+    .paw-separator {
+      text-align: center; font-size: 16px; opacity: 0.3;
+      margin: 8px 0; letter-spacing: 8px;
+      color: var(--brown-main);
+    }
+
+    input, select {
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus {
+      border-color: var(--brown-main) !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+
+  <!-- ===== PANTALLA: INICIO ===== -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <i class="ti ti-paw topbar-icon" aria-hidden="true"></i>
+      <span class="topbar-title">Mi mascota y yo</span>
+      <i class="ti ti-bell topbar-icon" aria-hidden="true" style="cursor:pointer"
+        onclick="showToast('🐾 ¡Recordatorio! Hora de darle agua a Firulais', '')"></i>
+    </div>
+    <div class="content">
+      <div class="hero-card">
+        <div class="paw-bg" aria-hidden="true">🐾</div>
+        <div class="pet-avatar">🐶</div>
+        <h2>¡Hola, María!</h2>
+        <p>Firulais te espera — 2 tareas pendientes hoy</p>
+        <div class="points-badge">
+          <i class="ti ti-star" aria-hidden="true"></i>
+          <span id="homePoints">320</span> puntos acumulados
+        </div>
+      </div>
+
+      <div class="section-title">Tareas de hoy</div>
+
+      <div class="card">
+        <div class="reminder-row">
+          <div class="reminder-icon"><i class="ti ti-bowl" aria-hidden="true"></i></div>
+          <div class="reminder-info">
+            <strong>Dar de comer</strong>
+            <span>08:00 — Ración de la mañana</span>
+          </div>
+          <button class="check-btn done" onclick="toggleTask(this)" title="Marcar completado">
+            <i class="ti ti-check" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="reminder-row">
+          <div class="reminder-icon"><i class="ti ti-droplet" aria-hidden="true"></i></div>
+          <div class="reminder-info">
+            <strong>Cambiar el agua</strong>
+            <span>12:00 — Hidratación diaria</span>
+          </div>
+          <button class="check-btn" onclick="toggleTask(this)" title="Marcar completado">
+            <i class="ti ti-check" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="reminder-row">
+          <div class="reminder-icon" style="background:#FFF0D6;color:#7A4A00">
+            <i class="ti ti-vaccine" aria-hidden="true"></i>
+          </div>
+          <div class="reminder-info">
+            <strong>Vacuna antirrábica</strong>
+            <span>Próxima: 15 de junio</span>
+          </div>
+          <span class="streak-badge"><i class="ti ti-clock" aria-hidden="true"></i> 8 días</span>
+        </div>
+      </div>
+
+      <div class="section-title">Progreso semanal</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:var(--text-dark);font-weight:500;">Esta semana</span>
+          <span class="streak-badge">🔥 5 días seguidos</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">
+          <div style="font-size:10px;color:var(--text-light)">L</div>
+          <div style="font-size:10px;color:var(--text-light)">M</div>
+          <div style="font-size:10px;color:var(--text-light)">X</div>
+          <div style="font-size:10px;color:var(--text-light)">J</div>
+          <div style="font-size:10px;color:var(--text-light)">V</div>
+          <div style="font-size:10px;color:var(--text-light)">S</div>
+          <div style="font-size:10px;color:var(--text-light)">D</div>
+          <div style="font-size:16px">✅</div>
+          <div style="font-size:16px">✅</div>
+          <div style="font-size:16px">✅</div>
+          <div style="font-size:16px">✅</div>
+          <div style="font-size:16px">✅</div>
+          <div style="font-size:16px">⬜</div>
+          <div style="font-size:16px">⬜</div>
+        </div>
+      </div>
+    </div>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button class="nav-btn active" onclick="goTo('home')" aria-current="page">
+        <i class="ti ti-home" aria-hidden="true"></i><span>Inicio</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('virtual')">
+        <i class="ti ti-mood-smile" aria-hidden="true"></i><span>Mascota</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('tips')">
+        <i class="ti ti-book" aria-hidden="true"></i><span>Guías</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('profile')">
+        <i class="ti ti-user" aria-hidden="true"></i><span>Perfil</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== PANTALLA: MASCOTA VIRTUAL ===== -->
+  <div class="screen" id="screen-virtual">
+    <div class="topbar">
+      <i class="ti ti-mood-smile topbar-icon" aria-hidden="true"></i>
+      <span class="topbar-title">Mascota virtual</span>
+    </div>
+    <div class="content">
+      <div class="virtual-pet-stage">
+        <div style="position:absolute;left:-5px;top:-5px;font-size:60px;opacity:0.08;pointer-events:none" aria-hidden="true">🐾</div>
+        <span class="pet-display" id="petEmoji" role="img" aria-label="mascota virtual">🐶</span>
+        <div class="pet-name">Firulais virtual</div>
+        <div class="pet-status" id="petStatusText">¡Feliz y contento!</div>
+        <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--text-light)">
+          <span>Ánimo</span><span id="moodVal">82%</span>
+        </div>
+        <div class="mood-bar">
+          <div class="mood-fill" id="moodFill" style="width:82%"></div>
+        </div>
+      </div>
+
+      <div class="points-badge" style="margin:4px 0 14px">
+        <i class="ti ti-star" aria-hidden="true"></i>
+        <span id="virtualPoints">320</span> puntos disponibles
+      </div>
+
+      <div class="section-title">Jugar con Firulais</div>
+      <div class="action-grid">
+        <button class="action-btn" onclick="petAction('Alimentar',10)">
+          <i class="ti ti-bowl" aria-hidden="true"></i><span>Alimentar</span>
+        </button>
+        <button class="action-btn" onclick="petAction('Pasear',15)">
+          <i class="ti ti-run" aria-hidden="true"></i><span>Pasear</span>
+        </button>
+        <button class="action-btn" onclick="petAction('Jugar',8)">
+          <i class="ti ti-ball" aria-hidden="true"></i><span>Jugar</span>
+        </button>
+        <button class="action-btn" onclick="petAction('Bañar',12)">
+          <i class="ti ti-wash" aria-hidden="true"></i><span>Bañar</span>
+        </button>
+        <button class="action-btn" onclick="petAction('Descansar',5)">
+          <i class="ti ti-moon" aria-hidden="true"></i><span>Descansar</span>
+        </button>
+        <button class="action-btn" onclick="goTo('shop')">
+          <i class="ti ti-shopping-bag" aria-hidden="true"></i><span>Tienda</span>
+        </button>
+      </div>
+
+      <div class="section-title">Accesorios equipados</div>
+      <div class="card" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:28px" title="Sombrero">🎩</span>
+        <span style="font-size:28px" title="Bufanda">🧣</span>
+        <span style="font-size:28px;opacity:0.25" title="Sin gafas">👓</span>
+        <span style="font-size:28px;opacity:0.25" title="Sin collar">📿</span>
+        <span style="font-size:12px;color:var(--text-light);margin-left:auto">Visitá la tienda para desbloquear más</span>
+      </div>
+    </div>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button class="nav-btn" onclick="goTo('home')">
+        <i class="ti ti-home" aria-hidden="true"></i><span>Inicio</span>
+      </button>
+      <button class="nav-btn active" onclick="goTo('virtual')" aria-current="page">
+        <i class="ti ti-mood-smile" aria-hidden="true"></i><span>Mascota</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('tips')">
+        <i class="ti ti-book" aria-hidden="true"></i><span>Guías</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('profile')">
+        <i class="ti ti-user" aria-hidden="true"></i><span>Perfil</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== PANTALLA: TIENDA ===== -->
+  <div class="screen" id="screen-shop">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('virtual')" aria-label="Volver">←</button>
+      <span class="topbar-title">Tienda de accesorios</span>
+    </div>
+    <div class="content">
+      <div class="points-badge" style="margin:14px 0 4px">
+        <i class="ti ti-star" aria-hidden="true"></i>
+        <span id="shopPoints">320</span> puntos disponibles
+      </div>
+      <p style="font-size:12px;color:var(--text-light);margin-bottom:10px">
+        Ganás puntos cumpliendo las tareas de cuidado diarias
+      </p>
+      <div class="section-title">Ropa y accesorios</div>
+      <div class="shop-grid">
+        <div class="shop-item" onclick="buyItem(this,'🎩','Sombrero',80)">
+          <span class="item-emoji">🎩</span>
+          <div class="item-name">Sombrero</div>
+          <div class="item-cost"><i class="ti ti-star" style="font-size:12px" aria-hidden="true"></i> 80</div>
+        </div>
+        <div class="shop-item" onclick="buyItem(this,'👗','Camperita',120)">
+          <span class="item-emoji">👗</span>
+          <div class="item-name">Camperita</div>
+          <div class="item-cost"><i class="ti ti-star" style="font-size:12px" aria-hidden="true"></i> 120</div>
+        </div>
+        <div class="shop-item" onclick="buyItem(this,'🧣','Bufanda',60)">
+          <span class="item-emoji">🧣</span>
+          <div class="item-name">Bufanda</div>
+          <div class="item-cost"><i class="ti ti-star" style="font-size:12px" aria-hidden="true"></i> 60</div>
+        </div>
+        <div class="shop-item" onclick="buyItem(this,'👓','Gafas',90)">
+          <span class="item-emoji">👓</span>
+          <div class="item-name">Gafas</div>
+          <div class="item-cost"><i class="ti ti-star" style="font-size:12px" aria-hidden="true"></i> 90</div>
+        </div>
+        <div class="shop-item" onclick="buyItem(this,'📿','Collar especial',150)">
+          <span class="item-emoji">📿</span>
+          <div class="item-name">Collar especial</div>
+          <div class="item-cost"><i class="ti ti-star" style="font-size:12px" aria-hidden="true"></i> 150</div>
+        </div>
+        <div class="shop-item" onclick="buyItem(this,'🎀','Moño',50)">
+          <span class="item-emoji">🎀</span>
+          <div class="item-name">Moño</div>
+          <div class="item-cost"><i class="ti ti-star" style="font-size:12px" aria-hidden="true"></i> 50</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PANTALLA: GUÍAS ===== -->
+  <div class="screen" id="screen-tips">
+    <div class="topbar">
+      <i class="ti ti-book topbar-icon" aria-hidden="true"></i>
+      <span class="topbar-title">Guías de cuidado</span>
+    </div>
+    <div class="content">
+      <div class="section-title">Consejo de la semana</div>
+      <div class="card" style="background:var(--brown-dark);color:var(--brown-lightest);border:none">
+        <div style="font-size:11px;opacity:0.65;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Destacado</div>
+        <h3 style="font-size:16px;font-weight:500;margin-bottom:6px">Hidratación en verano 🌞</h3>
+        <p style="font-size:13px;opacity:0.8;line-height:1.5">Los perros necesitan entre 50–60 ml de agua por kilo al día. En días calurosos, duplicá la cantidad y ubica el agua en un lugar fresco.</p>
+      </div>
+
+      <div class="section-title">Alimentación</div>
+      <div class="tip-card">
+        <span class="tip-tag">Nutrición</span>
+        <h4>¿Cuánto darle de comer?</h4>
+        <p>La porción depende del peso y edad de tu mascota. Un adulto de 10 kg necesita aproximadamente 250–300 g de alimento balanceado por día, dividido en 2 raciones.</p>
+      </div>
+      <div class="tip-card">
+        <span class="tip-tag">Alimentos</span>
+        <h4>Alimentos prohibidos para perros</h4>
+        <p>Chocolate, uvas, cebollas, ajo y xilitol son tóxicos. Nunca los incluyas en su dieta aunque parezcan inofensivos.</p>
+      </div>
+
+      <div class="section-title">Salud preventiva</div>
+      <div class="tip-card">
+        <span class="tip-tag">Vacunación</span>
+        <h4>Calendario de vacunas</h4>
+        <p>Las vacunas esenciales son: moquillo, hepatitis, parvovirus y rabia. La antirrábica es obligatoria y se repite anualmente.</p>
+      </div>
+      <div class="tip-card">
+        <span class="tip-tag">Parasitología</span>
+        <h4>Desparasitación interna y externa</h4>
+        <p>Desparasitá internamente cada 3–6 meses. Para pulgas y garrapatas, usá pipeta o collar mensualmente.</p>
+      </div>
+
+      <div class="section-title">Actividad física</div>
+      <div class="tip-card">
+        <span class="tip-tag">Ejercicio</span>
+        <h4>¿Cuánto ejercicio necesita?</h4>
+        <p>Un perro adulto de raza mediana necesita al menos 30–60 minutos de actividad diaria. El ejercicio reduce el estrés y mejora su ánimo.</p>
+      </div>
+      <div class="paw-separator">🐾 🐾 🐾</div>
+    </div>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button class="nav-btn" onclick="goTo('home')">
+        <i class="ti ti-home" aria-hidden="true"></i><span>Inicio</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('virtual')">
+        <i class="ti ti-mood-smile" aria-hidden="true"></i><span>Mascota</span>
+      </button>
+      <button class="nav-btn active" onclick="goTo('tips')" aria-current="page">
+        <i class="ti ti-book" aria-hidden="true"></i><span>Guías</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('profile')">
+        <i class="ti ti-user" aria-hidden="true"></i><span>Perfil</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== PANTALLA: PERFIL ===== -->
+  <div class="screen" id="screen-profile">
+    <div class="topbar">
+      <i class="ti ti-user topbar-icon" aria-hidden="true"></i>
+      <span class="topbar-title">Mi perfil</span>
+    </div>
+    <div class="content">
+      <div style="text-align:center;margin:20px 0 16px">
+        <div class="profile-avatar">👩</div>
+        <div style="font-size:18px;font-weight:500;color:var(--text-dark)">María González</div>
+        <div style="font-size:13px;color:var(--text-light)">Dueña responsable desde 2021</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><strong id="profilePoints">320</strong><span>Puntos</span></div>
+        <div class="stat-box"><strong>5</strong><span>Días racha</span></div>
+        <div class="stat-box"><strong>48</strong><span>Tareas</span></div>
+      </div>
+
+      <div class="section-title">Mi mascota real</div>
+      <div class="card">
+        <div class="reminder-row">
+          <div class="reminder-icon" style="font-size:28px;background:var(--brown-light)">🐶</div>
+          <div class="reminder-info">
+            <strong>Firulais</strong>
+            <span>Labrador · 3 años · Macho</span>
+          </div>
+          <button class="check-btn" style="border-color:var(--brown-main);color:var(--brown-main)"
+                  onclick="goTo('editpet')" title="Editar">
+            <i class="ti ti-edit" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="section-title">Configuración</div>
+      <div class="card">
+        <div class="setting-row" onclick="toggleNotif(this)">
+          <i class="ti ti-bell" aria-hidden="true"></i>
+          <span class="setting-label">Notificaciones push</span>
+          <div class="toggle"></div>
+        </div>
+        <div class="setting-row" onclick="toggleNotif(this)">
+          <i class="ti ti-mail" aria-hidden="true"></i>
+          <span class="setting-label">Recordatorios por email</span>
+          <div class="toggle off"></div>
+        </div>
+        <div class="setting-row" onclick="goTo('editpet')">
+          <i class="ti ti-paw" aria-hidden="true"></i>
+          <span class="setting-label">Datos de mi mascota</span>
+          <i class="ti ti-chevron-right setting-arrow" aria-hidden="true"></i>
+        </div>
+        <div class="setting-row">
+          <i class="ti ti-shield" aria-hidden="true"></i>
+          <span class="setting-label">Privacidad y datos</span>
+          <i class="ti ti-chevron-right setting-arrow" aria-hidden="true"></i>
+        </div>
+      </div>
+      <div class="paw-separator">🐾 🐾 🐾</div>
+    </div>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button class="nav-btn" onclick="goTo('home')">
+        <i class="ti ti-home" aria-hidden="true"></i><span>Inicio</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('virtual')">
+        <i class="ti ti-mood-smile" aria-hidden="true"></i><span>Mascota</span>
+      </button>
+      <button class="nav-btn" onclick="goTo('tips')">
+        <i class="ti ti-book" aria-hidden="true"></i><span>Guías</span>
+      </button>
+      <button class="nav-btn active" onclick="goTo('profile')" aria-current="page">
+        <i class="ti ti-user" aria-hidden="true"></i><span>Perfil</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== PANTALLA: EDITAR MASCOTA ===== -->
+  <div class="screen" id="screen-editpet">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('profile')" aria-label="Volver">←</button>
+      <span class="topbar-title">Datos de mi mascota</span>
+    </div>
+    <div class="content">
+      <div style="text-align:center;margin:20px 0">
+        <span id="selectedPetType" style="font-size:70px">🐶</span>
+        <div style="margin-top:8px;font-size:13px;color:var(--text-light)">Elegí el tipo de mascota</div>
+        <div style="display:flex;justify-content:center;gap:12px;margin-top:10px" id="petTypeButtons">
+          <button onclick="selectPetType(this,'🐶')" style="font-size:28px;background:var(--brown-light);border:2px solid var(--brown-main);border-radius:12px;padding:8px 10px;cursor:pointer" aria-label="Perro">🐶</button>
+          <button onclick="selectPetType(this,'🐱')" style="font-size:28px;background:var(--white);border:2px solid var(--brown-light);border-radius:12px;padding:8px 10px;cursor:pointer" aria-label="Gato">🐱</button>
+          <button onclick="selectPetType(this,'🐰')" style="font-size:28px;background:var(--white);border:2px solid var(--brown-light);border-radius:12px;padding:8px 10px;cursor:pointer" aria-label="Conejo">🐰</button>
+          <button onclick="selectPetType(this,'🐹')" style="font-size:28px;background:var(--white);border:2px solid var(--brown-light);border-radius:12px;padding:8px 10px;cursor:pointer" aria-label="Hámster">🐹</button>
+          <button onclick="selectPetType(this,'🦜')" style="font-size:28px;background:var(--white);border:2px solid var(--brown-light);border-radius:12px;padding:8px 10px;cursor:pointer" aria-label="Loro">🦜</button>
+        </div>
+      </div>
+      <div class="section-title">Información</div>
+      <div class="card">
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;color:var(--text-light);display:block;margin-bottom:4px">Nombre</label>
+          <input type="text" value="Firulais"
+            style="width:100%;border:1px solid var(--brown-light);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text-dark);background:var(--cream)" />
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;color:var(--text-light);display:block;margin-bottom:4px">Raza</label>
+          <input type="text" value="Labrador"
+            style="width:100%;border:1px solid var(--brown-light);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text-dark);background:var(--cream)" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:12px;color:var(--text-light);display:block;margin-bottom:4px">Edad (años)</label>
+            <input type="number" value="3" min="0" max="25"
+              style="width:100%;border:1px solid var(--brown-light);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text-dark);background:var(--cream)" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--text-light);display:block;margin-bottom:4px">Sexo</label>
+            <select style="width:100%;border:1px solid var(--brown-light);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text-dark);background:var(--cream)">
+              <option>Macho</option>
+              <option>Hembra</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveAndBack()">Guardar cambios</button>
+    </div>
+  </div>
+
+  <!-- Toast de notificación -->
+  <div class="notification-toast" id="toast" role="status" aria-live="polite">
+    <div class="toast-title" id="toast-title">¡Tarea completada!</div>
+    <div id="toast-body">+10 puntos ganados 🐾</div>
+  </div>
+</div>
+
+<script>
+  var points = 320;
+  var mood   = 82;
+
+  function goTo(screen) {
+    document.querySelectorAll('.screen').forEach(function(s) {
+      s.classList.remove('active');
+    });
+    var el = document.getElementById('screen-' + screen);
+    if (el) el.classList.add('active');
+    syncPoints();
+  }
+
+  function syncPoints() {
+    ['homePoints','virtualPoints','shopPoints','profilePoints'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = points;
+    });
+  }
+
+  function toggleTask(btn) {
+    btn.classList.toggle('done');
+    if (btn.classList.contains('done')) {
+      points += 10;
+      syncPoints();
+      showToast('¡Tarea completada! +10 puntos 🐾', '');
+      updateMood(5);
+    } else {
+      points = Math.max(0, points - 10);
+      syncPoints();
+    }
+  }
+
+  function updateMood(delta) {
+    mood = Math.min(100, Math.max(0, mood + delta));
+    var fill   = document.getElementById('moodFill');
+    var val    = document.getElementById('moodVal');
+    var status = document.getElementById('petStatusText');
+    if (fill)   fill.style.width = mood + '%';
+    if (val)    val.textContent  = mood + '%';
+    if (status) {
+      if (mood >= 80)      status.textContent = '¡Feliz y contento!';
+      else if (mood >= 50) status.textContent = 'Bien, pero con ganas de jugar';
+      else                 status.textContent = 'Necesita atención...';
+    }
+  }
+
+  function petAction(label, cost) {
+    if (points < cost) {
+      showToast('No tenés suficientes puntos 😕', 'Cumplí más tareas para ganar puntos');
+      return;
+    }
+    points -= cost;
+    syncPoints();
+    updateMood(8);
+    var emoji = document.getElementById('petEmoji');
+    if (emoji) {
+      emoji.style.transition = 'transform 0.2s';
+      emoji.style.transform  = 'scale(1.3)';
+      setTimeout(function() { emoji.style.transform = 'scale(1)'; }, 200);
+    }
+    showToast('¡' + label + '! -' + cost + ' puntos', 'A Firulais le encantó 🐾');
+  }
+
+  function buyItem(el, emoji, name, cost) {
+    if (points < cost) {
+      showToast('No tenés suficientes puntos 😕', 'Cumplí más tareas para ganar puntos');
+      return;
+    }
+    points -= cost;
+    syncPoints();
+    showToast('¡Compraste ' + name + '! -' + cost + ' puntos', '🎉 Equipado en tu mascota virtual');
+  }
+
+  function toggleNotif(row) {
+    var t = row.querySelector('.toggle');
+    if (t) t.classList.toggle('off');
+  }
+
+  function selectPetType(btn, emoji) {
+    document.querySelectorAll('#petTypeButtons button').forEach(function(b) {
+      b.style.background   = 'var(--white)';
+      b.style.borderColor  = 'var(--brown-light)';
+    });
+    btn.style.background  = 'var(--brown-light)';
+    btn.style.borderColor = 'var(--brown-main)';
+    var sp = document.getElementById('selectedPetType');
+    if (sp) sp.textContent = emoji;
+  }
+
+  function saveAndBack() {
+    showToast('¡Guardado correctamente! 🐾', '');
+    setTimeout(function() { goTo('profile'); }, 800);
+  }
+
+  var toastTimer;
+  function showToast(title, body) {
+    var t  = document.getElementById('toast');
+    var tt = document.getElementById('toast-title');
+    var tb = document.getElementById('toast-body');
+    if (tt) tt.textContent = title;
+    if (tb) tb.textContent = body;
+    if (t) {
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2600);
+    }
+  }
+</script>
+
+</body>
+</html>
