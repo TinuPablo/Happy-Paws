@@ -43,3 +43,29 @@ body {
   background: var(--color-brown-light);
   border-radius: 10px;
 }
+
+@keyframes foodFly {
+  0% { transform: translate(-50%, 120px) scale(0.5); opacity: 0; }
+  50% { transform: translate(-50%, -40px) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -10px) scale(0.9); opacity: 0; }
+}
+
+@keyframes petFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes petChew {
+  0%, 100% { transform: scaleY(1) scaleX(1); }
+  50% { transform: scaleY(0.88) scaleX(1.05); }
+}
+
+@keyframes petJump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px) scaleY(1.05); }
+}
+
+@keyframes shadowPulse {
+  0%, 100% { transform: scaleX(1); opacity: 0.1; }
+  50% { transform: scaleX(0.85); opacity: 0.05; }
+}
