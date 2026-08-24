@@ -1,0 +1,156 @@
+[
+  {
+    "id": "guia-displasia-cadera",
+    "title": "Cuidando sus caderas con amor 🐾",
+    "species": ["dog"],
+    "tags": ["displasia_cadera"],
+    "content": "¡Hola! Para que tu compañero siga saltando y jugando feliz, es genial estar atentos a sus caderas. Si notas que le cuesta un poquito levantarse, ¡es una señal para mimarlo un poco más y consultar al vete! Mantenerlo en su peso ideal y hacer paseos suaves es el mejor regalo que puedes hacerle. Charla con tu vete de confianza para ver cómo acompañarlo mejor."
+  },
+  {
+    "id": "guia-displasia-codo",
+    "title": "¡Codos felices para correr más! 🏃",
+    "species": ["dog"],
+    "tags": ["displasia_codo"],
+    "content": "A veces, el ejercicio intenso puede cansar sus articulaciones. Si notas que cojea un poquito después de jugar, ¡dale descanso y mimos! Mantener un ritmo de actividad adecuado es perfecto para que siga activo por mucho tiempo. Tu veterinario puede guiarte sobre el mejor tipo de ejercicio para él."
+  },
+  {
+    "id": "guia-braquicefalico",
+    "title": "Consejos para caritas chatas y felices 🐶",
+    "species": ["dog", "cat"],
+    "tags": ["braquicefalico"],
+    "content": "Esas caritas tan adorables necesitan un poquito más de atención. Como les cuesta un poquito más respirar cuando hace calor, ¡evita las horas de sol fuerte y mantenlo fresquito! Así estará siempre listo para un mimo. Consulta a tu vete sobre cómo cuidar mejor su respiración."
+  },
+  {
+    "id": "guia-problemas-respiratorios",
+    "title": "Respirando aire puro juntos 🌬️",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_respiratorios"],
+    "content": "Para que tu mascota respire tranquilita, mantener un ambiente limpio es ideal. Si notas que le cuesta respirar o tiene tos, ¡un chequeo veterinario lo dejará perfecto para seguir jugando sin preocupaciones!"
+  },
+  {
+    "id": "guia-problemas-piel",
+    "title": "Mimos para una piel sana y suave 🌟",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_piel"],
+    "content": "Si notas que se rasca un poquito más de la cuenta, ¡es momento de revisarlo y darle alivio! Mantener su higiene es fundamental. Si notas rojeces, ¡tu vete es el camino para que vuelva a estar perfecto!"
+  },
+  {
+    "id": "guia-problemas-oculares",
+    "title": "Miradas brillantes y felices 👀",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_oculares"],
+    "content": "¡Esos ojitos nos dicen todo! Mantenerlos limpios con mucho cuidado es una forma genial de demostrarle cuánto lo quieres. Si notas algo raro, ¡un vistacito del veterinario los dejará tranquilos a los dos!"
+  },
+  {
+    "id": "guia-problemas-cardiacos",
+    "title": "Corazones llenos de alegría 💖",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_cardiacos"],
+    "content": "Cuidar ese corazón significa darle mucho amor, comida sana y paseos tranquilos. Si notas que se cansa rápido, ¡es momento de una revisión veterinaria para seguir disfrutando juntos!"
+  },
+  {
+    "id": "guia-obesidad",
+    "title": "¡Un peso saludable para más juegos! ✨",
+    "species": ["dog", "cat"],
+    "tags": ["obesidad"],
+    "content": "¡Queremos que tenga energía de sobra para jugar contigo! Cuidar sus porciones y darle snacks saludables es la clave para que se sienta liviano y feliz. ¡Un pequeño ajuste hace una gran diferencia en su vitalidad!"
+  },
+  {
+    "id": "guia-problemas-dentales",
+    "title": "Sonrisas sanas y aliento fresco 😁",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_dentales"],
+    "content": "¡Qué linda sonrisa tiene! Cepillar sus dientes regularmente o usar juguetes específicos es un gran hábito. Si notas mal aliento, ¡tu vete puede darle una limpieza profesional para que siga sonriendo!"
+  },
+  {
+    "id": "guia-mielopatia-degenerativa",
+    "title": "¡Cuidando sus pasos firmes! 🐾",
+    "species": ["dog"],
+    "tags": ["mielopatia_degenerativa"],
+    "content": "Para que tu perro siga moviéndose con confianza, es bueno notar cualquier cambio en su forma de caminar. El ejercicio suave y los masajes pueden ayudar mucho a su bienestar. Consulta siempre a tu veterinario ante cualquier duda."
+  },
+  {
+    "id": "guia-problemas-articulares",
+    "title": "¡Articulaciones listas para la aventura! 🌳",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_articulares"],
+    "content": "Mantener sus articulaciones felices con buena alimentación y ejercicio equilibrado es genial. Si se mueve un poco más lento, ¡dale el tiempo que necesite y mímalo mucho! Tu veterinario es tu gran aliado."
+  },
+  {
+    "id": "guia-enfermedad-poliquistica-renal",
+    "title": "¡Riñones sanos, gato feliz! 🐈",
+    "species": ["cat"],
+    "tags": ["enfermedad_poliquistica_renal"],
+    "content": "Para cuidar a tu gato, agua fresca y una dieta controlada son fundamentales. Un chequeo veterinario rutinario es la mejor manera de asegurar que todo esté bien por dentro. ¡Muchos mimos ayudan también!"
+  },
+  {
+    "id": "guia-problemas-columna",
+    "title": "¡Cuidando su espalda con mimos! 🦴",
+    "species": ["dog", "cat"],
+    "tags": ["problemas_columna"],
+    "content": "Para que tu mascota siga ágil, evita que salte desde alturas grandes o suba muchas escaleras. ¡Unos masajes suaves le encantarán! Si notas algo extraño al caminar, ¡consulta con tu veterinario!"
+  },
+  {
+    "id": "guia-enfermedad-renal",
+    "title": "¡Riñones fuertes y mucha salud! 💧",
+    "species": ["dog", "cat"],
+    "tags": ["enfermedad_renal"],
+    "content": "Asegurarle agua fresca siempre es el mejor hábito. Si notas que bebe o orina más de lo normal, ¡un chequeo veterinario es ideal para estar tranquilos y seguir cuidándolo como se merece!"
+  },
+  {
+    "id": "guia-problemas-urinarios",
+    "title": "¡Todo fluye mejor con salud! ✨",
+    "species": ["cat", "dog"],
+    "tags": ["problemas_urinarios"],
+    "content": "Mantenerlos hidratados y con un ambiente relajado es clave. Si notas cualquier dificultad al orinar, ¡no esperes y consulta al veterinario para que pueda volver a estar cómodo y feliz!"
+  },
+  {
+    "id": "guia-alergias",
+    "title": "¡Adiós picazón, hola confort! 🌸",
+    "species": ["dog", "cat"],
+    "tags": ["alergias"],
+    "content": "Si ves que se lame mucho o tiene la piel sensible, ¡seguro podemos ayudarlo! Identificar qué le causa alergia con ayuda del veterinario es la mejor forma de que se sienta aliviado y feliz."
+  },
+  {
+    "id": "guia-ansiedad-separacion",
+    "title": "¡Tranquilo en casa, feliz de verte! 🏠",
+    "species": ["dog", "cat"],
+    "tags": ["ansiedad_separacion"],
+    "content": "Si se pone un poquito inquieto cuando te vas, ¡muchos juguetes y cariño antes de salir ayudan mucho! Un ambiente calmado es ideal. Consulta con tu veterinario si notas que sufre mucho al estar solo."
+  },
+  {
+    "id": "guia-alto-nivel-energia",
+    "title": "¡Energía infinita para jugar juntos! ⚡",
+    "species": ["dog", "cat"],
+    "tags": ["alto_nivel_energia"],
+    "content": "¡Qué alegría verlos tan activos! Juegos, paseos largos y mucha interacción son el combo perfecto para canalizar toda esa energía. ¡Disfruta al máximo de sus momentos juntos!"
+  },
+  {
+    "id": "guia-sensibilidad-calor",
+    "title": "¡Fresquitos y cómodos en verano! ☀️",
+    "species": ["dog", "cat"],
+    "tags": ["sensibilidad_calor"],
+    "content": "¡El verano se disfruta más a la sombra! Mantén agua fresca a mano y evita paseos en las horas de sol fuerte. ¡Tu mascota te agradecerá ese fresquito extra!"
+  },
+  {
+    "id": "guia-sensibilidad-frio",
+    "title": "¡Calentitos y abrigados! ❄️",
+    "species": ["dog", "cat"],
+    "tags": ["sensibilidad_frio"],
+    "content": "¡Cuando el frío aprieta, nada mejor que un buen abrigo o un rincón cálido! Asegúrate de que su camita esté lejos de corrientes de aire para que esté siempre cómodo."
+  },
+  {
+    "id": "guia-dog-general",
+    "title": "¡Consejos para el perro más feliz del mundo! 🐶",
+    "species": ["dog"],
+    "tags": ["general"],
+    "content": "¡Qué suerte tiene tu perro de tenerte! Asegurarle agua fresca, comida rica, paseos divertidos y mimos constantes lo hace el perro más afortunado. ¡Y no olvides sus visitas al veterinario!"
+  },
+  {
+    "id": "guia-cat-general",
+    "title": "¡Secretos para un gato pleno y juguetón! 🐱",
+    "species": ["cat"],
+    "tags": ["general"],
+    "content": "¡Tu gato es único y merece lo mejor! Agua limpita, comida de calidad, un rincón especial y juegos diarios lo mantendrán feliz. ¡Que sus visitas al veterinario sean una rutina!"
+  }
+]

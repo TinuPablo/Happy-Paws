@@ -1,0 +1,93 @@
+[
+  {
+    "id": "sextuple-quintuple",
+    "name": "Séxtuple / Quíntuple (Polivalente)",
+    "species": "dog",
+    "category": "core",
+    "description": "Protege contra moquillo, hepatitis (adenovirus), parvovirus, parainfluenza y (en la versión séxtuple) leptospirosis.",
+    "puppy_series": [
+      { "dose_number": 1, "min_age_weeks": 6, "max_age_weeks": 8 },
+      { "dose_number": 2, "min_age_weeks": 9, "max_age_weeks": 12 },
+      { "dose_number": 3, "min_age_weeks": 13, "max_age_weeks": 16 }
+    ],
+    "interval_between_puppy_doses_weeks": 3,
+    "booster_after_puppy_series_months": 6,
+    "annual_booster_after_months": 12,
+    "adult_unknown_history_protocol": "Si es adulto y no tiene antecedentes de vacunación, aplicar 2 dosis separadas por 3-4 semanas y luego continuar con refuerzo anual."
+  },
+  {
+    "id": "antirrabica",
+    "name": "Antirrábica",
+    "species": "dog",
+    "category": "core",
+    "legal_note": "Obligatoria por ley en Argentina (Ley 22.953).",
+    "description": "Protege contra la rabia. Es la única vacuna con exigencia legal en la mayoría de las provincias argentinas.",
+    "puppy_series": [
+      { "dose_number": 1, "min_age_weeks": 12, "max_age_weeks": 16 }
+    ],
+    "interval_between_puppy_doses_weeks": null,
+    "booster_after_puppy_series_months": 12,
+    "annual_booster_after_months": 12,
+    "adult_unknown_history_protocol": "Si es adulto sin antecedentes, aplicar 1 dosis y continuar con refuerzo anual."
+  },
+  {
+    "id": "bordetella",
+    "name": "Bordetella (Tos de las Perreras)",
+    "species": "dog",
+    "category": "non-core",
+    "description": "Recomendada para perros que asisten a guarderías, peluquerías, parques concurridos o pensiones caninas.",
+    "puppy_series": [
+      { "dose_number": 1, "min_age_weeks": 8, "max_age_weeks": 16 }
+    ],
+    "interval_between_puppy_doses_weeks": null,
+    "booster_after_puppy_series_months": 12,
+    "annual_booster_after_months": 12,
+    "adult_unknown_history_protocol": "1 dosis inicial y luego refuerzo anual si mantiene el estilo de vida de riesgo."
+  },
+  {
+    "id": "triple-felina",
+    "name": "Triple Felina",
+    "species": "cat",
+    "category": "core",
+    "description": "Protege contra panleucopenia, rinotraqueítis infecciosa felina y calicivirus felino.",
+    "puppy_series": [
+      { "dose_number": 1, "min_age_weeks": 6, "max_age_weeks": 8 },
+      { "dose_number": 2, "min_age_weeks": 9, "max_age_weeks": 12 },
+      { "dose_number": 3, "min_age_weeks": 13, "max_age_weeks": 16 }
+    ],
+    "interval_between_puppy_doses_weeks": 3,
+    "booster_after_puppy_series_months": 12,
+    "annual_booster_after_months": 12,
+    "adult_unknown_history_protocol": "Si es adulto sin antecedentes, aplicar 2 dosis separadas por 3 semanas y luego continuar con refuerzo anual."
+  },
+  {
+    "id": "antirrabica-felina",
+    "name": "Antirrábica",
+    "species": "cat",
+    "category": "core",
+    "legal_note": "Obligatoria por ley en Argentina (Ley 22.953).",
+    "description": "Protege contra la rabia. Obligatoria también para gatos en la mayoría de las provincias argentinas.",
+    "puppy_series": [
+      { "dose_number": 1, "min_age_weeks": 12, "max_age_weeks": 16 }
+    ],
+    "interval_between_puppy_doses_weeks": null,
+    "booster_after_puppy_series_months": 12,
+    "annual_booster_after_months": 12,
+    "adult_unknown_history_protocol": "Si es adulto sin antecedentes, aplicar 1 dosis y continuar con refuerzo anual."
+  },
+  {
+    "id": "leucemia-felina",
+    "name": "Leucemia Felina (FeLV)",
+    "species": "cat",
+    "category": "non-core",
+    "description": "Recomendada para gatos con acceso al exterior o que conviven con otros gatos. Se sugiere test de FeLV antes de aplicar la primera dosis.",
+    "puppy_series": [
+      { "dose_number": 1, "min_age_weeks": 8, "max_age_weeks": 12 },
+      { "dose_number": 2, "min_age_weeks": 11, "max_age_weeks": 15 }
+    ],
+    "interval_between_puppy_doses_weeks": 3,
+    "booster_after_puppy_series_months": 12,
+    "annual_booster_after_months": 12,
+    "adult_unknown_history_protocol": "Si es adulto sin antecedentes y con estilo de vida de riesgo, aplicar 2 dosis separadas por 3 semanas y luego refuerzo anual."
+  }
+]

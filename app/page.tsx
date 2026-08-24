@@ -9,7 +9,8 @@ import {
   Droplets, 
   Home as HomeIcon, 
   Smile, 
-  Book, 
+  BookOpen,
+  FileEdit,
   User,
   Check,
   ShoppingBag,
@@ -31,16 +32,35 @@ import {
   Heart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getRecommendedGuides } from '@/lib/recommendations';
+import breeds from '@/data/breeds.json';
+import guides from '@/data/guides.json';
+import wsavaProtocols from '@/documents/mds/calendario/Wsava/vaccine-protocols.json';
 
-type Screen = 'login' | 'home' | 'virtual' | 'vaccines' | 'tips' | 'profile' | 'editpet' | 'legal';
+interface Reminder {
+  id: number;
+  name: string;
+  date: string;
+  time?: string | null;
+  type: 'vacuna' | 'visita_veterinaria' | 'medicamento' | 'otro';
+  status: 'aplicada' | 'pendiente';
+  auto_generated: boolean;
+  protocol_id: string | null;
+}
+
+type Screen = 'login' | 'home' | 'virtual' | 'agenda' | 'tips' | 'profile' | 'editpet' | 'editprofile' | 'legal';
 type PetState = 'idle' | 'eating' | 'excited';
 
 interface PetData {
   name: string;
-  breed: string;
+  breedName: string;
+  breedId: string | null;
+  species: 'dog' | 'cat' | null;
   age: number;
+  birthDate?: string;
   gender: string;
   type: string;
+  remindersSetupCompleted?: boolean;
 }
 
 const STORAGE_KEY = 'happy_paws_state';
@@ -54,10 +74,68 @@ const SHOP_ITEMS = [
   { id: 'eyes_2', emoji: '📿', name: 'Collar', cost: 150, category: 'eyes' },
 ];
 
+
+function BreedSelector({ petData, setPetData }: { petData: PetData, setPetData: React.Dispatch<React.SetStateAction<PetData>> }) {
+  const [searchTerm, setSearchTerm] = useState(petData.breedName || '');
+  const [showDropdown, setShowDropdown] = useState(false);
+  
+  const getSpecies = (type: string) => {
+    if (['🐶', '🐹', '🦜'].includes(type)) return 'dog';
+    return 'cat';
+  };
+  const species = getSpecies(petData.type);
+  
+  const filteredBreeds = breeds.filter(b => 
+    b.species === species && 
+    b.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSelect = (breed: typeof breeds[0]) => {
+    setPetData(prev => ({ ...prev, breedId: breed.id, breedName: breed.name, species: breed.species as 'dog' | 'cat' }));
+    setSearchTerm(breed.name);
+    setShowDropdown(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+    setShowDropdown(true);
+    setPetData(prev => ({ ...prev, breedId: null, breedName: val, species: getSpecies(prev.type) }));
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={handleInputChange}
+        onFocus={() => setShowDropdown(true)}
+        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+        placeholder="Ej: Labrador"
+      />
+      {showDropdown && (
+        <div className="absolute z-50 w-full bg-white border border-brown-light rounded-xl mt-1 shadow-lg max-h-40 overflow-y-auto">
+          {filteredBreeds.length > 0 ? (
+            filteredBreeds.map(b => (
+              <button key={b.id} type="button" onClick={() => handleSelect(b)} className="w-full text-left p-2 hover:bg-brown-lightest text-sm text-brown-darker">
+                {b.name}
+              </button>
+            ))
+          ) : (
+            <div className="p-2 text-xs text-brown-mid italic">No encontramos esa raza - se usarán recomendaciones generales</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<Screen>('login');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [petTab, setPetTab] = useState<'actions' | 'shop' | 'inventory'>('actions');
+  const [agendaTab, setAgendaTab] = useState<'Vacunas' | 'Recordatorios'>('Vacunas');
+  const [selectedVaccineIndex, setSelectedVaccineIndex] = useState(0);
   const [petExpression, setPetExpression] = useState<PetState>('idle');
   const [foodAnim, setFoodAnim] = useState<{ active: boolean, type: string } | null>(null);
   
@@ -79,10 +157,20 @@ export default function App() {
   });
 
   const [petData, setPetData] = useState<PetData>(() => {
-    const defaultValue = { name: 'Firulais', breed: 'Labrador', age: 3, gender: 'Macho', type: '🐶' };
+    const defaultValue = { name: 'Firulais', breedName: 'Labrador', breedId: 'labrador-retriever', species: 'dog', age: 3, gender: 'Macho', type: '🐶' };
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved).petData : defaultValue;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.petData) {
+            // Migration: if it has 'breed' but not 'breedName', map it.
+            if (!parsed.petData.breedName && parsed.petData.breed) {
+                return { ...parsed.petData, breedName: parsed.petData.breed, breedId: null, species: 'dog' };
+            }
+            return parsed.petData;
+        }
+      }
+      return defaultValue;
     }
     return defaultValue;
   });
@@ -125,16 +213,32 @@ export default function App() {
     return defaultTasks;
   });
 
-  const [vaccines, setVaccines] = useState(() => {
-    const defaultValue = [{ id: 1, name: 'Vacuna antirrábica', date: '2026-06-15' }];
+  const [reminders, setReminders] = useState<Reminder[]>(() => {
+    const defaultValue: Reminder[] = [{ id: 1, name: 'Vacuna antirrábica', date: '2026-06-15', type: 'vacuna', status: 'aplicada', auto_generated: false, protocol_id: null }];
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved).vaccines : defaultValue;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.reminders) return parsed.reminders;
+        if (parsed.vaccines) {
+          // Migration
+          return parsed.vaccines.map((v: any) => ({
+             ...v,
+             type: 'vacuna',
+             status: v.status || 'aplicada',
+             auto_generated: v.auto_generated || false,
+             protocol_id: v.protocol_id || null
+          }));
+        }
+      }
+      return defaultValue;
     }
     return defaultValue;
   });
 
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showRetroactiveModal, setShowRetroactiveModal] = useState(false);
+  const [activeHistorialVaccine, setActiveHistorialVaccine] = useState<any | null>(undefined); // undefined: closed, null: general, object: specific
   const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date(2026, 5, 1)); // June 2026
 
   const [profileImage, setProfileImage] = useState<string | null>(() => {
@@ -151,6 +255,15 @@ export default function App() {
       return saved ? JSON.parse(saved).petImage : null;
     }
     return null;
+  });
+
+  const [userData, setUserData] = useState(() => {
+    const defaultValue = { name: 'María', surname: 'González', memberSince: '2021', email: 'maria@ejemplo.com', birthDate: '1990-01-01', password: 'password123' };
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved && JSON.parse(saved).userData ? JSON.parse(saved).userData : defaultValue;
+    }
+    return defaultValue;
   });
 
   const [notifications, setNotifications] = useState(() => {
@@ -172,6 +285,42 @@ export default function App() {
   const [showToast, setShowToast] = useState(false);
   const [toastContent, setToastContent] = useState({ title: '', body: '' });
 
+  const [currentDayIndex, setCurrentDayIndex] = useState(() => {
+    const day = new Date().getDay();
+    return day === 0 ? 6 : day - 1;
+  });
+
+  const generateInitialReminders = (species: 'dog' | 'cat', birthDate: string) => {
+    const protocol = protocols[species];
+    const birthDateObj = new Date(birthDate);
+    const today = new Date();
+    
+    const newReminders: Reminder[] = protocol.flatMap(p => {
+        return p.puppy_series
+            .map(week => {
+                const date = new Date(birthDateObj);
+                date.setDate(date.getDate() + week * 7);
+                return {
+                    id: Math.floor(Math.random() * 1000000),
+                    name: p.name,
+                    date: date.toISOString().split('T')[0],
+                    type: 'vacuna' as const,
+                    status: 'pendiente' as const,
+                    auto_generated: true,
+                    protocol_id: p.id
+                };
+            })
+            .filter(v => new Date(v.date) > today); // Only future doses
+    });
+    setReminders(prev => [...prev, ...newReminders]);
+  };
+
+  const triggerToast = (title: string, body: string) => {
+    setToastContent({ title, body });
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2600);
+  };
+
   // Save to localStorage on change
   useEffect(() => {
     const stateToSave = {
@@ -181,20 +330,15 @@ export default function App() {
       ownedItems,
       equippedItems,
       tasks: tasks.map(({ id, title, time, done }) => ({ id, title, time, done })), 
-      vaccines,
+      reminders,
       profileImage,
       petImage,
+      userData,
       notifications,
       emailReminders
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [points, mood, petData, ownedItems, equippedItems, tasks, vaccines, profileImage, petImage, notifications, emailReminders]);
-
-  const triggerToast = (title: string, body: string) => {
-    setToastContent({ title, body });
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2600);
-  };
+  }, [points, mood, petData, ownedItems, equippedItems, tasks, reminders, profileImage, petImage, notifications, emailReminders]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, target: 'profile' | 'pet') => {
     const file = e.target.files?.[0];
@@ -262,10 +406,10 @@ export default function App() {
     }
   };
 
-  const deleteVaccine = async (id: number) => {
+  const deleteReminder = async (id: number) => {
     await cancelVaccineNotification(id);
-    setVaccines(prev => prev.filter(v => v.id !== id));
-    triggerToast('Vacuna eliminada', 'La notificación ha sido cancelada');
+    setReminders(prev => prev.filter(v => v.id !== id));
+    triggerToast('Recordatorio eliminado', 'La notificación ha sido cancelada');
   };
 
   const navigateTo = (screen: Screen) => {
@@ -378,8 +522,8 @@ export default function App() {
         {[
           { id: 'home', icon: HomeIcon, label: 'Inicio' },
           { id: 'virtual', icon: Smile, label: 'Mascota' },
-          { id: 'vaccines', icon: Syringe, label: 'Vacunas' },
-          { id: 'tips', icon: Book, label: 'Guías' },
+          { id: 'agenda', icon: BookOpen, label: 'Agenda' },
+          { id: 'tips', icon: FileEdit, label: 'Guías' },
           { id: 'profile', icon: User, label: 'Perfil' },
         ].map((item) => (
           <button
@@ -509,10 +653,14 @@ export default function App() {
               <div className="flex-1 overflow-y-auto px-4 pb-4">
                 <div className="relative mt-4 mb-4 overflow-hidden rounded-[20px] bg-brown-dark p-6 text-brown-lightest shadow-lg">
                   <div className="absolute -right-2 -bottom-2 pointer-events-none text-9xl opacity-10">🐾</div>
-                  <div className="mb-3 flex h-[64px] w-[64px] items-center justify-center rounded-full border-4 border-brown-light bg-brown-mid text-3xl shadow-inner">
-                    {petData.type}
+                  <div className="mb-3 flex h-[64px] w-[64px] items-center justify-center rounded-full border-4 border-brown-light bg-brown-mid text-3xl shadow-inner overflow-hidden">
+                    {petImage ? (
+                      <img src={petImage} alt="Pet" className="h-full w-full object-cover" />
+                    ) : (
+                      petData.type
+                    )}
                   </div>
-                  <h2 className="text-2xl font-bold mb-1">¡Hola, María!</h2>
+                  <h2 className="text-2xl font-bold mb-1">¡Hola, {userData.name.charAt(0).toUpperCase() + userData.name.slice(1)}!</h2>
                   <p className="text-sm opacity-80 mb-3">{petData.name} te espera — {tasks.filter(t => !t.done).length} tareas pendientes</p>
                   <div className="inline-flex items-center gap-2 rounded-full bg-gold px-4 py-1.5 text-sm font-bold text-brown-darker shadow-sm">
                     <Star size={16} fill="currentColor" />
@@ -521,6 +669,14 @@ export default function App() {
                 </div>
 
                 <div className="mt-6 mb-3 text-[13px] font-bold tracking-widest text-brown-mid uppercase">Tareas de hoy</div>
+                
+                {reminders.filter(r => r.type === 'vacuna' && r.status === 'pendiente' && Math.ceil((new Date(r.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) <= 14).map(r => (
+                    <div key={r.id} className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-2xl mb-4 flex items-center gap-3 cursor-pointer" onClick={() => setActiveScreen('agenda')}>
+                        <span className="text-lg">⚠️</span>
+                        <p className="text-xs font-bold text-amber-900">En {Math.ceil((new Date(r.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} días le toca {r.name} 🐾</p>
+                    </div>
+                ))}
+
                 {tasks.map(task => (
                   <div key={task.id} className="mb-3 rounded-2xl border border-brown-light bg-white p-4 shadow-sm transition-transform active:scale-[0.98]">
                     <div className="flex items-center gap-4">
@@ -545,7 +701,7 @@ export default function App() {
                   </div>
                 ))}
 
-                {vaccines.sort((a,b) => a.date.localeCompare(b.date)).map(vac => {
+                {reminders.filter(r => r.type === 'vacuna').sort((a,b) => a.date.localeCompare(b.date)).map(vac => {
                   const diff = Math.ceil((new Date(vac.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
                   if (diff > 15 || diff < 0) return null; 
                   return (
@@ -576,7 +732,7 @@ export default function App() {
                     <span className="text-sm font-bold text-brown-darker">Esta semana</span>
                     <div className="inline-flex items-center gap-1 rounded-full bg-[#FFF0D6] px-2.5 py-1 text-[11px] font-bold text-[#7A4A00]">
                       <Flame size={12} fill="currentColor" />
-                      <span>5 días seguidos</span>
+                      <span>{currentDayIndex + 1} {currentDayIndex + 1 === 1 ? 'día seguido' : 'días seguidos'}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-7 gap-1">
@@ -585,9 +741,9 @@ export default function App() {
                         <span className="text-[10px] font-bold text-brown-mid">{day}</span>
                         <div className={cn(
                           "flex h-8 w-8 items-center justify-center rounded-full text-base",
-                          i < 5 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-300"
+                          i <= currentDayIndex ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-300"
                         )}>
-                          {i < 5 ? '✅' : '⬜'}
+                          {i <= currentDayIndex ? '✅' : '⬜'}
                         </div>
                       </div>
                     ))}
@@ -786,203 +942,356 @@ export default function App() {
             </div>
           )}
 
-          {/* VACCINES SCREEN */}
-          {activeScreen === 'vaccines' && (
+          {/* AGENDA SCREEN */}
+          {activeScreen === 'agenda' && (
             <div className="flex flex-col h-full overflow-hidden">
               <div className="flex items-center gap-2.5 bg-brown-dark px-5 py-4 text-brown-lightest shrink-0">
-                <Syringe size={20} />
-                <span className="flex-1 font-bold">Calendario de Vacunas</span>
+                <BookOpen size={20} />
+                <span className="flex-1 font-bold">Agenda</span>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 pb-4">
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="text-[13px] font-bold tracking-widest text-brown-mid uppercase">Programar Vacuna</div>
-                  <button 
-                    type="button"
-                    onClick={() => setShowCalendar(!showCalendar)}
-                    className="flex items-center gap-1.5 rounded-full bg-brown-light px-3 py-1.5 text-[11px] font-bold text-brown-dark active:scale-95 transition-all cursor-pointer"
-                  >
-                    <Calendar size={14} />
-                    {showCalendar ? 'Ocultar calendario' : 'Ver calendario'}
-                  </button>
-                </div>
 
-                {showCalendar && (
-                  <div className="mt-4 mb-6 rounded-3xl border border-brown-light bg-white p-5 shadow-md">
-                    <div className="flex items-center justify-between mb-4 px-1">
-                      <h3 className="text-sm font-bold text-brown-darker capitalize">
-                        {currentCalendarDate.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
-                      </h3>
-                      <div className="flex gap-2">
-                        <button 
-                          type="button"
-                          onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1))}
-                          className="p-1 text-brown-mid hover:text-brown-dark transition-colors cursor-pointer"
-                        >
-                          <ChevronLeft size={20} />
-                        </button>
-                        <button 
-                          type="button"
-                          onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 1))}
-                          className="p-1 text-brown-mid hover:text-brown-dark transition-colors cursor-pointer"
-                        >
-                          <ChevronRight size={20} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1.5 text-center mb-2">
-                      {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
-                        <span key={d} className="text-[11px] font-medium text-brown-mid">{d}</span>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1.5">
-                      {(() => {
-                        const year = currentCalendarDate.getFullYear();
-                        const month = currentCalendarDate.getMonth();
-                        
-                        const firstDayOfMonth = new Date(year, month, 1).getDay();
-                        const startingDayIndex = (firstDayOfMonth + 6) % 7;
-                        
-                        const daysInMonth = new Date(year, month + 1, 0).getDate();
-                        const daysInPrevMonth = new Date(year, month, 0).getDate();
-                        
-                        const calendarCells = [];
-                        
-                        for (let i = startingDayIndex - 1; i >= 0; i--) {
-                          calendarCells.push(
-                            <div key={`prev-${i}`} className="aspect-square flex items-center justify-center text-[13px] text-brown-mid opacity-30">
-                              {daysInPrevMonth - i}
-                            </div>
-                          );
-                        }
-                        
-                        for (let d = 1; d <= daysInMonth; d++) {
-                          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                          const hasVaccine = vaccines.find(v => v.date === dateStr);
-                          const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
-                          
-                          calendarCells.push(
-                            <button
-                              key={`curr-${d}`}
-                              type="button"
-                              onClick={() => {
-                                if (hasVaccine) {
-                                  triggerToast(`🐾 Vacuna: ${hasVaccine.name}`, `Asignada para el ${d} de ${currentCalendarDate.toLocaleDateString('es-AR', { month: 'long' })}`);
-                                }
-                              }}
-                              className={cn(
-                                "aspect-square rounded-[10px] flex flex-col items-center justify-center text-[13px] relative transition-all active:scale-90 cursor-pointer",
-                                isToday ? "bg-brown-light font-bold text-brown-dark" : "text-brown-darker",
-                                hasVaccine ? "border border-brown-main/40" : ""
-                              )}
-                            >
-                              <span>{d}</span>
-                              {hasVaccine && (
-                                <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-gold shadow-sm" />
-                              )}
-                            </button>
-                          );
-                        }
-
-                        const remainingCells = 42 - calendarCells.length; 
-                        for (let i = 1; i <= remainingCells; i++) {
-                          calendarCells.push(
-                            <div key={`next-${i}`} className="aspect-square flex items-center justify-center text-[13px] text-brown-mid opacity-30">
-                              {i}
-                            </div>
-                          );
-                        }
-                        
-                        return calendarCells;
-                      })()}
-                    </div>
-                  </div>
-                )}
-
-                <div className="rounded-2xl border border-brown-light bg-white p-6 shadow-sm mb-6 mt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-brown-mid px-1">Nombre de la vacuna</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ej: Antirrábica"
-                        id="vac-name"
-                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-brown-mid px-1">Fecha programada</label>
-                      <input 
-                        type="date" 
-                        id="vac-date"
-                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
-                      />
-                    </div>
-                    <button 
+              {/* Sub-tabs */}
+              <div className="flex border-b border-brown-light bg-white">
+                {['Vacunas', 'Recordatorios'].map(tab => (
+                    <button
+                      key={tab}
                       type="button"
-                      onClick={async () => {
-                        const nameEl = document.getElementById('vac-name') as HTMLInputElement;
-                        const dateEl = document.getElementById('vac-date') as HTMLInputElement;
-                        if (nameEl.value && dateEl.value) {
-                          const newId = Math.floor(Math.random() * 1000000);
-                          const newVac = { id: newId, name: nameEl.value, date: dateEl.value };
-                          
-                          const hasPermission = await requestNotificationPermissions();
-                          if (hasPermission) {
-                            await scheduleVaccineNotification(newId, newVac.name, newVac.date);
-                          }
-
-                          setVaccines(prev => [...prev, newVac]);
-                          nameEl.value = '';
-                          dateEl.value = '';
-                          triggerToast('Vacuna agendada 🐾', 'Se mostrará en tu calendario y recordatorios');
-                        }
-                      }}
-                      className="w-full rounded-2xl bg-brown-dark py-3.5 text-sm font-bold text-brown-lightest shadow-lg active:scale-95 transition-all cursor-pointer mt-2"
+                      onClick={() => setAgendaTab(tab as any)}
+                      className={cn(
+                        "flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all cursor-pointer",
+                        agendaTab === tab ? "border-brown-dark text-brown-dark" : "border-transparent text-brown-mid"
+                      )}
                     >
-                      Guardar Vacuna
+                      {tab}
                     </button>
-                  </div>
-                </div>
+                ))}
+              </div>
 
-                <div className="mt-6 mb-3 text-[13px] font-bold tracking-widest text-brown-mid uppercase">Próximas Vacunas</div>
-                <div className="space-y-3">
-                  {vaccines.length === 0 ? (
-                    <p className="text-center text-xs text-brown-mid py-8 italic">No hay vacunas programadas</p>
-                  ) : (
-                    vaccines.sort((a,b) => a.date.localeCompare(b.date)).map(vac => {
-                      const diff = Math.ceil((new Date(vac.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-                      return (
-                        <div key={vac.id} className="rounded-2xl border border-brown-light bg-white p-4 shadow-sm">
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FFF0D6] text-[#7A4A00]">
-                              <Syringe size={24} />
+              <div className="flex-1 overflow-y-auto px-4 pb-4">
+                {agendaTab === 'Vacunas' ? (
+                  <div className="mt-4" 
+                    onTouchStart={(e) => {
+                        (window as any)._touchStart = e.targetTouches[0].clientX;
+                    }}
+                    onTouchEnd={(e) => {
+                        const touchEnd = e.changedTouches[0].clientX;
+                        const diff = (window as any)._touchStart - touchEnd;
+                        const protocol = protocols[petData.species || 'dog'];
+                        if (diff > 50 && selectedVaccineIndex < protocol.length - 1) setSelectedVaccineIndex(prev => prev + 1);
+                        else if (diff < -50 && selectedVaccineIndex > 0) setSelectedVaccineIndex(prev => prev - 1);
+                    }}
+                  >
+                    {/* Vaccine Selector */}
+                    <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                        {wsavaProtocols.filter(v => v.species === (petData.species || 'dog')).map((vac, idx) => (
+                            <button 
+                                key={vac.id}
+                                onClick={() => setSelectedVaccineIndex(idx)}
+                                className={cn(
+                                    "px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all",
+                                    selectedVaccineIndex === idx ? "bg-brown-dark text-white" : "bg-white text-brown-mid border border-brown-light"
+                                )}
+                            >
+                                {vac.name}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={() => setActiveHistorialVaccine(null)} className="w-full mb-6 py-3 bg-brown-lightest text-brown-darker text-xs font-bold rounded-2xl border border-brown-light">Ver historial general 📜</button>
+
+                    {activeHistorialVaccine !== undefined && (
+                        <div className="fixed inset-0 z-[100] bg-black/50 p-6 flex flex-col justify-center">
+                            <div className="bg-white rounded-3xl p-6 max-h-[80vh] overflow-y-auto">
+                                <h3 className="text-xl font-black mb-4">{activeHistorialVaccine ? activeHistorialVaccine.name : 'Historial General'}</h3>
+                                {activeHistorialVaccine 
+                                    ? reminders.filter(r => r.type === 'vacuna' && r.protocol_id === activeHistorialVaccine.id).sort((a,b) => a.date.localeCompare(b.date)).map((r: any) => (
+                                        <div key={r.id} className="flex justify-between py-3 border-b text-sm font-bold text-brown-darker">
+                                            <span>{new Date(r.date).toLocaleDateString()}</span>
+                                            <span className={cn("text-[10px]", r.status === 'aplicada' ? "text-green-600" : "text-amber-600")}>{r.status}</span>
+                                        </div>
+                                    ))
+                                    : reminders.filter(r => r.type === 'vacuna').sort((a,b) => a.date.localeCompare(b.date)).map((r: any) => (
+                                        <div key={r.id} className="flex justify-between py-3 border-b text-sm font-bold text-brown-darker">
+                                            <span>{r.name} <span className={cn("text-[10px] ml-2", r.status === 'aplicada' ? "text-green-600" : "text-amber-600")}>({r.status})</span></span>
+                                            <span className="text-brown-mid">{new Date(r.date).toLocaleDateString()}</span>
+                                        </div>
+                                    ))
+                                }
+                                <button onClick={() => setActiveHistorialVaccine(undefined)} className="w-full mt-6 py-3 bg-brown-dark text-white rounded-2xl font-bold text-sm">Cerrar</button>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <strong className="block text-sm text-brown-darker font-bold truncate">{vac.name}</strong>
-                              <span className="block text-xs text-brown-mid truncate">Fecha: {new Date(vac.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>
+                        </div>
+                    )}
+
+                    {/* Vaccine Card */}
+                    {(() => {
+                        const speciesProtocols = wsavaProtocols.filter(v => v.species === (petData.species || 'dog'));
+                        const vac = speciesProtocols[selectedVaccineIndex] || speciesProtocols[0];
+                        const history = reminders.filter(r => r.type === 'vacuna' && r.protocol_id === vac.id && r.status === 'aplicada').sort((a,b) => a.date.localeCompare(b.date));
+                        
+                        return (
+                            <div className="bg-white rounded-3xl p-6 border border-brown-light shadow-sm">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h2 className="text-xl font-black text-brown-darker">{vac.name}</h2>
+                                    <button onClick={() => setActiveHistorialVaccine(vac)} className="text-[10px] font-bold bg-brown-light px-3 py-1 rounded-full text-brown-dark">Ver historial</button>
+                                </div>
+                                <div className="space-y-3">
+                                    <h4 className="text-[10px] font-bold text-brown-mid uppercase tracking-widest">Historial de dosis</h4>
+                                    {history.length > 0 ? (
+                                        history.map(d => (
+                                            <div key={d.id} className="flex justify-between text-xs font-bold text-brown-darker bg-cream p-3 rounded-xl">
+                                                <span>Aplicada</span>
+                                                <span>{new Date(d.date).toLocaleDateString()}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-brown-mid italic">Todavía no se registró ninguna dosis 🐾</p>
+                                    )}
+                                </div>
+                                <div className="mt-6 pt-6 border-t border-brown-light">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs font-bold text-brown-mid">Próxima dosis</span>
+                                        <span className="text-sm font-black text-brown-darker">
+                                            {reminders.find(r => r.type === 'vacuna' && r.protocol_id === vac.id && r.status === 'pendiente')?.date 
+                                            ? new Date(reminders.find(r => r.type === 'vacuna' && r.protocol_id === vac.id && r.status === 'pendiente')!.date).toLocaleDateString() 
+                                            : 'A definir'}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className={cn(
-                              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold",
-                              diff < 0 ? "bg-red-50 text-red-600" : diff === 0 ? "bg-red-50 text-red-600" : "bg-[#FFF0D6] text-[#7A4A00]"
-                            )}>
-                              <Calendar size={10} />
-                              <span>{diff < 0 ? 'Vencida' : diff === 0 ? 'Hoy' : `${diff} días`}</span>
-                            </div>
+                        );
+                    })()}
+                  </div>
+                ) : (
+                  <>
+                    <div className="mt-6 flex items-center justify-between">
+                      <div className="text-[13px] font-bold tracking-widest text-brown-mid uppercase">Programar Recordatorio</div>
+                      <button 
+                        type="button"
+                        onClick={() => setShowCalendar(!showCalendar)}
+                        className="flex items-center gap-1.5 rounded-full bg-brown-light px-3 py-1.5 text-[11px] font-bold text-brown-dark active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Calendar size={14} />
+                        {showCalendar ? 'Ocultar calendario' : 'Ver calendario'}
+                      </button>
+                    </div>
+
+                    {showCalendar && (
+                      <div className="mt-4 mb-6 rounded-3xl border border-brown-light bg-white p-5 shadow-md">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                          <h3 className="text-sm font-bold text-brown-darker capitalize">
+                            {currentCalendarDate.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
+                          </h3>
+                          <div className="flex gap-2">
                             <button 
                               type="button"
-                              onClick={() => deleteVaccine(vac.id)}
-                              className="p-2 text-red-400 hover:text-red-600 transition-colors cursor-pointer"
+                              onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1))}
+                              className="p-1 text-brown-mid hover:text-brown-dark transition-colors cursor-pointer"
                             >
-                              <Trash2 size={16} />
+                              <ChevronLeft size={20} />
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 1))}
+                              className="p-1 text-brown-mid hover:text-brown-dark transition-colors cursor-pointer"
+                            >
+                              <ChevronRight size={20} />
                             </button>
                           </div>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
+
+                        <div className="grid grid-cols-7 gap-1.5 text-center mb-2">
+                          {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
+                            <span key={d} className="text-[11px] font-medium text-brown-mid">{d}</span>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1.5">
+                          {(() => {
+                            const year = currentCalendarDate.getFullYear();
+                            const month = currentCalendarDate.getMonth();
+
+                            const firstDayOfMonth = new Date(year, month, 1).getDay();
+                            const startingDayIndex = (firstDayOfMonth + 6) % 7;
+
+                            const daysInMonth = new Date(year, month + 1, 0).getDate();
+                            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+                            const calendarCells = [];
+
+                            for (let i = startingDayIndex - 1; i >= 0; i--) {
+                              calendarCells.push(
+                                <div key={`prev-${i}`} className="aspect-square flex items-center justify-center text-[13px] text-brown-mid opacity-30">
+                                  {daysInPrevMonth - i}
+                                </div>
+                              );
+                            }
+
+                            for (let d = 1; d <= daysInMonth; d++) {
+                              const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                              const hasReminder = reminders.find(v => v.date === dateStr);
+                              const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+
+                              calendarCells.push(
+                                <button
+                                  key={`curr-${d}`}
+                                  type="button"
+                                  onClick={() => {
+                                    if (hasReminder) {
+                                      triggerToast(`🐾 Recordatorio: ${hasReminder.name}`, `Asignado para el ${d} de ${currentCalendarDate.toLocaleDateString('es-AR', { month: 'long' })}`);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "aspect-square rounded-[10px] flex flex-col items-center justify-center text-[13px] relative transition-all active:scale-90 cursor-pointer",
+                                    isToday ? "bg-brown-light font-bold text-brown-dark" : "text-brown-darker",
+                                    hasReminder ? "border border-brown-main/40" : ""
+                                  )}
+                                >
+                                  <span>{d}</span>
+                                  {hasReminder && (
+                                    <span className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-gold shadow-sm" />
+                                  )}
+                                </button>
+                              );
+                            }
+
+                            const remainingCells = 42 - calendarCells.length; 
+                            for (let i = 1; i <= remainingCells; i++) {
+                              calendarCells.push(
+                                <div key={`next-${i}`} className="aspect-square flex items-center justify-center text-[13px] text-brown-mid opacity-30">
+                                  {i}
+                                </div>
+                              );
+                            }
+
+                            return calendarCells;
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="rounded-2xl border border-brown-light bg-white p-6 shadow-sm mb-6 mt-4">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-brown-mid px-1">Nombre</label>
+                          <input 
+                            type="text" 
+                            placeholder="Ej: Antirrábica"
+                            id="rem-name"
+                            className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                          />
+                        </div>
+                        <div>
+                            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-brown-mid px-1">Tipo</label>
+                            <select id="rem-type" className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors">
+                                <option value="vacuna">Vacuna</option>
+                                <option value="visita_veterinaria">Visita Veterinaria</option>
+                                <option value="medicamento">Medicamento</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-brown-mid px-1">Fecha programada</label>
+                          <input 
+                            type="date" 
+                            id="rem-date"
+                            className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-brown-mid px-1">Hora (opcional)</label>
+                          <input 
+                            type="time" 
+                            id="rem-time"
+                            className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                          />
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={async () => {
+                            const nameEl = document.getElementById('rem-name') as HTMLInputElement;
+                            const dateEl = document.getElementById('rem-date') as HTMLInputElement;
+                            const typeEl = document.getElementById('rem-type') as HTMLSelectElement;
+                            const timeEl = document.getElementById('rem-time') as HTMLInputElement;
+                            if (nameEl.value && dateEl.value && typeEl.value) {
+                              const newId = Math.floor(Math.random() * 1000000);
+                              const newRem: Reminder = { 
+                                id: newId, 
+                                name: nameEl.value, 
+                                date: dateEl.value,
+                                time: timeEl.value || null,
+                                type: typeEl.value as any,
+                                status: 'aplicada',
+                                auto_generated: false,
+                                protocol_id: null
+                              };
+
+                              const hasPermission = await requestNotificationPermissions();
+                              if (hasPermission) {
+                                await scheduleVaccineNotification(newId, newRem.name, newRem.date);
+                              }
+
+                              setReminders(prev => [...prev, newRem]);
+                              nameEl.value = '';
+                              dateEl.value = '';
+                              timeEl.value = '';
+                              triggerToast('Recordatorio agendado 🐾', 'Se mostrará en tu calendario y recordatorios');
+                            }
+                          }}
+                          className="w-full rounded-2xl bg-brown-dark py-3.5 text-sm font-bold text-brown-lightest shadow-lg active:scale-95 transition-all cursor-pointer mt-2"
+                        >
+                          Guardar Recordatorio
+                        </button>
+                        </div>
+                        </div>
+
+                        <div className="mt-6 mb-3 text-[13px] font-bold tracking-widest text-brown-mid uppercase">Próximos Recordatorios</div>
+                        <div className="space-y-3">
+                        {reminders.length === 0 ? (
+                        <p className="text-center text-xs text-brown-mid py-8 italic">No hay recordatorios programados</p>
+                        ) : (
+                        reminders.sort((a,b) => a.date.localeCompare(b.date)).map(rem => {
+                          const diff = Math.ceil((new Date(rem.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                          const iconMap = {
+                              'vacuna': Syringe,
+                              'visita_veterinaria': Shield,
+                              'medicamento': Droplets,
+                              'otro': Star
+                          };
+                          const Icon = iconMap[rem.type] || Bell;
+                          return (
+                            <div key={rem.id} className="rounded-2xl border border-brown-light bg-white p-4 shadow-sm">
+                              <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FFF0D6] text-[#7A4A00]">
+                                  <Icon size={24} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <strong className="block text-sm text-brown-darker font-bold truncate">{rem.name}</strong>
+                                  <span className="block text-xs text-brown-mid truncate">
+                                      Fecha: {new Date(rem.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
+                                      {rem.time ? ` · ${rem.time}hs` : ''}
+                                  </span>
+                                </div>
+                                <div className={cn(
+                                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold",
+                                  rem.status === 'aplicada' ? "bg-green-100 text-green-700" : (diff < 0 ? "bg-red-50 text-red-600" : diff === 0 ? "bg-red-50 text-red-600" : "bg-[#FFF0D6] text-[#7A4A00]")
+                                )}>
+                                  <Calendar size={10} />
+                                  <span>{rem.status === 'aplicada' ? 'Aplicada' : (diff < 0 ? 'Vencida' : diff === 0 ? 'Hoy' : `${diff} días`)}</span>
+                                </div>
+                                <button 
+                                  type="button"
+                                  onClick={() => deleteReminder(rem.id)}
+                                  className="p-2 text-red-400 hover:text-red-600 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                        )}
+                        </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -991,27 +1300,49 @@ export default function App() {
           {activeScreen === 'tips' && (
             <div className="flex flex-col h-full overflow-hidden">
               <div className="flex items-center gap-2.5 bg-brown-dark px-5 py-4 text-brown-lightest shrink-0">
-                <Book size={20} />
+                <BookOpen size={20} />
                 <span className="flex-1 font-bold">Guías de cuidado</span>
               </div>
               <div className="flex-1 overflow-y-auto px-4 pb-4">
-                <div className="mt-6 mb-6 rounded-3xl bg-brown-dark p-6 text-brown-lightest shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-20"><Star size={40} /></div>
-                  <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gold">Destacado</div>
-                  <h3 className="text-lg font-bold mb-2">Hidratación en verano 🌞</h3>
-                  <p className="text-xs leading-relaxed opacity-90">Los perros necesitan entre 50–60 ml de agua por kilo al día. En días calurosos, duplicá la cantidad.</p>
+                <div className="mt-4 p-3 bg-cream rounded-xl text-[10px] text-brown-mid text-center italic">
+                   La información de esta sección es orientativa y no reemplaza la consulta veterinaria.
                 </div>
 
+                {/* Recommendations */}
+                {(() => {
+                  const { recommendations, isFallback } = getRecommendedGuides(petData);
+                  if (recommendations.length === 0) return null;
+                  
+                  return (
+                    <div className="mt-6">
+                      <div className="text-[12px] font-bold tracking-widest text-brown-mid uppercase mb-3 px-1">
+                        {isFallback 
+                          ? `Todavía no tenemos info específica para ${petData.breedName}, ¡pero aquí hay consejos geniales para tu ${petData.name}! 🐶`
+                          : `Recomendado especialmente para ${petData.name} ✨`
+                        }
+                      </div>
+                      <div className="space-y-4">
+                        {recommendations.map(g => (
+                            <div key={g.id} className="rounded-2xl border border-brown-light border-l-4 border-l-brown-main bg-white p-4 shadow-sm">
+                                <h4 className="text-sm font-bold text-brown-darker mb-1">{g.title}</h4>
+                                <p className="text-xs leading-relaxed text-brown-mid">{g.content}</p>
+                            </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="mt-6 mb-3 text-[13px] font-bold tracking-widest text-brown-mid uppercase">Guías generales</div>
+                
                 <div className="space-y-6">
                   <div>
-                    <div className="text-[12px] font-bold tracking-widest text-brown-mid uppercase mb-3">Alimentación</div>
                     <div className="rounded-2xl border-l-4 border-brown-main bg-cream p-4 shadow-sm">
                       <h4 className="text-sm font-bold text-brown-darker mb-1">¿Cuánto darle de comer?</h4>
                       <p className="text-xs leading-relaxed text-brown-mid">Depende del peso y edad. Un adulto de 10kg necesita 250-300g diarios.</p>
                     </div>
                   </div>
                   <div>
-                    <div className="text-[12px] font-bold tracking-widest text-brown-mid uppercase mb-3">Salud</div>
                     <div className="rounded-2xl border-l-4 border-brown-main bg-cream p-4 shadow-sm">
                       <h4 className="text-sm font-bold text-brown-darker mb-1">Vacunación</h4>
                       <p className="text-xs leading-relaxed text-brown-mid">Las esenciales son: moquillo, parvovirus y rabia. Esta última es anual y obligatoria.</p>
@@ -1054,8 +1385,16 @@ export default function App() {
                       onChange={(e) => handleImageChange(e, 'profile')}
                     />
                   </div>
-                  <div className="text-xl font-bold text-brown-darker">María González</div>
-                  <div className="text-xs text-brown-mid font-medium">Dueña responsable desde 2021</div>
+                  <div className="text-xl font-bold text-brown-darker">{userData.name} {userData.surname}</div>
+                  <div className="text-xs text-brown-mid font-medium">Dueña desde {userData.memberSince} · {new Date(userData.birthDate).toLocaleDateString()}</div>
+                  <div className="text-xs text-brown-mid font-medium">{userData.email}</div>
+                  <button 
+                    type="button"
+                    onClick={() => navigateTo('editprofile')}
+                    className="mt-4 text-xs font-bold text-brown-main underline cursor-pointer"
+                  >
+                    Editar mis datos
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3 mb-8">
@@ -1160,6 +1499,7 @@ export default function App() {
 
                     {[
                       { label: 'Datos de mascota', icon: PawPrint, act: () => navigateTo('editpet') },
+                      { label: 'Cargar vacunas anteriores', icon: Syringe, act: () => setShowRetroactiveModal(true) },
                       { label: 'Términos y privacidad', icon: Shield, act: () => navigateTo('legal') },
                     ].map((item, i) => (
                       <button 
@@ -1173,6 +1513,35 @@ export default function App() {
                         <ChevronRight size={18} className="text-brown-light" />
                       </button>
                     ))}
+
+                    {showRetroactiveModal && (
+                        <div className="fixed inset-0 z-[100] bg-black/50 p-6 flex flex-col justify-center">
+                            <div className="bg-white rounded-3xl p-6 max-h-[80vh] overflow-y-auto">
+                                <h3 className="text-xl font-black mb-4">Cargar Vacunas Anteriores</h3>
+                                {wsavaProtocols.filter(v => v.species === (petData.species || 'dog')).map(vac => (
+                                    <div key={vac.id} className="mb-4">
+                                        <label className="block text-xs font-bold text-brown-mid mb-1">{vac.name}</label>
+                                        <input type="date" className="w-full p-2 border rounded-xl" onChange={(e) => {
+                                            if (e.target.value) {
+                                                const newRem: Reminder = {
+                                                    id: Math.floor(Math.random() * 1000000),
+                                                    name: vac.name,
+                                                    date: e.target.value,
+                                                    type: 'vacuna',
+                                                    status: 'aplicada',
+                                                    auto_generated: false,
+                                                    protocol_id: vac.id
+                                                };
+                                                setReminders(prev => [...prev.filter(r => !(r.protocol_id === vac.id && r.status === 'aplicada' && r.date === e.target.value)), newRem]);
+                                                triggerToast('Vacuna cargada', '');
+                                            }
+                                        }} />
+                                    </div>
+                                ))}
+                                <button onClick={() => setShowRetroactiveModal(false)} className="w-full mt-6 py-3 bg-brown-dark text-white rounded-2xl font-bold text-sm">Listo</button>
+                            </div>
+                        </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1234,6 +1603,75 @@ export default function App() {
             </div>
           )}
 
+          {/* EDIT PROFILE SCREEN */}
+          {activeScreen === 'editprofile' && (
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="flex items-center gap-2.5 bg-brown-dark px-5 py-4 text-brown-lightest shrink-0">
+                <button type="button" onClick={() => navigateTo('profile')} className="p-1 -ml-1 cursor-pointer">←</button>
+                <span className="flex-1 font-bold">Editar mis datos</span>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 pb-8">
+                <div className="space-y-6 mt-8">
+                  <div className="rounded-2xl border border-brown-light bg-white p-6 shadow-md space-y-5">
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Nombre</label>
+                      <input
+                        type="text"
+                        value={userData.name}
+                        onChange={(e) => setUserData(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Apellido</label>
+                      <input
+                        type="text"
+                        value={userData.surname}
+                        onChange={(e) => setUserData(prev => ({ ...prev, surname: e.target.value }))}
+                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Fecha de nacimiento</label>
+                      <input
+                        type="date"
+                        value={userData.birthDate}
+                        onChange={(e) => setUserData(prev => ({ ...prev, birthDate: e.target.value }))}
+                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Email</label>
+                      <input
+                        type="email"
+                        value={userData.email}
+                        onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Contraseña</label>
+                      <input
+                        type="password"
+                        value={userData.password}
+                        onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
+                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { triggerToast('¡Datos actualizados! 🐾', ''); setTimeout(() => navigateTo('profile'), 800); }}
+                    className="w-full rounded-3xl bg-brown-dark py-4 text-sm font-bold text-brown-lightest shadow-xl hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Guardar cambios
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* EDIT PET SCREEN */}
           {activeScreen === 'editpet' && (
             <div className="flex flex-col h-full overflow-hidden">
@@ -1245,9 +1683,9 @@ export default function App() {
                 <div className="my-8 text-center">
                   <span className="text-8xl block mb-6 drop-shadow-lg">{petData.type}</span>
                   <div className="flex justify-center gap-3">
-                    {['🐶', '🐱', '🐰', '🐹', '🦜'].map((emoji) => (
-                      <button 
-                        key={emoji} 
+                    {['🐶', '🐱'].map((emoji) => (
+                      <button
+                        key={emoji}
                         type="button"
                         onClick={() => setPetData(prev => ({ ...prev, type: emoji }))}
                         className={cn(
@@ -1274,13 +1712,19 @@ export default function App() {
                     </div>
                     <div>
                       <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Raza</label>
-                      <input 
-                        type="text" 
-                        value={petData.breed} 
-                        onChange={(e) => setPetData(prev => ({ ...prev, breed: e.target.value }))}
-                        className="w-full rounded-xl border-2 border-brown-light bg-cream p-3 text-sm font-bold text-brown-darker focus:border-brown-main outline-none transition-colors" 
-                      />
+                      <BreedSelector petData={petData} setPetData={setPetData} />
                     </div>
+
+                    {!petData.remindersSetupCompleted && (
+                      <div className="pt-4 border-t border-brown-light">
+                        <label className="mb-2 block text-[12px] font-bold text-brown-darker">¿Tu mascota ya tiene vacunas aplicadas?</label>
+                        <div className="flex gap-4">
+                          <button type="button" onClick={() => { setPetData(prev => ({...prev, remindersSetupCompleted: true})); /* TODO: Add manual entry flow */ }} className="flex-1 py-3 bg-brown-light rounded-xl font-bold text-sm">Sí, cargar historial</button>
+                          <button type="button" onClick={() => { setPetData(prev => ({...prev, remindersSetupCompleted: true})); generateInitialReminders(petData.species || 'dog', petData.birthDate || new Date().toISOString().split('T')[0]); triggerToast('Calendario generado 🐾', 'Revisa la pestaña de Agenda'); }} className="flex-1 py-3 bg-brown-light rounded-xl font-bold text-sm">No, generar calendario</button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-brown-mid">Edad</label>

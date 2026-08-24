@@ -1,0 +1,42 @@
+{
+  "dog": [
+    {
+      "id": "antirrabica",
+      "name": "Antirrábica",
+      "category": "core",
+      "puppy_series": [12, 16],
+      "booster_after_puppy_series_months": 12,
+      "annual_booster_after_months": 12,
+      "adult_unknown_history_protocol": "Aplicar 1 dosis y repetir al año."
+    },
+    {
+      "id": "sextuple",
+      "name": "Séxtuple",
+      "category": "core",
+      "puppy_series": [8, 12, 16],
+      "booster_after_puppy_series_months": 12,
+      "annual_booster_after_months": 12,
+      "adult_unknown_history_protocol": "Aplicar 1 dosis (o 2 separadas por 3 semanas si es muy joven/riesgo alto) y repetir al año."
+    }
+  ],
+  "cat": [
+    {
+      "id": "triple-felina",
+      "name": "Triple Felina",
+      "category": "core",
+      "puppy_series": [8, 12, 16],
+      "booster_after_puppy_series_months": 12,
+      "annual_booster_after_months": 12,
+      "adult_unknown_history_protocol": "Aplicar 1 dosis y repetir al año."
+    },
+    {
+      "id": "antirrabica-felina",
+      "name": "Antirrábica Felina",
+      "category": "core",
+      "puppy_series": [16],
+      "booster_after_puppy_series_months": 12,
+      "annual_booster_after_months": 12,
+      "adult_unknown_history_protocol": "Aplicar 1 dosis y repetir al año."
+    }
+  ]
+}

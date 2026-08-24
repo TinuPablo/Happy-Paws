@@ -1,0 +1,1360 @@
+[
+  {
+    "id": "pastor-aleman",
+    "name": "Pastor Alemán",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "displasia_codo", "mielopatia_degenerativa"]
+  },
+  {
+    "id": "border-collie",
+    "name": "Border Collie",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "pastor-australiano",
+    "name": "Pastor Australiano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "collie-de-pelo-largo",
+    "name": "Collie de Pelo Largo",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["problemas_oculares", "mielopatia_degenerativa"]
+  },
+  {
+    "id": "collie-de-pelo-corto",
+    "name": "Collie de Pelo Corto",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["problemas_oculares", "mielopatia_degenerativa"]
+  },
+  {
+    "id": "pastor-belga-malinois",
+    "name": "Pastor Belga Malinois",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "pastor-belga-groenendael",
+    "name": "Pastor Belga Groenendael",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "pastor-belga-tervueren",
+    "name": "Pastor Belga Tervueren",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "bearded-collie",
+    "name": "Bearded Collie",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "bobtail-old-english-sheepdog",
+    "name": "Bobtail (Old English Sheepdog)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "sensibilidad_calor"]
+  },
+  {
+    "id": "corgi-gales-de-cardigan",
+    "name": "Corgi Galés de Cardigan",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_columna", "obesidad"]
+  },
+  {
+    "id": "corgi-gales-de-pembroke",
+    "name": "Corgi Galés de Pembroke",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_columna", "obesidad"]
+  },
+  {
+    "id": "bouvier-des-flandres",
+    "name": "Bouvier des Flandres",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "briard",
+    "name": "Briard",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "kelpie-australiano",
+    "name": "Kelpie Australiano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "ovejero-aleman-de-cola-larga",
+    "name": "Ovejero Alemán de Cola Larga",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "pastor-de-shetland-sheltie",
+    "name": "Pastor de Shetland (Sheltie)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["problemas_oculares", "mielopatia_degenerativa"]
+  },
+  {
+    "id": "schapendoes",
+    "name": "Schapendoes",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "puli",
+    "name": "Puli",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "komondor",
+    "name": "Komondor",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "sensibilidad_calor"]
+  },
+  {
+    "id": "mudi",
+    "name": "Mudi",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "cattle-dog-australiano",
+    "name": "Cattle Dog Australiano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "pastor-catalan",
+    "name": "Pastor Catalán",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "pastor-vasco",
+    "name": "Pastor Vasco",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 1 - Perros de pastor y boyeros",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "doberman",
+    "name": "Dóberman",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["problemas_cardiacos", "enfermedad_poliquistica_renal", "problemas_articulares"]
+  },
+  {
+    "id": "schnauzer-miniatura",
+    "name": "Schnauzer Miniatura",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["problemas_dentales", "obesidad"]
+  },
+  {
+    "id": "schnauzer-mediano",
+    "name": "Schnauzer Mediano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["problemas_dentales", "displasia_cadera"]
+  },
+  {
+    "id": "schnauzer-gigante",
+    "name": "Schnauzer Gigante",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos"]
+  },
+  {
+    "id": "boxer",
+    "name": "Boxer",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["problemas_cardiacos", "braquicefalico", "problemas_respiratorios"]
+  },
+  {
+    "id": "bullmastiff",
+    "name": "Bullmastiff",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos", "braquicefalico"]
+  },
+  {
+    "id": "mastin-napolitano",
+    "name": "Mastín Napolitano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_piel", "braquicefalico"]
+  },
+  {
+    "id": "mastin-espanol",
+    "name": "Mastín Español",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "gran-danes",
+    "name": "Gran Danés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos", "problemas_articulares"]
+  },
+  {
+    "id": "san-bernardo",
+    "name": "San Bernardo",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo", "problemas_cardiacos"]
+  },
+  {
+    "id": "rottweiler",
+    "name": "Rottweiler",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo", "problemas_cardiacos"]
+  },
+  {
+    "id": "dogo-aleman",
+    "name": "Dogo Alemán",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos"]
+  },
+  {
+    "id": "boyero-de-berna",
+    "name": "Boyero de Berna",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo", "problemas_cardiacos"]
+  },
+  {
+    "id": "boyero-de-appenzell",
+    "name": "Boyero de Appenzell",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "gran-boyero-suizo",
+    "name": "Gran Boyero Suizo",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "terranova",
+    "name": "Terranova",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos", "sensibilidad_calor"]
+  },
+  {
+    "id": "perro-de-montana-de-los-pirineos",
+    "name": "Perro de Montaña de los Pirineos",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "fila-brasileiro",
+    "name": "Fila Brasileiro",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_articulares"]
+  },
+  {
+    "id": "cane-corso",
+    "name": "Cane Corso",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo", "problemas_piel"]
+  },
+  {
+    "id": "dogo-de-burdeos",
+    "name": "Dogo de Burdeos",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos", "braquicefalico"]
+  },
+  {
+    "id": "akbash",
+    "name": "Akbash",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "kuvasz",
+    "name": "Kuvasz",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo"]
+  },
+  {
+    "id": "leonberger",
+    "name": "Leonberger",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["displasia_cadera", "displasia_codo", "problemas_cardiacos"]
+  },
+  {
+    "id": "pinscher-miniatura",
+    "name": "Pinscher Miniatura",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 2 - Pinschers, Schnauzers, Molosoides y Boyeros suizos",
+    "health_tags": ["problemas_articulares", "problemas_dentales"]
+  },
+  {
+    "id": "bull-terrier",
+    "name": "Bull Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["enfermedad_renal", "problemas_piel", "problemas_cardiacos"]
+  },
+  {
+    "id": "staffordshire-bull-terrier",
+    "name": "Staffordshire Bull Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "problemas_cardiacos"]
+  },
+  {
+    "id": "american-staffordshire-terrier",
+    "name": "American Staffordshire Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "displasia_cadera"]
+  },
+  {
+    "id": "west-highland-white-terrier",
+    "name": "West Highland White Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "alergias"]
+  },
+  {
+    "id": "yorkshire-terrier",
+    "name": "Yorkshire Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_dentales", "problemas_articulares", "ansiedad_separacion"]
+  },
+  {
+    "id": "jack-russell-terrier",
+    "name": "Jack Russell Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "parson-russell-terrier",
+    "name": "Parson Russell Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "fox-terrier-de-pelo-liso",
+    "name": "Fox Terrier de Pelo Liso",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "fox-terrier-de-pelo-duro",
+    "name": "Fox Terrier de Pelo Duro",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "cairn-terrier",
+    "name": "Cairn Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "alergias"]
+  },
+  {
+    "id": "scottish-terrier",
+    "name": "Scottish Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "problemas_dentales"]
+  },
+  {
+    "id": "airedale-terrier",
+    "name": "Airedale Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["displasia_cadera", "problemas_piel"]
+  },
+  {
+    "id": "bedlington-terrier",
+    "name": "Bedlington Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["enfermedad_renal", "problemas_piel"]
+  },
+  {
+    "id": "border-terrier",
+    "name": "Border Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_articulares", "alto_nivel_energia"]
+  },
+  {
+    "id": "boston-terrier",
+    "name": "Boston Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares"]
+  },
+  {
+    "id": "kerry-blue-terrier",
+    "name": "Kerry Blue Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "problemas_dentales"]
+  },
+  {
+    "id": "norfolk-terrier",
+    "name": "Norfolk Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_articulares", "problemas_dentales"]
+  },
+  {
+    "id": "norwich-terrier",
+    "name": "Norwich Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_articulares", "problemas_dentales"]
+  },
+  {
+    "id": "manchester-terrier",
+    "name": "Manchester Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_articulares", "problemas_oculares"]
+  },
+  {
+    "id": "australian-terrier",
+    "name": "Australian Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "problemas_dentales"]
+  },
+  {
+    "id": "silky-terrier",
+    "name": "Silky Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_dentales", "ansiedad_separacion"]
+  },
+  {
+    "id": "welsh-terrier",
+    "name": "Welsh Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_piel", "alto_nivel_energia"]
+  },
+  {
+    "id": "lakeland-terrier",
+    "name": "Lakeland Terrier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 3 - Terriers",
+    "health_tags": ["problemas_dentales", "problemas_piel"]
+  },
+  {
+    "id": "teckel-estandar-pelo-corto",
+    "name": "Teckel Estándar Pelo Corto",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 4 - Teckels (Dachshunds)",
+    "health_tags": ["problemas_columna", "obesidad"]
+  },
+  {
+    "id": "teckel-estandar-pelo-largo",
+    "name": "Teckel Estándar Pelo Largo",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 4 - Teckels (Dachshunds)",
+    "health_tags": ["problemas_columna", "obesidad"]
+  },
+  {
+    "id": "teckel-estandar-pelo-duro",
+    "name": "Teckel Estándar Pelo Duro",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 4 - Teckels (Dachshunds)",
+    "health_tags": ["problemas_columna", "obesidad"]
+  },
+  {
+    "id": "teckel-miniatura",
+    "name": "Teckel Miniatura",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 4 - Teckels (Dachshunds)",
+    "health_tags": ["problemas_columna", "problemas_dentales"]
+  },
+  {
+    "id": "teckel-kaninchen",
+    "name": "Teckel Kaninchen",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 4 - Teckels (Dachshunds)",
+    "health_tags": ["problemas_columna", "problemas_dentales"]
+  },
+  {
+    "id": "akita-inu",
+    "name": "Akita Inu",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "problemas_piel"]
+  },
+  {
+    "id": "akita-americano",
+    "name": "Akita Americano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "husky-siberiano",
+    "name": "Husky Siberiano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["problemas_oculares", "sensibilidad_calor", "alto_nivel_energia"]
+  },
+  {
+    "id": "malamute-de-alaska",
+    "name": "Malamute de Alaska",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "sensibilidad_calor", "alto_nivel_energia"]
+  },
+  {
+    "id": "samoyedo",
+    "name": "Samoyedo",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "sensibilidad_calor"]
+  },
+  {
+    "id": "spitz-aleman-pomerania",
+    "name": "Spitz Alemán (Pomerania)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["problemas_dentales", "problemas_articulares", "ansiedad_separacion"]
+  },
+  {
+    "id": "shiba-inu",
+    "name": "Shiba Inu",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "alergias"]
+  },
+  {
+    "id": "chow-chow",
+    "name": "Chow Chow",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "sensibilidad_calor"]
+  },
+  {
+    "id": "basenji",
+    "name": "Basenji",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["enfermedad_renal", "problemas_oculares"]
+  },
+  {
+    "id": "perro-finlandes-de-laponia",
+    "name": "Perro Finlandés de Laponia",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "sensibilidad_calor"]
+  },
+  {
+    "id": "elkhound-noruego",
+    "name": "Elkhound Noruego",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "enfermedad_renal"]
+  },
+  {
+    "id": "volpino-italiano",
+    "name": "Volpino Italiano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["problemas_dentales", "problemas_articulares"]
+  },
+  {
+    "id": "eurasier",
+    "name": "Eurasier",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "sensibilidad_calor"]
+  },
+  {
+    "id": "perro-esquimal-canadiense",
+    "name": "Perro Esquimal Canadiense",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 5 - Perros tipo Spitz y primitivos",
+    "health_tags": ["displasia_cadera", "sensibilidad_calor"]
+  },
+  {
+    "id": "beagle",
+    "name": "Beagle",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["obesidad", "problemas_oculares", "problemas_articulares"]
+  },
+  {
+    "id": "basset-hound",
+    "name": "Basset Hound",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["problemas_columna", "obesidad", "problemas_oculares"]
+  },
+  {
+    "id": "bloodhound-sabueso-de-sangre",
+    "name": "Bloodhound (Sabueso de Sangre)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["displasia_cadera", "problemas_oculares", "sensibilidad_calor"]
+  },
+  {
+    "id": "dalmata",
+    "name": "Dálmata",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["problemas_urinarios", "enfermedad_renal"]
+  },
+  {
+    "id": "rhodesian-ridgeback",
+    "name": "Rhodesian Ridgeback",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["displasia_cadera", "problemas_piel"]
+  },
+  {
+    "id": "foxhound-americano",
+    "name": "Foxhound Americano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "sabueso-espanol",
+    "name": "Sabueso Español",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "petit-basset-griffon-vendeen",
+    "name": "Petit Basset Griffon Vendéen",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["problemas_columna", "obesidad"]
+  },
+  {
+    "id": "grand-basset-griffon-vendeen",
+    "name": "Grand Basset Griffon Vendéen",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["problemas_columna", "obesidad"]
+  },
+  {
+    "id": "otterhound",
+    "name": "Otterhound",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 6 - Sabuesos y razas afines",
+    "health_tags": ["displasia_cadera", "obesidad"]
+  },
+  {
+    "id": "braco-aleman-de-pelo-corto",
+    "name": "Braco Alemán de Pelo Corto",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "braco-aleman-de-pelo-duro",
+    "name": "Braco Alemán de Pelo Duro",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "weimaraner",
+    "name": "Weimaraner",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos", "ansiedad_separacion"]
+  },
+  {
+    "id": "pointer-ingles",
+    "name": "Pointer Inglés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "setter-irlandes",
+    "name": "Setter Irlandés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "setter-ingles",
+    "name": "Setter Inglés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "setter-gordon",
+    "name": "Setter Gordon",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos"]
+  },
+  {
+    "id": "epagneul-breton-braco-breton",
+    "name": "Epagneul Bretón (Braco Bretón)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "alto_nivel_energia"]
+  },
+  {
+    "id": "vizsla-hungaro",
+    "name": "Vizsla Húngaro",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "ansiedad_separacion"]
+  },
+  {
+    "id": "griffon-de-muestra-de-pelo-duro",
+    "name": "Griffon de Muestra de Pelo Duro",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "spinone-italiano",
+    "name": "Spinone Italiano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 7 - Perros de muestra",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "golden-retriever",
+    "name": "Golden Retriever",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "obesidad", "problemas_cardiacos"]
+  },
+  {
+    "id": "labrador-retriever",
+    "name": "Labrador Retriever",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "obesidad", "problemas_articulares"]
+  },
+  {
+    "id": "cocker-spaniel-ingles",
+    "name": "Cocker Spaniel Inglés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["problemas_oculares", "problemas_piel", "obesidad"]
+  },
+  {
+    "id": "cocker-spaniel-americano",
+    "name": "Cocker Spaniel Americano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["problemas_oculares", "problemas_piel", "obesidad"]
+  },
+  {
+    "id": "springer-spaniel-ingles",
+    "name": "Springer Spaniel Inglés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "perro-de-agua-portugues",
+    "name": "Perro de Agua Portugués",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "problemas_piel"]
+  },
+  {
+    "id": "perro-de-agua-espanol",
+    "name": "Perro de Agua Español",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "problemas_piel"]
+  },
+  {
+    "id": "flat-coated-retriever",
+    "name": "Flat Coated Retriever",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos"]
+  },
+  {
+    "id": "chesapeake-bay-retriever",
+    "name": "Chesapeake Bay Retriever",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "problemas_piel"]
+  },
+  {
+    "id": "nova-scotia-duck-tolling-retriever",
+    "name": "Nova Scotia Duck Tolling Retriever",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 8 - Cobradores, levantadores y perros de agua",
+    "health_tags": ["displasia_cadera", "problemas_oculares"]
+  },
+  {
+    "id": "bulldog-frances",
+    "name": "Bulldog Francés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_piel", "problemas_columna"]
+  },
+  {
+    "id": "pug",
+    "name": "Pug",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_piel"]
+  },
+  {
+    "id": "bulldog-ingles",
+    "name": "Bulldog Inglés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "displasia_cadera", "problemas_piel"]
+  },
+  {
+    "id": "chihuahua",
+    "name": "Chihuahua",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_dentales", "problemas_articulares", "ansiedad_separacion"]
+  },
+  {
+    "id": "caniche-toy",
+    "name": "Caniche Toy",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_dentales", "problemas_oculares"]
+  },
+  {
+    "id": "caniche-miniatura",
+    "name": "Caniche Miniatura",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_dentales", "problemas_oculares"]
+  },
+  {
+    "id": "caniche-estandar",
+    "name": "Caniche Estándar",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["displasia_cadera", "problemas_dentales"]
+  },
+  {
+    "id": "cavalier-king-charles-spaniel",
+    "name": "Cavalier King Charles Spaniel",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_cardiacos", "problemas_oculares", "braquicefalico"]
+  },
+  {
+    "id": "shih-tzu",
+    "name": "Shih Tzu",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares"]
+  },
+  {
+    "id": "lhasa-apso",
+    "name": "Lhasa Apso",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_oculares", "problemas_piel"]
+  },
+  {
+    "id": "maltes",
+    "name": "Maltés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_dentales", "problemas_oculares", "ansiedad_separacion"]
+  },
+  {
+    "id": "bichon-frise",
+    "name": "Bichón Frisé",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_piel", "alergias", "problemas_dentales"]
+  },
+  {
+    "id": "bichon-habanero",
+    "name": "Bichón Habanero",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_dentales", "ansiedad_separacion"]
+  },
+  {
+    "id": "pekines",
+    "name": "Pekinés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_columna"]
+  },
+  {
+    "id": "papillon",
+    "name": "Papillón",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_dentales", "ansiedad_separacion"]
+  },
+  {
+    "id": "boston-terrier-compania",
+    "name": "Boston Terrier (compañía)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios"]
+  },
+  {
+    "id": "coton-de-tulear",
+    "name": "Coton de Tulear",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_oculares", "problemas_piel"]
+  },
+  {
+    "id": "terrier-tibetano",
+    "name": "Terrier Tibetano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["problemas_oculares", "displasia_cadera"]
+  },
+  {
+    "id": "spaniel-japones-chin",
+    "name": "Spaniel Japonés (Chin)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares"]
+  },
+  {
+    "id": "griffon-de-bruselas",
+    "name": "Griffon de Bruselas",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares"]
+  },
+  {
+    "id": "carlino-variante-pug",
+    "name": "Carlino (variante Pug)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 9 - Perros de compañía",
+    "health_tags": ["braquicefalico", "problemas_respiratorios"]
+  },
+  {
+    "id": "galgo-espanol",
+    "name": "Galgo Español",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_dentales", "sensibilidad_frio", "problemas_piel"]
+  },
+  {
+    "id": "greyhound-galgo-ingles",
+    "name": "Greyhound (Galgo Inglés)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_dentales", "sensibilidad_frio", "problemas_cardiacos"]
+  },
+  {
+    "id": "whippet",
+    "name": "Whippet",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_cardiacos", "sensibilidad_frio"]
+  },
+  {
+    "id": "afgano",
+    "name": "Afgano",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_oculares", "sensibilidad_frio"]
+  },
+  {
+    "id": "borzoi",
+    "name": "Borzoi",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_cardiacos", "sensibilidad_frio"]
+  },
+  {
+    "id": "ibizan-hound-podenco-ibicenco",
+    "name": "Ibizan Hound (Podenco Ibicenco)",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_oculares", "sensibilidad_frio"]
+  },
+  {
+    "id": "podenco-canario",
+    "name": "Podenco Canario",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_oculares", "alto_nivel_energia"]
+  },
+  {
+    "id": "saluki",
+    "name": "Saluki",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_cardiacos", "sensibilidad_frio"]
+  },
+  {
+    "id": "irish-wolfhound",
+    "name": "Irish Wolfhound",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["displasia_cadera", "problemas_cardiacos", "problemas_articulares"]
+  },
+  {
+    "id": "deerhound-escoces",
+    "name": "Deerhound Escocés",
+    "species": "dog",
+    "fci_group_or_category": "Grupo 10 - Lebreles",
+    "health_tags": ["problemas_cardiacos", "displasia_cadera"]
+  },
+  {
+    "id": "persa",
+    "name": "Persa",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares", "enfermedad_poliquistica_renal"]
+  },
+  {
+    "id": "maine-coon",
+    "name": "Maine Coon",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "displasia_cadera"]
+  },
+  {
+    "id": "ragdoll",
+    "name": "Ragdoll",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "problemas_urinarios"]
+  },
+  {
+    "id": "angora-turco",
+    "name": "Angora Turco",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "problemas_oculares"]
+  },
+  {
+    "id": "van-turco",
+    "name": "Van Turco",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "problemas_oculares"]
+  },
+  {
+    "id": "noruego-del-bosque",
+    "name": "Noruego del Bosque",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "displasia_cadera"]
+  },
+  {
+    "id": "siberiano",
+    "name": "Siberiano",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "alergias"]
+  },
+  {
+    "id": "somali",
+    "name": "Somali",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["enfermedad_renal", "problemas_dentales"]
+  },
+  {
+    "id": "himalayo",
+    "name": "Himalayo",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares"]
+  },
+  {
+    "id": "ragamuffin",
+    "name": "Ragamuffin",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "obesidad"]
+  },
+  {
+    "id": "balines",
+    "name": "Balinés",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo largo",
+    "health_tags": ["problemas_cardiacos", "problemas_oculares"]
+  },
+  {
+    "id": "siames",
+    "name": "Siamés",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_respiratorios", "obesidad", "problemas_dentales"]
+  },
+  {
+    "id": "british-shorthair",
+    "name": "British Shorthair",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["obesidad", "problemas_cardiacos"]
+  },
+  {
+    "id": "american-shorthair",
+    "name": "American Shorthair",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["obesidad", "problemas_cardiacos"]
+  },
+  {
+    "id": "abisinio",
+    "name": "Abisinio",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["enfermedad_renal", "problemas_dentales"]
+  },
+  {
+    "id": "bengali",
+    "name": "Bengalí",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_cardiacos", "problemas_oculares"]
+  },
+  {
+    "id": "burmes",
+    "name": "Burmés",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "problemas_respiratorios"]
+  },
+  {
+    "id": "ruso-azul",
+    "name": "Ruso Azul",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["obesidad", "problemas_dentales"]
+  },
+  {
+    "id": "devon-rex",
+    "name": "Devon Rex",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_piel", "problemas_cardiacos", "sensibilidad_frio"]
+  },
+  {
+    "id": "cornish-rex",
+    "name": "Cornish Rex",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_piel", "sensibilidad_frio"]
+  },
+  {
+    "id": "sphynx",
+    "name": "Sphynx",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_piel", "sensibilidad_frio", "sensibilidad_calor", "problemas_cardiacos"]
+  },
+  {
+    "id": "egyptian-mau",
+    "name": "Egyptian Mau",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_cardiacos", "problemas_dentales"]
+  },
+  {
+    "id": "ocicat",
+    "name": "Ocicat",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_cardiacos", "displasia_cadera"]
+  },
+  {
+    "id": "manx",
+    "name": "Manx",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_columna", "problemas_urinarios"]
+  },
+  {
+    "id": "korat",
+    "name": "Korat",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "obesidad"]
+  },
+  {
+    "id": "chartreux",
+    "name": "Chartreux",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["obesidad", "problemas_urinarios"]
+  },
+  {
+    "id": "tonkines",
+    "name": "Tonkinés",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "problemas_respiratorios"]
+  },
+  {
+    "id": "singapura",
+    "name": "Singapura",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "problemas_oculares"]
+  },
+  {
+    "id": "bombay",
+    "name": "Bombay",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["braquicefalico", "problemas_respiratorios"]
+  },
+  {
+    "id": "selkirk-rex",
+    "name": "Selkirk Rex",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_piel", "displasia_cadera"]
+  },
+  {
+    "id": "american-curl",
+    "name": "American Curl",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "problemas_oculares"]
+  },
+  {
+    "id": "scottish-fold",
+    "name": "Scottish Fold",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_articulares", "problemas_cardiacos"]
+  },
+  {
+    "id": "exotico-de-pelo-corto",
+    "name": "Exótico de Pelo Corto",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["braquicefalico", "problemas_respiratorios", "problemas_oculares"]
+  },
+  {
+    "id": "munchkin",
+    "name": "Munchkin",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_columna", "problemas_articulares"]
+  },
+  {
+    "id": "laperm",
+    "name": "LaPerm",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_piel", "problemas_dentales"]
+  },
+  {
+    "id": "savannah",
+    "name": "Savannah",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_cardiacos", "alto_nivel_energia"]
+  },
+  {
+    "id": "toyger",
+    "name": "Toyger",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "obesidad"]
+  },
+  {
+    "id": "nebelung",
+    "name": "Nebelung",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_dentales", "obesidad"]
+  },
+  {
+    "id": "pixie-bob",
+    "name": "Pixie-bob",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["displasia_cadera", "problemas_articulares"]
+  },
+  {
+    "id": "serengeti",
+    "name": "Serengeti",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_cardiacos", "alto_nivel_energia"]
+  },
+  {
+    "id": "colorpoint-shorthair",
+    "name": "Colorpoint Shorthair",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_respiratorios", "problemas_dentales"]
+  },
+  {
+    "id": "oriental-de-pelo-corto",
+    "name": "Oriental de Pelo Corto",
+    "species": "cat",
+    "fci_group_or_category": "Razas de pelo corto",
+    "health_tags": ["problemas_respiratorios", "problemas_dentales"]
+  }
+]
