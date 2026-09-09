@@ -1,0 +1,203 @@
+// ============================================================
+// HAPPY PAWS - Schema núcleo mínimo (protectoras + mascotas + adoptantes)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// AUTENTICACIÓN Y USUARIOS
+// ------------------------------------------------------------
+
+enum RolGlobal {
+  ADMIN_PROTECTORA // dueño/admin de una protectora
+  COLABORADOR      // ayuda dentro de una protectora
+  HOGAR_TRANSITO   // rol dentro de una protectora, cuida mascotas temporalmente
+  ADOPTANTE        // usuario que busca adoptar
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  nombre        String
+  telefono      String?
+  rol           RolGlobal
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relaciones
+  protectorasPropias   Protectora[]        @relation("DuenioProtectora")
+  membresias           MiembroProtectora[]
+  adoptante            Adoptante?
+
+  @@map("users")
+}
+
+// ------------------------------------------------------------
+// PROTECTORAS
+// ------------------------------------------------------------
+
+model Protectora {
+  id          String   @id @default(cuid())
+  nombre      String
+  descripcion String?  @db.Text
+  ubicacion   String   // ej: "Villa Carlos Paz", "Punilla", etc.
+  telefono    String?
+  email       String?
+  redSocial   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  duenioId    String
+  duenio      User     @relation("DuenioProtectora", fields: [duenioId], references: [id])
+
+  miembros    MiembroProtectora[]
+  mascotas    Mascota[]
+
+  @@map("protectoras")
+}
+
+enum RolEnProtectora {
+  COLABORADOR
+  HOGAR_TRANSITO
+}
+
+// Tabla intermedia: un usuario puede colaborar con una protectora
+// con un rol específico (colaborador, hogar de tránsito, etc.)
+model MiembroProtectora {
+  id           String          @id @default(cuid())
+  userId       String
+  protectoraId String
+  rol          RolEnProtectora
+  createdAt    DateTime        @default(now())
+
+  user         User            @relation(fields: [userId], references: [id])
+  protectora   Protectora      @relation(fields: [protectoraId], references: [id])
+
+  @@unique([userId, protectoraId, rol])
+  @@map("miembros_protectora")
+}
+
+// ------------------------------------------------------------
+// MASCOTAS (legajo digital real)
+// ------------------------------------------------------------
+
+enum Especie {
+  PERRO
+  GATO
+}
+
+enum EstadoMascota {
+  EN_PROTECTORA   // disponible, viviendo en la protectora
+  EN_TRANSITO     // en un hogar de tránsito
+  EN_PROCESO      // con solicitud de adopción en curso
+  ADOPTADO
+  FALLECIDO
+}
+
+model Mascota {
+  id            String        @id @default(cuid())
+  nombre        String
+  especie       Especie
+  razaId        Int?          // FK al catálogo existente de razas
+  edadAproxMeses Int?
+  sexo          String?       // "MACHO" | "HEMBRA" | null si no se sabe
+  tamanio       String?       // "PEQUENIO" | "MEDIANO" | "GRANDE"
+  descripcion   String?       @db.Text
+  fotos         Json?         // array de URLs
+  estado        EstadoMascota @default(EN_PROTECTORA)
+  fechaIngreso  DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  protectoraId  String
+  protectora    Protectora    @relation(fields: [protectoraId], references: [id])
+
+  raza          Raza?         @relation(fields: [razaId], references: [id])
+  vacunaciones  Vacunacion[]
+  solicitudes   SolicitudAdopcion[]
+
+  @@map("mascotas")
+}
+
+// Catálogo existente de razas — se mantiene, ahora referenciado por Mascota real
+model Raza {
+  id          Int       @id @default(autoincrement())
+  nombre      String
+  especie     Especie
+  // ... resto de los campos que ya tenías (tamaño, energía, guía asociada, etc.)
+
+  mascotas    Mascota[]
+
+  @@map("razas")
+}
+
+// Libreta de vacunación — se mantiene, ahora cuelga de Mascota real
+model Vacunacion {
+  id          String   @id @default(cuid())
+  mascotaId   String
+  nombreVacuna String
+  fechaAplicacion DateTime
+  proximaDosis    DateTime?
+  observaciones   String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  mascota     Mascota  @relation(fields: [mascotaId], references: [id])
+
+  @@map("vacunaciones")
+}
+
+// ------------------------------------------------------------
+// ADOPTANTES
+// ------------------------------------------------------------
+
+model Adoptante {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  direccion     String?
+  tipoVivienda  String?  // "CASA" | "DEPARTAMENTO"
+  tieneOtrasMascotas Boolean @default(false)
+  tieneHijos    Boolean  @default(false)
+  experiencia   String?  @db.Text // cuestionario de compatibilidad, texto libre por ahora
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id])
+  solicitudes   SolicitudAdopcion[]
+
+  @@map("adoptantes")
+}
+
+// ------------------------------------------------------------
+// SOLICITUDES DE ADOPCIÓN
+// ------------------------------------------------------------
+
+enum EstadoSolicitud {
+  PENDIENTE
+  EN_REVISION
+  APROBADA
+  RECHAZADA
+  CANCELADA
+}
+
+model SolicitudAdopcion {
+  id            String          @id @default(cuid())
+  mascotaId     String
+  adoptanteId   String
+  estado        EstadoSolicitud @default(PENDIENTE)
+  mensaje       String?         @db.Text
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  mascota       Mascota         @relation(fields: [mascotaId], references: [id])
+  adoptante     Adoptante       @relation(fields: [adoptanteId], references: [id])
+
+  @@map("solicitudes_adopcion")
+}

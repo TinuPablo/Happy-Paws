@@ -18,12 +18,23 @@ virtual — esa funcionalidad **ya no existe** y no debe reintroducirse.
   todavía salvo que un prompt lo pida explícitamente.
 
 ## Fase actual del proyecto
-**Estamos en reestructuración visual y de rutas, ANTES de tocar base de
-datos.** Reglas mientras dure esta fase:
-- NO implementar autenticación real (login/registro son visuales/mock)
-- NO conectar a MySQL
-- NO reintroducir mecánicas de mascota virtual (puntos, tienda, ánimo, racha)
-- SÍ mantener intacta la lógica de razas, guías y vacunación
+**Fase visual/mock COMPLETA** (prompts 01 a 11): mascota virtual eliminada,
+rutas reestructuradas, landing/mascotas/protectoras con diseño real, sesión
+mock por rol (adoptante/protectora), flujo completo de adopción simulado
+(agregar mascota → solicitar adopción → aprobar/rechazar), foto/video mock,
+libreta de vacunación mock. Todo esto vive en `localStorage` del navegador,
+no en una base de datos real.
+
+**Ahora arranca la fase de backend real (MySQL + Prisma).** A partir de acá:
+- SÍ conectar a MySQL y correr migraciones de Prisma.
+- SÍ implementar autenticación real (hash de contraseñas, sesiones).
+- El objetivo de esta fase es reemplazar, una por una, las piezas mock
+  (AuthContext, MascotasContext, SolicitudesContext, todo lo que hoy vive en
+  localStorage) por llamadas reales a la base de datos — no reescribir la
+  UI desde cero, la UI ya está resuelta y probada.
+- Mientras se hace esta migración, está bien que convivan temporalmente
+  partes mock con partes reales (ej: podés conectar mascotas a MySQL antes
+  que las solicitudes) — no hace falta migrar todo de una vez.
 
 ## Sistema de diseño — paleta (usar SIEMPRE estos valores exactos)
 ```css
@@ -123,10 +134,75 @@ proyecto, leé PROGRESS_LOG.md ANTES que cualquier otra cosa — ahí está el
 resumen más reciente y no hace falta releer todo el código para ubicarte.
 
 ## Estado de avance (actualizar manualmente después de cada tarea completada)
-- [x] Eliminada mascota virtual
+- [x] Eliminada mascota virtual (confirmado: no existía código de esa funcionalidad en app/page.tsx)
 - [x] Rutas reestructuradas (`/mascotas`, `/protectoras`, `/guias`, `/perfil`, `/login`, `/registro`)
 - [x] Landing con diseño real (protectoras/adopción)
 - [x] Listado de mascotas con diseño real
 - [x] Listado de protectoras con diseño real
 - [x] Login/registro con diseño real (visual, sin lógica real)
-- [ ] MySQL + Prisma (no iniciado)
+- [x] Detalle de mascota/protectora conectado a datos mock
+- [x] Libreta de vacunación mock en detalle de mascota
+- [x] Sesión mock por rol (adoptante/protectora) + perfil condicional
+- [x] Adoptar requiere login (con redirect de vuelta)
+- [x] Perfil de protectora funcional (mock): agregar mascota, ver/aprobar/rechazar solicitudes
+- [x] Foto/video mock en formulario de agregar mascota
+- [x] MySQL + Prisma conectado y migrado
+- [ ] Autenticación real (reemplaza AuthContext mock)
+- [ ] Mascotas reales en MySQL (reemplaza MascotasContext mock)
+- [ ] Solicitudes de adopción reales en MySQL (reemplaza SolicitudesContext mock)
+- [ ] Vacunación real en MySQL (reemplaza libreta mock)
+- [ ] Seed de datos reales de FUPA (reemplaza datos de ejemplo)
+
+## Backlog
+
+### Imprescindibles (para que la app sea real, no solo demo)
+- [ ] Autenticación real (hash + sesión) — reemplaza AuthContext mock.
+      Recomendación técnica: evaluar Auth.js (NextAuth) con adapter de
+      Prisma en vez de armar sesión/JWT a mano — cubre hash, sesiones y
+      reset de contraseña sin reinventar la rueda, dado el tiempo y equipo
+      chico.
+- [ ] Mascotas conectadas a MySQL — reemplaza MascotasContext mock
+- [ ] Solicitudes conectadas a MySQL — reemplaza SolicitudesContext mock
+- [ ] Transferencia de "propiedad" de mascota al aprobar una adopción (falta
+      campo/relación en el schema para esto)
+- [ ] Storage real de fotos/video (hoy es blob URL de sesión, no persiste)
+- [ ] Vacunación conectada a MySQL (hoy es lista mock hardcodeada)
+- [ ] Permisos verificados del lado del servidor (hoy el rol vive solo en
+      el navegador/mock). CRÍTICO: hoy el rol "protectora" es 100%
+      falsificable editando localStorage a mano (happy_paws_mock_session)
+      para desbloquear "agregar mascota" o "aprobar solicitudes" — con
+      auth mock no importa, pero es el punto #1 a blindar apenas haya
+      sesión real. No alcanza con ocultar el botón en el cliente, cada
+      mutación de la API tiene que revalidar el rol server-side.
+- [ ] Datos reales de FUPA (reemplaza el seed de ejemplo)
+- [ ] Modelo de "seguimiento posterior a la adopción" en schema.prisma —
+      hoy Mascota pasa a ADOPTADO y ahí termina, no hay tabla para
+      checkpoints (7 días, 1 mes, etc.). contexto.md lo describe como
+      diferencial del producto ("la historia de una mascota no termina").
+      Si se va a mostrar en la presentación como parte de la propuesta de
+      valor, diseñar esta tabla junto con el resto del schema, no como
+      parche después.
+- [ ] Estados de error en /login y /registro (contraseña incorrecta, email
+      ya registrado, etc.) — no existen hoy porque no hacían falta con el
+      mock. Diseñarlos ahora, no descubrirlos sobre la marcha al conectar
+      auth real.
+- [ ] Pasada general de links `<a href>` sueltos (landing, /protectoras)
+      que fuerzan recarga completa de página en vez de navegación SPA —
+      solo se corrigió el de /mascotas porque rompía la foto. Conviene
+      resolver esto antes de sumar más estado en memoria (sesión real),
+      porque cada recarga completa lo tira todo.
+
+### Recomendaciones (suman valor, no bloquean)
+- [ ] Filtros de búsqueda en /mascotas (especie, tamaño, edad)
+- [ ] Recuperación de contraseña
+- [ ] Notificación por email al cambiar estado de solicitud
+- [ ] Dashboard simple para protectora (mascotas activas, adopciones del mes)
+- [ ] Favoritos para adoptantes
+- [ ] Deploy a producción (Vercel + MySQL en la nube)
+- [ ] Página de términos/privacidad reales (hoy es texto placeholder)
+- [ ] Reemplazar los alert() nativos (login, registro, adoptar) por un
+      toast/notificación con la estética del proyecto — hoy interrumpen la
+      interfaz y desentonan con el resto del diseño cuidado.
+- [ ] Foto/logo de protectora — ni ProtectoraMock ni el schema lo tienen
+      hoy. Para FUPA en particular, un logo real en /protectoras da mucha
+      más credibilidad que una card de solo texto.
