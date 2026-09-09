@@ -20,16 +20,24 @@
 
 :root {
   background: #EDE0CF;
+
+  --brown-lightest: #FDF6EE;
+  --brown-light: #F5E6D0;
+  --brown-mid: #C8956C;
+  --brown-main: #9B6B47;
+  --brown-dark: #6B3F1F;
+  --brown-darker: #4A2A0E;
+  --cream: #FAF3E8;
+  --text-dark: #3D2010;
+  --text-mid: #6B4A2F;
+  --text-light: #A07850;
+  --green-ok: #5A8A5A;
+  --gold: #D4A843;
 }
 
 body {
   @apply font-sans antialiased;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
   margin: 0;
-  padding: 1.5rem 1rem;
 }
 
 /* Custom scrollbar for mobile feel */
