@@ -43,8 +43,8 @@ export default function MascotaDetallePage({
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-4xl">
-        <div className="grid grid-cols-1 gap-8 rounded-2xl border border-[var(--brown-light)] bg-white p-4 lg:grid-cols-2 lg:p-6">
-          <div>
+        <div className="grid grid-cols-1 gap-8 rounded-2xl border border-[var(--brown-light)] bg-white p-4 shadow-sm lg:grid-cols-2 lg:p-6">
+          <div className="relative">
             {mascota.mediaUrl && mascota.mediaType === "image" ? (
               <img
                 src={mascota.mediaUrl}
@@ -62,21 +62,21 @@ export default function MascotaDetallePage({
                 {mascota.especie === "PERRO" ? "🐶" : "🐱"}
               </div>
             )}
+            <span className="badge-pill absolute left-3 top-3">
+              {mascota.especie === "PERRO" ? "Perro" : "Gato"}
+            </span>
           </div>
 
           <div>
-            <h1 className="text-2xl font-medium text-[var(--text-dark)]">{mascota.nombre}</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-dark)]">{mascota.nombre}</h1>
             <p className="text-sm text-[var(--text-light)]">
               {mascota.raza} · {mascota.edadAproximada} · {mascota.tamanio}
             </p>
             <p className="mt-3 text-sm text-[var(--text-mid)]">{mascota.descripcion}</p>
 
             {role !== "protectora" && (
-              <button
-                onClick={handleAdoptar}
-                className="mt-6 w-full rounded-xl bg-[var(--brown-dark)] px-6 py-3 font-medium text-[var(--brown-lightest)]"
-              >
-                Quiero adoptar a {mascota.nombre}
+              <button onClick={handleAdoptar} className="btn-primary mt-6 w-full">
+                Quiero adoptar a {mascota.nombre} 🐾
               </button>
             )}
           </div>
@@ -84,14 +84,14 @@ export default function MascotaDetallePage({
 
         {mascota.vacunas && (
           <section className="mt-8">
-            <h2 className="text-lg font-medium text-[var(--text-dark)]">
+            <h2 className="text-lg font-bold text-[var(--text-dark)]">
               Libreta de vacunación
             </h2>
             <div className="mt-4 space-y-3">
               {mascota.vacunas?.map((vacuna, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded-2xl border border-[var(--brown-light)] bg-white p-4"
+                  className="card flex items-center justify-between p-4"
                 >
                   <div>
                     <p className="font-medium text-[var(--text-dark)]">{vacuna.nombre}</p>

@@ -15,7 +15,8 @@
   --color-red-alert: #C0392B;
   --color-gold: #D4A843;
 
-  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-body-family), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-heading-family), var(--font-body-family), system-ui, sans-serif;
 }
 
 :root {
@@ -40,9 +41,12 @@ body {
   margin: 0;
 }
 
-/* Custom scrollbar for mobile feel */
+h1, h2, h3 {
+  font-family: var(--font-heading);
+}
+
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -52,28 +56,41 @@ body {
   border-radius: 10px;
 }
 
-@keyframes foodFly {
-  0% { transform: translate(-50%, 120px) scale(0.5); opacity: 0; }
-  50% { transform: translate(-50%, -40px) scale(1.2); opacity: 1; }
-  100% { transform: translate(-50%, -10px) scale(0.9); opacity: 0; }
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gold px-6 py-3 font-semibold text-brown-darker shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-white/25 px-6 py-3 font-semibold text-brown-lightest transition-all duration-200 hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/10;
+  }
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brown-dark px-4 py-2.5 text-sm font-semibold text-brown-lightest shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brown-darker hover:shadow-md active:translate-y-0;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-brown-light px-4 py-2.5 text-sm font-semibold text-text-mid transition-all duration-200 hover:border-brown-mid hover:bg-brown-lightest;
+  }
+  .card {
+    @apply rounded-2xl border border-brown-light bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(75,40,14,0.12)];
+  }
+  .badge-pill {
+    @apply inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-text-dark shadow-sm backdrop-blur;
+  }
+  .input {
+    @apply mt-1 w-full rounded-xl border border-brown-light px-3 py-2 text-text-dark transition-colors duration-200 focus:border-brown-main focus:outline-none focus:ring-2 focus:ring-brown-main/20;
+  }
 }
 
-@keyframes petFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes petChew {
-  0%, 100% { transform: scaleY(1) scaleX(1); }
-  50% { transform: scaleY(0.88) scaleX(1.05); }
-}
-
-@keyframes petJump {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-18px) scaleY(1.05); }
-}
-
-@keyframes shadowPulse {
-  0%, 100% { transform: scaleX(1); opacity: 0.1; }
-  50% { transform: scaleX(0.85); opacity: 0.05; }
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease-out both;
 }

@@ -23,22 +23,29 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-brown-dark text-brown-lightest">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-semibold" onClick={() => setOpen(false)}>
+    <nav className="sticky top-0 z-50 bg-brown-dark/95 text-brown-lightest shadow-md backdrop-blur supports-[backdrop-filter]:bg-brown-dark/90">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-heading text-lg font-semibold"
+          onClick={() => setOpen(false)}
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold text-base text-brown-darker">
+            🐾
+          </span>
           Happy Paws
         </Link>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-1 md:flex">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "text-sm font-medium transition-colors",
+                "rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200",
                 isActive(item.href)
-                  ? "text-brown-lightest"
-                  : "text-brown-lightest/70 hover:text-brown-lightest"
+                  ? "bg-white/15 text-brown-lightest"
+                  : "text-brown-lightest/70 hover:bg-white/10 hover:text-brown-lightest"
               )}
             >
               {item.label}
@@ -56,8 +63,13 @@ export function Navbar() {
         </button>
       </div>
 
-      {open && (
-        <div className="flex flex-col gap-1 border-t border-brown-darker px-6 py-3 md:hidden">
+      <div
+        className={cn(
+          "grid overflow-hidden border-brown-darker transition-all duration-300 ease-out md:hidden",
+          open ? "grid-rows-[1fr] border-t opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+      >
+        <div className="flex flex-col gap-1 overflow-hidden px-6 py-3">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
@@ -74,7 +86,7 @@ export function Navbar() {
             </Link>
           ))}
         </div>
-      )}
+      </div>
     </nav>
   );
 }

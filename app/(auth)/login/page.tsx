@@ -42,14 +42,20 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--brown-lightest)] px-6">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-2xl border border-[var(--brown-light)] bg-white p-8"
+        className="w-full max-w-sm rounded-2xl border border-[var(--brown-light)] bg-white p-8 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
       >
-        <h1 className="text-xl font-medium text-[var(--text-dark)]">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brown-light)] text-2xl">
+          🐾
+        </span>
+        <h1 className="mt-4 text-xl font-bold text-[var(--text-dark)]">
           Iniciar sesión
         </h1>
+        <p className="mt-1 text-sm text-[var(--text-light)]">
+          Qué bueno tenerte de vuelta.
+        </p>
         <label className="mt-6 block text-sm text-[var(--text-mid)]">
           Email
           <input
@@ -57,7 +63,7 @@ function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+            className="input"
           />
         </label>
         <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -67,7 +73,7 @@ function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+            className="input"
           />
         </label>
 
@@ -80,10 +86,10 @@ function LoginForm() {
                 setRolSeleccionado("adoptante");
                 setMostrarErrorRol(false);
               }}
-              className={`rounded-xl border p-3 text-center text-sm font-medium text-[var(--text-dark)] ${
+              className={`rounded-xl border p-3 text-center text-sm font-medium text-[var(--text-dark)] transition-colors duration-200 ${
                 rolSeleccionado === "adoptante"
                   ? "border-[var(--brown-main)] bg-[var(--brown-light)]"
-                  : "border-[var(--brown-light)] bg-white"
+                  : "border-[var(--brown-light)] bg-white hover:bg-[var(--brown-lightest)]"
               }`}
             >
               Adoptante
@@ -94,10 +100,10 @@ function LoginForm() {
                 setRolSeleccionado("protectora");
                 setMostrarErrorRol(false);
               }}
-              className={`rounded-xl border p-3 text-center text-sm font-medium text-[var(--text-dark)] ${
+              className={`rounded-xl border p-3 text-center text-sm font-medium text-[var(--text-dark)] transition-colors duration-200 ${
                 rolSeleccionado === "protectora"
                   ? "border-[var(--brown-main)] bg-[var(--brown-light)]"
-                  : "border-[var(--brown-light)] bg-white"
+                  : "border-[var(--brown-light)] bg-white hover:bg-[var(--brown-lightest)]"
               }`}
             >
               Protectora
@@ -113,13 +119,13 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 w-full rounded-xl bg-[var(--brown-dark)] px-4 py-2 font-medium text-[var(--brown-lightest)] disabled:opacity-60"
+          className="btn-dark mt-6 w-full disabled:opacity-60"
         >
           {loading ? "Ingresando..." : "Iniciar sesión"}
         </button>
         <a
           href="/registro"
-          className="mt-4 block text-center text-sm text-[var(--brown-main)]"
+          className="mt-4 block text-center text-sm font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
         >
           ¿No tenés cuenta? Registrate
         </a>

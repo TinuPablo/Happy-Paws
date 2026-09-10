@@ -18,22 +18,27 @@ export default function RegistroPage() {
   const [ubicacion, setUbicacion] = useState("");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--brown-lightest)] px-6 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
       <div className="w-full max-w-sm">
-        <h1 className="text-center text-xl font-medium text-[var(--text-dark)]">
-          Crear cuenta
-        </h1>
-        <p className="mt-2 text-center text-sm text-[var(--text-mid)]">
-          ¿Qué tipo de cuenta querés crear?
-        </p>
+        <div className="text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brown-light)] text-2xl">
+            🐾
+          </span>
+          <h1 className="mt-4 text-xl font-bold text-[var(--text-dark)]">
+            Crear cuenta
+          </h1>
+          <p className="mt-2 text-sm text-[var(--text-mid)]">
+            ¿Qué tipo de cuenta querés crear?
+          </p>
+        </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setTipoUsuario("adoptante")}
-            className={`rounded-2xl border p-4 text-center ${
+            className={`rounded-2xl border p-4 text-center transition-all duration-200 ${
               tipoUsuario === "adoptante"
-                ? "border-[var(--brown-main)] bg-[var(--brown-light)]"
-                : "border-[var(--brown-light)] bg-white"
+                ? "border-[var(--brown-main)] bg-[var(--brown-light)] shadow-sm"
+                : "border-[var(--brown-light)] bg-white hover:-translate-y-0.5 hover:shadow-sm"
             }`}
           >
             <span className="block text-2xl">🐾</span>
@@ -44,10 +49,10 @@ export default function RegistroPage() {
           <button
             type="button"
             onClick={() => setTipoUsuario("protectora")}
-            className={`rounded-2xl border p-4 text-center ${
+            className={`rounded-2xl border p-4 text-center transition-all duration-200 ${
               tipoUsuario === "protectora"
-                ? "border-[var(--brown-main)] bg-[var(--brown-light)]"
-                : "border-[var(--brown-light)] bg-white"
+                ? "border-[var(--brown-main)] bg-[var(--brown-light)] shadow-sm"
+                : "border-[var(--brown-light)] bg-white hover:-translate-y-0.5 hover:shadow-sm"
             }`}
           >
             <span className="block text-2xl">🏠</span>
@@ -65,7 +70,7 @@ export default function RegistroPage() {
               login(nombre, "adoptante");
               router.push("/perfil");
             }}
-            className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6"
+            className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
           >
             <label className="block text-sm text-[var(--text-mid)]">
               Nombre completo
@@ -74,7 +79,7 @@ export default function RegistroPage() {
                 required
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
             <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -84,7 +89,7 @@ export default function RegistroPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
             <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -93,7 +98,7 @@ export default function RegistroPage() {
                 type="tel"
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
             <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -103,13 +108,10 @@ export default function RegistroPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
-            <button
-              type="submit"
-              className="mt-6 w-full rounded-xl bg-[var(--brown-dark)] px-4 py-2 font-medium text-[var(--brown-lightest)]"
-            >
+            <button type="submit" className="btn-dark mt-6 w-full">
               Crear cuenta
             </button>
           </form>
@@ -123,7 +125,7 @@ export default function RegistroPage() {
               login(nombreProtectora, "protectora");
               router.push("/perfil");
             }}
-            className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6"
+            className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
           >
             <label className="block text-sm text-[var(--text-mid)]">
               Nombre de la protectora
@@ -132,7 +134,7 @@ export default function RegistroPage() {
                 required
                 value={nombreProtectora}
                 onChange={(e) => setNombreProtectora(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
             <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -142,7 +144,7 @@ export default function RegistroPage() {
                 required
                 value={ubicacion}
                 onChange={(e) => setUbicacion(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
             <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -152,7 +154,7 @@ export default function RegistroPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
             <label className="mt-4 block text-sm text-[var(--text-mid)]">
@@ -162,13 +164,10 @@ export default function RegistroPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[var(--brown-light)] px-3 py-2 text-[var(--text-dark)]"
+                className="input"
               />
             </label>
-            <button
-              type="submit"
-              className="mt-6 w-full rounded-xl bg-[var(--brown-dark)] px-4 py-2 font-medium text-[var(--brown-lightest)]"
-            >
+            <button type="submit" className="btn-dark mt-6 w-full">
               Crear cuenta de protectora
             </button>
           </form>
@@ -176,7 +175,7 @@ export default function RegistroPage() {
 
         <a
           href="/login"
-          className="mt-4 block text-center text-sm text-[var(--brown-main)]"
+          className="mt-4 block text-center text-sm font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
         >
           ¿Ya tenés cuenta? Iniciá sesión
         </a>
