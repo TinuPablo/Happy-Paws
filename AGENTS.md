@@ -5,6 +5,10 @@
 > puntual, este archivo tiene prioridad salvo que el prompt diga explícitamente
 > lo contrario.
 
+> A partir de ahora el proyecto se trabaja en equipo (Tinu + Daniel). Antes de
+> tocar cualquier archivo, leé también `WORKFLOW-GIT.md` — define en qué rama
+> tenés que estar y cómo se sube el trabajo (nunca directo a `main`).
+
 ## Qué es Happy Paws
 Plataforma web que conecta protectoras de animales con familias adoptantes.
 Piloto: **FUPA** (Villa Carlos Paz). Antes era una app de cuidado de mascota
@@ -55,6 +59,19 @@ Patrones visuales fijos: cards con bordes redondeados (16-20px), borde sutil
 `--brown-light`, hero con fondo `--brown-dark` y texto claro. Copy siempre
 cálido y amigable, **nunca alarmista o urgente**, ni siquiera al hablar de
 animales en situación de calle.
+
+**Layout: página web estándar, NO app-shell mobile.** El proyecto tuvo una
+etapa temprana (prompts 01-11) donde se simulaba una app de celular con
+`app/layout.tsx` envolviendo todo en una tarjeta angosta tipo teléfono y
+`BottomNav` (navegación inferior). Eso quedó descartado a partir del
+prompt 12 — ahora es una página web responsive normal: `Navbar` superior
+(horizontal en desktop, hamburguesa en mobile), contenido con ancho máximo
+centrado (`max-w-6xl` o similar según la sección) que aprovecha el ancho de
+pantalla en desktop, grids con breakpoints reales (`sm:`, `lg:`) respondiendo
+al ancho del navegador. NO reintroducir el patrón de tarjeta angosta ni
+BottomNav bajo ningún concepto, aunque aparezca referenciado en prompts
+viejos (01a-04a) o en el backup de vacunación — esos son de la etapa mobile
+anterior.
 
 ## Glosario del dominio
 - **Protectora**: organización (ej. FUPA) que rescata y aloja animales.
@@ -146,7 +163,7 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
 - [x] Adoptar requiere login (con redirect de vuelta)
 - [x] Perfil de protectora funcional (mock): agregar mascota, ver/aprobar/rechazar solicitudes
 - [x] Foto/video mock en formulario de agregar mascota
-- [x] MySQL + Prisma conectado y migrado
+- [ ] MySQL + Prisma conectado y migrado (EN CURSO)
 - [ ] Autenticación real (reemplaza AuthContext mock)
 - [ ] Mascotas reales en MySQL (reemplaza MascotasContext mock)
 - [ ] Solicitudes de adopción reales en MySQL (reemplaza SolicitudesContext mock)
