@@ -10,15 +10,15 @@ export default async function ProtectoraDetallePage({
 
   if (!protectora) {
     return (
-      <main className="min-h-full bg-[var(--brown-lightest)] px-6 py-10">
+      <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
         <p className="text-[var(--text-mid)]">Protectora no encontrada</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-full bg-[var(--brown-lightest)] px-6 py-10">
-      <div className="rounded-2xl border border-[var(--brown-light)] bg-white p-5">
+    <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
+      <div className="mx-auto max-w-4xl rounded-2xl border border-[var(--brown-light)] bg-white p-5">
         <h1 className="text-2xl font-medium text-[var(--text-dark)]">{protectora.nombre}</h1>
         <p className="text-sm text-[var(--text-light)]">{protectora.ubicacion}</p>
         <p className="mt-2 text-sm text-[var(--text-mid)]">{protectora.descripcion}</p>

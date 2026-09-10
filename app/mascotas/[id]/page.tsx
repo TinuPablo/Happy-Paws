@@ -34,77 +34,84 @@ export default function MascotaDetallePage({
 
   if (!mascota) {
     return (
-      <main className="min-h-full bg-[var(--brown-lightest)] px-6 py-10">
+      <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
         <p className="text-[var(--text-mid)]">Mascota no encontrada</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-full bg-[var(--brown-lightest)] px-6 py-10">
-      <div className="rounded-2xl border border-[var(--brown-light)] bg-white p-4">
-        {mascota.mediaUrl && mascota.mediaType === "image" ? (
-          <img
-            src={mascota.mediaUrl}
-            alt={mascota.nombre}
-            className="mb-3 h-64 w-full rounded-xl object-cover"
-          />
-        ) : mascota.mediaUrl && mascota.mediaType === "video" ? (
-          <video
-            src={mascota.mediaUrl}
-            controls
-            className="mb-3 h-64 w-full rounded-xl object-cover"
-          />
-        ) : (
-          <div className="mb-3 flex h-64 items-center justify-center rounded-xl bg-[var(--brown-light)] text-6xl">
-            {mascota.especie === "PERRO" ? "🐶" : "🐱"}
+    <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
+      <div className="mx-auto max-w-4xl">
+        <div className="grid grid-cols-1 gap-8 rounded-2xl border border-[var(--brown-light)] bg-white p-4 lg:grid-cols-2 lg:p-6">
+          <div>
+            {mascota.mediaUrl && mascota.mediaType === "image" ? (
+              <img
+                src={mascota.mediaUrl}
+                alt={mascota.nombre}
+                className="h-64 w-full rounded-xl object-cover lg:h-full"
+              />
+            ) : mascota.mediaUrl && mascota.mediaType === "video" ? (
+              <video
+                src={mascota.mediaUrl}
+                controls
+                className="h-64 w-full rounded-xl object-cover lg:h-full"
+              />
+            ) : (
+              <div className="flex h-64 items-center justify-center rounded-xl bg-[var(--brown-light)] text-6xl lg:h-full">
+                {mascota.especie === "PERRO" ? "🐶" : "🐱"}
+              </div>
+            )}
           </div>
-        )}
-        <h1 className="text-2xl font-medium text-[var(--text-dark)]">{mascota.nombre}</h1>
-        <p className="text-sm text-[var(--text-light)]">
-          {mascota.raza} · {mascota.edadAproximada} · {mascota.tamanio}
-        </p>
-        <p className="mt-3 text-sm text-[var(--text-mid)]">{mascota.descripcion}</p>
 
-        {role !== "protectora" && (
-          <button
-            onClick={handleAdoptar}
-            className="mt-6 w-full rounded-xl bg-[var(--brown-dark)] px-6 py-3 font-medium text-[var(--brown-lightest)]"
-          >
-            Quiero adoptar a {mascota.nombre}
-          </button>
+          <div>
+            <h1 className="text-2xl font-medium text-[var(--text-dark)]">{mascota.nombre}</h1>
+            <p className="text-sm text-[var(--text-light)]">
+              {mascota.raza} · {mascota.edadAproximada} · {mascota.tamanio}
+            </p>
+            <p className="mt-3 text-sm text-[var(--text-mid)]">{mascota.descripcion}</p>
+
+            {role !== "protectora" && (
+              <button
+                onClick={handleAdoptar}
+                className="mt-6 w-full rounded-xl bg-[var(--brown-dark)] px-6 py-3 font-medium text-[var(--brown-lightest)]"
+              >
+                Quiero adoptar a {mascota.nombre}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {mascota.vacunas && (
+          <section className="mt-8">
+            <h2 className="text-lg font-medium text-[var(--text-dark)]">
+              Libreta de vacunación
+            </h2>
+            <div className="mt-4 space-y-3">
+              {mascota.vacunas?.map((vacuna, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-2xl border border-[var(--brown-light)] bg-white p-4"
+                >
+                  <div>
+                    <p className="font-medium text-[var(--text-dark)]">{vacuna.nombre}</p>
+                    <p className="text-sm text-[var(--text-light)]">{vacuna.fecha}</p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      vacuna.estado === "APLICADA"
+                        ? "bg-[var(--green-ok)] text-white"
+                        : "bg-[var(--gold)] text-[var(--brown-darker)]"
+                    }`}
+                  >
+                    {vacuna.estado === "APLICADA" ? "Aplicada" : "Pendiente"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
       </div>
-
-      {mascota.vacunas && (
-        <section className="mt-8">
-          <h2 className="text-lg font-medium text-[var(--text-dark)]">
-            Libreta de vacunación
-          </h2>
-          <div className="mt-4 space-y-3">
-            {mascota.vacunas?.map((vacuna, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between rounded-2xl border border-[var(--brown-light)] bg-white p-4"
-              >
-                <div>
-                  <p className="font-medium text-[var(--text-dark)]">{vacuna.nombre}</p>
-                  <p className="text-sm text-[var(--text-light)]">{vacuna.fecha}</p>
-                </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    vacuna.estado === "APLICADA"
-                      ? "bg-[var(--green-ok)] text-white"
-                      : "bg-[var(--gold)] text-[var(--brown-darker)]"
-                  }`}
-                >
-                  {vacuna.estado === "APLICADA" ? "Aplicada" : "Pendiente"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

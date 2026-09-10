@@ -18,7 +18,7 @@ export default function RegistroPage() {
   const [ubicacion, setUbicacion] = useState("");
 
   return (
-    <main className="flex min-h-full items-center justify-center bg-[var(--brown-lightest)] px-6 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--brown-lightest)] px-6 py-10">
       <div className="w-full max-w-sm">
         <h1 className="text-center text-xl font-medium text-[var(--text-dark)]">
           Crear cuenta

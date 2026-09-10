@@ -42,7 +42,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center bg-[var(--brown-lightest)] px-6">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--brown-lightest)] px-6">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-2xl border border-[var(--brown-light)] bg-white p-8"

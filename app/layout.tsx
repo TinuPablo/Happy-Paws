@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { BottomNav } from "./components/BottomNav";
+import { Navbar } from "./components/Navbar";
 import { AuthProvider } from "./context/AuthContext";
 import { MascotasProvider } from "./context/MascotasContext";
 import { SolicitudesProvider } from "./context/SolicitudesContext";
@@ -21,14 +21,11 @@ export default function RootLayout({
         <AuthProvider>
           <MascotasProvider>
             <SolicitudesProvider>
-              <div className="flex h-dvh w-full items-center justify-center bg-[#EDE0CF] sm:p-4">
-                <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-brown-lightest sm:h-[844px] sm:max-h-[92vh] sm:max-w-[420px] sm:rounded-[28px] sm:border-2 sm:border-brown-light sm:shadow-[0_8px_40px_rgba(75,40,14,0.18)]">
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden">
-                    {children}
-                  </div>
-                  <BottomNav />
-                </div>
-              </div>
+              <Navbar />
+              {children}
+              <footer className="border-t border-brown-light bg-brown-lightest px-6 py-6 text-center text-sm text-text-light">
+                © {new Date().getFullYear()} Happy Paws
+              </footer>
             </SolicitudesProvider>
           </MascotasProvider>
         </AuthProvider>

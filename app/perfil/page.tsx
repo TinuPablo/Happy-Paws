@@ -50,19 +50,21 @@ export default function PerfilPage() {
 
   if (!loggedIn) {
     return (
-      <main className="flex min-h-full flex-col items-center justify-center bg-[var(--brown-lightest)] px-6 text-center">
-        <h1 className="text-xl font-medium text-[var(--text-dark)]">
-          Todavía no iniciaste sesión
-        </h1>
-        <p className="mt-2 text-sm text-[var(--text-mid)]">
-          Iniciá sesión para ver tu perfil.
-        </p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-[var(--brown-dark)] px-6 py-3 font-medium text-[var(--brown-lightest)]"
-        >
-          Iniciar sesión
-        </Link>
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--brown-lightest)] px-6 text-center">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="text-xl font-medium text-[var(--text-dark)]">
+            Todavía no iniciaste sesión
+          </h1>
+          <p className="mt-2 text-sm text-[var(--text-mid)]">
+            Iniciá sesión para ver tu perfil.
+          </p>
+          <Link
+            href="/login"
+            className="mt-6 inline-block rounded-xl bg-[var(--brown-dark)] px-6 py-3 font-medium text-[var(--brown-lightest)]"
+          >
+            Iniciar sesión
+          </Link>
+        </div>
       </main>
     );
   }
@@ -70,7 +72,8 @@ export default function PerfilPage() {
   const misSolicitudes = solicitudes.filter((s) => s.adoptanteNombre === nombre);
 
   return (
-    <main className="min-h-full bg-[var(--brown-lightest)] px-6 py-10">
+    <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
+      <div className="mx-auto max-w-3xl">
       <h1 className="text-xl font-medium text-[var(--text-dark)]">
         Hola, {nombre}
       </h1>
@@ -310,6 +313,7 @@ export default function PerfilPage() {
       >
         Cerrar sesión
       </button>
+      </div>
     </main>
   );
 }
