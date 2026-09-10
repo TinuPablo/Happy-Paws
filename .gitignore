@@ -38,6 +38,7 @@ yarn-error.log*
 
 # local AI tool state (not project code)
 .opencode/
+.claude/scheduled_tasks.lock
 
 # typescript
 *.tsbuildinfo
