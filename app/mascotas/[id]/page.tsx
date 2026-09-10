@@ -91,14 +91,14 @@ export default function MascotaDetallePage({
               {mascota.vacunas?.map((vacuna, i) => (
                 <div
                   key={i}
-                  className="card flex items-center justify-between p-4"
+                  className="card flex items-center justify-between gap-3 p-4"
                 >
-                  <div>
-                    <p className="font-medium text-[var(--text-dark)]">{vacuna.nombre}</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-[var(--text-dark)]">{vacuna.nombre}</p>
                     <p className="text-sm text-[var(--text-light)]">{vacuna.fecha}</p>
                   </div>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
                       vacuna.estado === "APLICADA"
                         ? "bg-[var(--green-ok)] text-white"
                         : "bg-[var(--gold)] text-[var(--brown-darker)]"

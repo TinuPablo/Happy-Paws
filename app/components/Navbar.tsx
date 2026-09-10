@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
@@ -30,9 +31,14 @@ export function Navbar() {
           className="flex items-center gap-2 font-heading text-lg font-semibold"
           onClick={() => setOpen(false)}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold text-base text-brown-darker">
-            🐾
-          </span>
+          <Image
+            src="/assets/logo.jpg"
+            alt="Happy Paws"
+            width={36}
+            height={36}
+            priority
+            className="h-9 w-9 shrink-0 rounded-full bg-white object-cover"
+          />
           Happy Paws
         </Link>
 

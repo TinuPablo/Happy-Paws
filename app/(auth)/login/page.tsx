@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -47,9 +48,13 @@ function LoginForm() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-2xl border border-[var(--brown-light)] bg-white p-8 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
       >
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brown-light)] text-2xl">
-          🐾
-        </span>
+        <Image
+          src="/assets/logo.jpg"
+          alt="Happy Paws"
+          width={48}
+          height={48}
+          className="h-12 w-12 rounded-full bg-white object-cover"
+        />
         <h1 className="mt-4 text-xl font-bold text-[var(--text-dark)]">
           Iniciar sesión
         </h1>

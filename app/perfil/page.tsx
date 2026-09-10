@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/app/context/AuthContext";
 import { useMascotas } from "@/app/context/MascotasContext";
 import { useSolicitudes } from "@/app/context/SolicitudesContext";
@@ -52,9 +53,13 @@ export default function PerfilPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--brown-lightest)] px-6 text-center">
         <div className="mx-auto max-w-3xl">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--brown-light)] text-2xl">
-            🐾
-          </span>
+          <Image
+            src="/assets/logo.jpg"
+            alt="Happy Paws"
+            width={56}
+            height={56}
+            className="mx-auto h-14 w-14 rounded-full bg-white object-cover"
+          />
           <h1 className="mt-4 text-xl font-bold text-[var(--text-dark)]">
             Todavía no iniciaste sesión
           </h1>
@@ -104,13 +109,13 @@ export default function PerfilPage() {
                   {misSolicitudes.map((s) => (
                     <div
                       key={s.id}
-                      className="flex items-center justify-between rounded-xl border border-[var(--brown-light)] p-3"
+                      className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3"
                     >
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-dark)]">{s.mascotaNombre}</p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascotaNombre}</p>
                         <p className="text-xs text-[var(--text-light)]">{s.fecha}</p>
                       </div>
-                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
+                      <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
                         {badgeLabel(s.estado)}
                       </span>
                     </div>
@@ -268,12 +273,12 @@ export default function PerfilPage() {
                 <div className="mt-3 space-y-2">
                   {solicitudes.map((s) => (
                     <div key={s.id} className="rounded-xl border border-[var(--brown-light)] p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-[var(--text-dark)]">{s.mascotaNombre}</p>
-                          <p className="text-xs text-[var(--text-light)]">{s.adoptanteNombre} · {s.fecha}</p>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascotaNombre}</p>
+                          <p className="truncate text-xs text-[var(--text-light)]">{s.adoptanteNombre} · {s.fecha}</p>
                         </div>
-                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
+                        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
                           {badgeLabel(s.estado)}
                         </span>
                       </div>

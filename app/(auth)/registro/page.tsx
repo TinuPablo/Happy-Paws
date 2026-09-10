@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -21,9 +22,13 @@ export default function RegistroPage() {
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
       <div className="w-full max-w-sm">
         <div className="text-center">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brown-light)] text-2xl">
-            🐾
-          </span>
+          <Image
+            src="/assets/logo.jpg"
+            alt="Happy Paws"
+            width={48}
+            height={48}
+            className="mx-auto h-12 w-12 rounded-full bg-white object-cover"
+          />
           <h1 className="mt-4 text-xl font-bold text-[var(--text-dark)]">
             Crear cuenta
           </h1>

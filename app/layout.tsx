@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
@@ -37,8 +38,15 @@ export default function RootLayout({
               <Navbar />
               {children}
               <footer className="border-t border-brown-light bg-brown-lightest px-6 py-10 text-center">
-                <p className="font-heading text-lg font-semibold text-brown-dark">
-                  🐾 Happy Paws
+                <p className="flex items-center justify-center gap-2 font-heading text-lg font-semibold text-brown-dark">
+                  <Image
+                    src="/assets/logo.jpg"
+                    alt="Happy Paws"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 rounded-full bg-white object-cover"
+                  />
+                  Happy Paws
                 </p>
                 <p className="mt-1 text-sm text-text-mid">
                   Conectando protectoras y familias en Villa Carlos Paz.
