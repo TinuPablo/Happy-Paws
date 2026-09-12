@@ -20,7 +20,7 @@ export default function RegistroPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
-      <div className="w-full max-w-sm">
+      <div className="animate-fade-in-up w-full max-w-sm">
         <div className="text-center">
           <Image
             src="/assets/logo.jpg"

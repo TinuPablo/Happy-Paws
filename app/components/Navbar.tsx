@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,13 +18,37 @@ const NAV_ITEMS = [
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const isHome = pathname === "/";
+  const [scrolled, setScrolled] = useState(!isHome);
+
+  useEffect(() => {
+    if (!isHome) {
+      setScrolled(true);
+      return;
+    }
+    function onScroll() {
+      setScrolled(window.scrollY > 60);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
 
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
   }
 
+  const solid = scrolled || open;
+
   return (
-    <nav className="sticky top-0 z-50 bg-brown-dark/95 text-brown-lightest shadow-md backdrop-blur supports-[backdrop-filter]:bg-brown-dark/90">
+    <nav
+      className={cn(
+        "sticky top-0 z-50 transition-all duration-300",
+        solid
+          ? "bg-brown-dark/95 text-brown-lightest shadow-md backdrop-blur supports-[backdrop-filter]:bg-brown-dark/90"
+          : "bg-transparent text-brown-dark"
+      )}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
         <Link
           href="/"
@@ -49,9 +73,13 @@ export function Navbar() {
               href={item.href}
               className={cn(
                 "rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200",
-                isActive(item.href)
-                  ? "bg-white/15 text-brown-lightest"
-                  : "text-brown-lightest/70 hover:bg-white/10 hover:text-brown-lightest"
+                solid
+                  ? isActive(item.href)
+                    ? "bg-white/15 text-brown-lightest"
+                    : "text-brown-lightest/70 hover:bg-white/10 hover:text-brown-lightest"
+                  : isActive(item.href)
+                    ? "bg-brown-dark/10 text-brown-dark"
+                    : "text-text-mid hover:bg-brown-dark/5 hover:text-brown-dark"
               )}
             >
               {item.label}
@@ -62,7 +90,7 @@ export function Navbar() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-brown-lightest md:hidden"
+          className={cn(solid ? "text-brown-lightest" : "text-brown-dark", "md:hidden")}
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
         >
           {open ? <X size={24} /> : <Menu size={24} />}

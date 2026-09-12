@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { toggleFavoritoAction } from "@/app/actions/favoritos";
 import { FiltrosMascotas } from "./FiltrosMascotas";
+import { Reveal } from "@/app/components/Reveal";
 import type { Prisma } from "@prisma/client";
 
 export default async function MascotasPage({
@@ -39,20 +40,22 @@ export default async function MascotasPage({
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-2xl font-bold text-[var(--text-dark)]">
-          Mascotas en adopción
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-light)]">
-          {mascotas.length} {mascotas.length === 1 ? "mascota esperando" : "mascotas esperando"} un hogar.
-        </p>
+        <Reveal>
+          <h1 className="text-2xl font-bold text-[var(--text-dark)]">
+            Mascotas en adopción
+          </h1>
+          <p className="mt-1 text-sm text-[var(--text-light)]">
+            {mascotas.length} {mascotas.length === 1 ? "mascota esperando" : "mascotas esperando"} un hogar.
+          </p>
+        </Reveal>
 
         <Suspense fallback={null}>
           <FiltrosMascotas />
         </Suspense>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {mascotas.map((mascota) => (
-            <div key={mascota.id} className="card group overflow-hidden p-4">
+          {mascotas.map((mascota, i) => (
+            <Reveal key={mascota.id} delay={Math.min(i, 8) * 70} className="card group overflow-hidden p-4">
               <div className="relative mb-3 h-32 overflow-hidden rounded-xl bg-[var(--brown-light)]">
                 {mascota.mediaUrl && mascota.mediaType === "image" ? (
                   <img
@@ -91,7 +94,7 @@ export default async function MascotasPage({
               <Link href={`/mascotas/${mascota.id}`} className="btn-dark mt-3 block">
                 Ver más
               </Link>
-            </div>
+            </Reveal>
           ))}
           {mascotas.length === 0 && (
             <p className="col-span-full text-sm text-[var(--text-mid)]">

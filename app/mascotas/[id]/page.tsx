@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession, toUiRole } from "@/lib/session";
 import { toggleFavoritoAction } from "@/app/actions/favoritos";
 import { AdoptarButton } from "./AdoptarButton";
+import { Reveal } from "@/app/components/Reveal";
 
 export default async function MascotaDetallePage({
   params,
@@ -60,7 +61,7 @@ export default async function MascotaDetallePage({
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-4xl">
-        <div className="grid grid-cols-1 gap-8 rounded-2xl border border-[var(--brown-light)] bg-white p-4 shadow-sm lg:grid-cols-2 lg:p-6">
+        <Reveal className="grid grid-cols-1 gap-8 rounded-2xl border border-[var(--brown-light)] bg-white p-4 shadow-sm lg:grid-cols-2 lg:p-6">
           <div className="relative">
             {mascota.mediaUrl && mascota.mediaType === "image" ? (
               <img
@@ -111,14 +112,14 @@ export default async function MascotaDetallePage({
               </form>
             )}
           </div>
-        </div>
+        </Reveal>
 
         {vacunas.length > 0 && (
           <section className="mt-8">
             <h2 className="text-lg font-bold text-[var(--text-dark)]">Libreta de vacunación</h2>
             <div className="mt-4 space-y-3">
               {vacunas.map((vacuna, i) => (
-                <div key={i} className="card flex items-center justify-between gap-3 p-4">
+                <Reveal key={i} delay={Math.min(i, 8) * 60} className="card flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
                     <p className="truncate font-medium text-[var(--text-dark)]">{vacuna.nombre}</p>
                     <p className="text-sm text-[var(--text-light)]">{vacuna.fecha}</p>
@@ -132,7 +133,7 @@ export default async function MascotaDetallePage({
                   >
                     {vacuna.estado === "APLICADA" ? "Aplicada" : "Pendiente"}
                   </span>
-                </div>
+                </Reveal>
               ))}
             </div>
           </section>

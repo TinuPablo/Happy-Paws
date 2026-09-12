@@ -50,7 +50,10 @@ export default function LoginMascot({
   return (
     <div ref={containerRef} className="mx-auto mb-4 flex justify-center">
       <svg width="120" height="120" viewBox="0 0 120 120" style={{ overflow: "visible" }}>
-        {/* Cabeza completa: orejas + cara + ojos + nariz + boca, sigue al mouse */}
+        {/* Cabeza completa, estilo cachorro golden retriever tierno: orejas
+            caídas en forma de "paleta" (afinadas en la punta, no óvalos),
+            cara redonda color crema-dorado suave, ojos grandes con brillo
+            y mejillas sonrojadas. Sigue al mouse. */}
         <g
           style={{
             transform: `translate(${headShiftX}px, ${headShiftY}px) rotate(${headTilt}deg)`,
@@ -58,23 +61,49 @@ export default function LoginMascot({
             transition: "transform 0.12s ease-out",
           }}
         >
-          {/* Orejas */}
-          <ellipse cx="30" cy="30" rx="14" ry="20" fill="var(--brown-mid)" transform="rotate(-20 30 30)" />
-          <ellipse cx="90" cy="30" rx="14" ry="20" fill="var(--brown-mid)" transform="rotate(20 90 30)" />
-
-          {/* Cara */}
-          <circle cx="60" cy="60" r="42" fill="var(--brown-light)" />
-
-          {/* Ojos (pupilas con su propio offset, dentro de la cabeza) */}
-          <circle cx={45 + pupilOffset.x} cy={55 + pupilOffset.y} r="6" fill="var(--text-dark)" />
-          <circle cx={75 + pupilOffset.x} cy={55 + pupilOffset.y} r="6" fill="var(--text-dark)" />
-
-          {/* Nariz y boca */}
-          <ellipse cx="60" cy="72" rx="7" ry="5" fill="var(--brown-dark)" />
+          {/* Orejas caídas: nacen escondidas debajo del pelaje (la cara se
+              dibuja encima y tapa el nacimiento) y cuelgan afinándose en
+              la punta, como una oreja real — no un óvalo simétrico */}
           <path
-            d="M 60 77 Q 60 84 52 84 M 60 77 Q 60 84 68 84"
-            stroke="var(--brown-dark)"
-            strokeWidth="2"
+            d="M 44 40 C 26 34, 8 50, 10 74 C 12 88, 24 98, 34 92
+               C 40 88, 40 74, 38 60 C 37 50, 40 44, 44 40 Z"
+            fill="var(--brown-mid)"
+          />
+          <path
+            d="M 76 40 C 94 34, 112 50, 110 74 C 108 88, 96 98, 86 92
+               C 80 88, 80 74, 82 60 C 83 50, 80 44, 76 40 Z"
+            fill="var(--brown-mid)"
+          />
+
+          {/* Mechón/cowlick sobre la cabeza, detalle tierno de cachorro */}
+          <path
+            d="M 52 29 Q 60 16 68 29 Q 62 25 60 32 Q 58 25 52 29 Z"
+            fill="var(--brown-mid)"
+          />
+
+          {/* Cara: pelaje crema-marrón suave */}
+          <circle cx="60" cy="64" r="38" fill="var(--brown-light)" />
+
+          {/* Mejillas sonrojaditas */}
+          <circle cx="33" cy="74" r="6.5" fill="var(--brown-main)" opacity="0.35" />
+          <circle cx="87" cy="74" r="6.5" fill="var(--brown-main)" opacity="0.35" />
+
+          {/* Hocico: parche claro y ancho, característico del golden */}
+          <ellipse cx="60" cy="75" rx="21" ry="16" fill="var(--brown-lightest)" />
+
+          {/* Ojos grandes y tiernos, con brillo (pupilas con su propio
+              offset, dentro de la cabeza) */}
+          <circle cx={44 + pupilOffset.x} cy={58 + pupilOffset.y} r="7.5" fill="var(--text-dark)" />
+          <circle cx={76 + pupilOffset.x} cy={58 + pupilOffset.y} r="7.5" fill="var(--text-dark)" />
+          <circle cx={41.5 + pupilOffset.x} cy={55.5 + pupilOffset.y} r="2.3" fill="white" />
+          <circle cx={73.5 + pupilOffset.x} cy={55.5 + pupilOffset.y} r="2.3" fill="white" />
+
+          {/* Nariz redonda y sonrisa suave */}
+          <ellipse cx="60" cy="76" rx="7.5" ry="6" fill="var(--brown-darker)" />
+          <path
+            d="M 50 85 Q 60 92 70 85"
+            stroke="var(--brown-darker)"
+            strokeWidth="2.5"
             fill="none"
             strokeLinecap="round"
           />
@@ -87,13 +116,13 @@ export default function LoginMascot({
             transition: "transform 0.35s ease",
           }}
         >
-          <ellipse cx="45" cy="55" rx="13" ry="15" fill="var(--brown-main)" />
-          <ellipse cx="75" cy="55" rx="13" ry="15" fill="var(--brown-main)" />
+          <ellipse cx="44" cy="58" rx="13" ry="15" fill="var(--brown-mid)" />
+          <ellipse cx="76" cy="58" rx="13" ry="15" fill="var(--brown-mid)" />
           {/* Deditos, decorativo */}
-          <ellipse cx="40" cy="46" rx="4" ry="5" fill="var(--brown-main)" />
-          <ellipse cx="50" cy="44" rx="4" ry="5" fill="var(--brown-main)" />
-          <ellipse cx="70" cy="44" rx="4" ry="5" fill="var(--brown-main)" />
-          <ellipse cx="80" cy="46" rx="4" ry="5" fill="var(--brown-main)" />
+          <ellipse cx="39" cy="49" rx="4" ry="5" fill="var(--brown-mid)" />
+          <ellipse cx="49" cy="47" rx="4" ry="5" fill="var(--brown-mid)" />
+          <ellipse cx="71" cy="47" rx="4" ry="5" fill="var(--brown-mid)" />
+          <ellipse cx="81" cy="49" rx="4" ry="5" fill="var(--brown-mid)" />
         </g>
       </svg>
     </div>

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Reveal } from "@/app/components/Reveal";
 
 export default async function ProtectoraDetallePage({
   params,
@@ -21,7 +22,7 @@ export default async function ProtectoraDetallePage({
 
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
-      <div className="mx-auto flex max-w-4xl gap-5 rounded-2xl border border-[var(--brown-light)] bg-white p-6 shadow-sm">
+      <Reveal className="mx-auto flex max-w-4xl gap-5 rounded-2xl border border-[var(--brown-light)] bg-white p-6 shadow-sm">
         <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--brown-light)] bg-white text-3xl">
           {protectora.logoUrl ? (
             <img src={protectora.logoUrl} alt={protectora.nombre} className="h-full w-full object-cover" />
@@ -39,7 +40,7 @@ export default async function ProtectoraDetallePage({
             {protectora._count.mascotas} mascotas en adopción
           </p>
         </div>
-      </div>
+      </Reveal>
     </main>
   );
 }

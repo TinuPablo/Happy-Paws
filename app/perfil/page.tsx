@@ -6,6 +6,8 @@ import { logoutAction } from "@/app/actions/auth";
 import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
 import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
+import { Reveal } from "@/app/components/Reveal";
+import { Counter } from "@/app/components/Counter";
 import type { EstadoSolicitud } from "@prisma/client";
 
 function badgeClasses(estado: EstadoSolicitud) {
@@ -28,7 +30,7 @@ export default async function PerfilPage() {
   if (!session) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--brown-lightest)] px-6 text-center">
-        <div className="mx-auto max-w-3xl">
+        <div className="animate-fade-in-up mx-auto max-w-3xl">
           <Image
             src="/assets/logo.jpg"
             alt="Happy Paws"
@@ -102,7 +104,7 @@ export default async function PerfilPage() {
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-center gap-4">
+        <Reveal className="flex items-center gap-4">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brown-main)] to-[var(--brown-dark)] text-xl font-bold text-white">
             {inicial}
           </span>
@@ -112,11 +114,11 @@ export default async function PerfilPage() {
               {esAdoptante ? "Cuenta de adoptante" : "Cuenta de protectora"}
             </p>
           </div>
-        </div>
+        </Reveal>
 
         {esAdoptante && (
           <div className="mt-6 space-y-3">
-            <div className="card p-4">
+            <Reveal className="card p-4">
               <h2 className="font-semibold text-[var(--text-dark)]">Mis solicitudes de adopción</h2>
               {misSolicitudes.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--text-mid)]">
@@ -142,8 +144,8 @@ export default async function PerfilPage() {
                   ))}
                 </div>
               )}
-            </div>
-            <div className="card p-4">
+            </Reveal>
+            <Reveal delay={80} className="card p-4">
               <h2 className="font-semibold text-[var(--text-dark)]">Mis favoritos</h2>
               {misFavoritos.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--text-mid)]">
@@ -165,13 +167,13 @@ export default async function PerfilPage() {
                   ))}
                 </div>
               )}
-            </div>
-            <div className="card p-4">
+            </Reveal>
+            <Reveal delay={160} className="card p-4">
               <h2 className="font-semibold text-[var(--text-dark)]">Explorar mascotas</h2>
               <Link href="/mascotas" className="mt-2 inline-block text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]">
                 Ver mascotas en adopción →
               </Link>
-            </div>
+            </Reveal>
           </div>
         )}
 
@@ -179,34 +181,42 @@ export default async function PerfilPage() {
           <div className="mt-6 space-y-3">
             {dashboard && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-dark)]">{dashboard.total}</p>
+                <Reveal className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--text-dark)]">
+                    <Counter value={dashboard.total} />
+                  </p>
                   <p className="text-xs text-[var(--text-light)]">Mascotas totales</p>
-                </div>
-                <div className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-dark)]">{dashboard.disponibles}</p>
+                </Reveal>
+                <Reveal delay={60} className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--text-dark)]">
+                    <Counter value={dashboard.disponibles} />
+                  </p>
                   <p className="text-xs text-[var(--text-light)]">Disponibles</p>
-                </div>
-                <div className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--gold)]">{dashboard.pendientes}</p>
+                </Reveal>
+                <Reveal delay={120} className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--gold)]">
+                    <Counter value={dashboard.pendientes} />
+                  </p>
                   <p className="text-xs text-[var(--text-light)]">Solicitudes pendientes</p>
-                </div>
-                <div className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--green-ok)]">{dashboard.adopcionesEsteMes}</p>
+                </Reveal>
+                <Reveal delay={180} className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--green-ok)]">
+                    <Counter value={dashboard.adopcionesEsteMes} />
+                  </p>
                   <p className="text-xs text-[var(--text-light)]">Adopciones este mes</p>
-                </div>
+                </Reveal>
               </div>
             )}
-            <div className="card p-4">
+            <Reveal className="card p-4">
               <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
               <p className="mt-1 text-sm text-[var(--text-mid)]">
                 {protectora?.mascotas.length ?? 0}{" "}
                 {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
               </p>
               <AgregarMascotaForm />
-            </div>
+            </Reveal>
 
-            <div className="card p-4">
+            <Reveal delay={80} className="card p-4">
               <h2 className="font-semibold text-[var(--text-dark)]">Solicitudes recibidas</h2>
               {solicitudesRecibidas.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--text-mid)]">
@@ -252,15 +262,15 @@ export default async function PerfilPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </Reveal>
 
-            <div className="card p-4">
+            <Reveal delay={160} className="card p-4">
               <h2 className="font-semibold text-[var(--text-dark)]">Datos de la protectora</h2>
               <p className="mt-1 text-sm text-[var(--text-mid)]">
                 {protectora?.ubicacion} · {protectora?.email}
               </p>
               <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
-            </div>
+            </Reveal>
           </div>
         )}
 
