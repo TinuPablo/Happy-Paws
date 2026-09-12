@@ -326,3 +326,9 @@
 - Verificación: `npx tsc --noEmit` sin errores. Por HTML servido se confirmó `0` ocurrencias de `var(--gold)` y `9` de `var(--brown-mid)` en `/login`. El dev server recompiló solo sin necesidad de reiniciar. Sigue sin haber verificación visual real (browser de Chrome no conectado en toda esta tarea de mascota).
 - Estado: completo por código, verificado por HTML servido; visual pendiente de confirmación del usuario.
 - Próximo paso sugerido: ninguno pendiente salvo que el usuario pida otro ajuste de tono/forma puntual.
+
+## 45 — Push de todo lo de esta sesión (entradas 36 a 44) a GitHub
+- Qué se hizo: el usuario pidió pushear todo. Se revisó `git status` (todo lo modificado eran archivos tocados a lo largo de esta sesión: landing, navbar, globals.css, reveal/counter/ticker nuevos, y las páginas de mascotas/protectoras/guías/perfil/login/registro, más la mascota del login) y se confirmó que `.env*` sigue en `.gitignore`, no había nada sensible entre lo modificado. Se dejó afuera del commit, a propósito, `notes/` y `documents/mds/index.md` — son untracked pero no se generaron ni tocaron en esta sesión (ya estaban así desde antes, ver el `git status` del arranque de la conversación), así que no correspondía barrerlos con un `git add` amplio. Se stageó explícitamente cada archivo tocado por nombre, se hizo un commit único describiendo el conjunto de cambios visuales, y se pusheó a `origin/main`.
+- Archivos tocados: ninguno nuevo — commit y push de lo que ya estaba en el working tree (commit `e034445`).
+- Estado: completo. `origin/main` en GitHub quedó actualizado (`0ee1216..e034445`).
+- Próximo paso sugerido: ninguno pendiente sobre este pedido puntual.
