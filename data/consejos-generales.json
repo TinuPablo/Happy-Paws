@@ -1,0 +1,102 @@
+[
+  {
+    "id": "consejo-alimentacion",
+    "title": "¿Cuánto darle de comer? 🍽️",
+    "content": "Depende del peso, la edad y el nivel de actividad. Como referencia, un perro adulto de 10kg suele necesitar entre 250 y 300g de alimento balanceado por día, repartidos en 2 comidas. Tu veterinario puede ajustar la porción justa para tu compañero."
+  },
+  {
+    "id": "consejo-vacunacion",
+    "title": "Vacunación al día 💉",
+    "content": "Las vacunas esenciales son moquillo, parvovirus y rabia (esta última anual y obligatoria). Mantener la libreta al día es uno de los mejores regalos que le podés hacer a tu mascota — y también cuida a las demás familias del barrio."
+  },
+  {
+    "id": "consejo-desparasitacion",
+    "title": "Desparasitación regular 🐛",
+    "content": "La desparasitación interna (cada 3 meses) y externa (mensual en épocas de pulgas y garrapatas) es tan importante como las vacunas. Consultá con tu veterinario cuál es el producto más adecuado según la edad y el peso."
+  },
+  {
+    "id": "consejo-agua-fresca",
+    "title": "Agua fresca siempre a mano 💧",
+    "content": "Parece simple, pero es clave: revisá el bebedero varias veces al día, sobre todo en verano. Un cuenco limpio y agua renovada ayudan a prevenir problemas urinarios y a mantenerlo hidratado y contento."
+  },
+  {
+    "id": "consejo-ejercicio",
+    "title": "Paseos y juego diario 🏃",
+    "content": "Un paseo diario (o varios, según la energía de tu mascota) ayuda al cuerpo y también a la cabeza: menos ansiedad, menos aburrimiento, más alegría. Adaptá la intensidad a su edad y condición física."
+  },
+  {
+    "id": "consejo-higiene-dental",
+    "title": "Sonrisas sanas 😁",
+    "content": "Cepillar los dientes un par de veces por semana (con pasta especial para mascotas) o usar juguetes dentales ayuda a prevenir sarro y mal aliento. Si notás las encías rojas o mucho olor, una limpieza veterinaria puede ser una gran ayuda."
+  },
+  {
+    "id": "consejo-bano-cepillado",
+    "title": "Baño y cepillado según su pelaje 🛁",
+    "content": "No hace falta bañarlo todas las semanas: cada 3-4 semanas suele alcanzar, salvo indicación veterinaria. El cepillado sí conviene hacerlo seguido, sobre todo en razas de pelo largo, para evitar nudos y ayudar a la piel a respirar."
+  },
+  {
+    "id": "consejo-uñas-oidos",
+    "title": "Uñas y oídos cuidados 👂",
+    "content": "Las uñas muy largas pueden incomodar al caminar — un corte cada 3-4 semanas suele ser suficiente. Revisar y limpiar las orejas de vez en cuando (con productos indicados por el veterinario) ayuda a prevenir infecciones, sobre todo en razas de orejas caídas."
+  },
+  {
+    "id": "consejo-esterilizacion",
+    "title": "Esterilización responsable ✂️",
+    "content": "Castrar o esterilizar a tu mascota previene camadas no planificadas y reduce el riesgo de algunas enfermedades. Muchas protectoras y municipios ofrecen campañas gratuitas o a bajo costo — vale la pena consultar."
+  },
+  {
+    "id": "consejo-identificacion",
+    "title": "Identificación al día 🏷️",
+    "content": "Un collar con chapa identificatoria o un microchip hacen una diferencia enorme si tu mascota se pierde. Revisá que los datos de contacto estén siempre actualizados, sobre todo después de una mudanza."
+  },
+  {
+    "id": "consejo-enriquecimiento",
+    "title": "Estimulación mental 🧠",
+    "content": "Los juguetes interactivos, los juegos de olfato y aprender trucos nuevos mantienen la mente activa y previenen el aburrimiento. Una mascota estimulada suele ser una mascota más tranquila en casa."
+  },
+  {
+    "id": "consejo-socializacion",
+    "title": "Socialización con calma 🐕🐈",
+    "content": "Presentar nuevas personas, animales y lugares de a poco, sin apurar, ayuda a que tu mascota gane confianza. Los primeros meses son clave, pero nunca es tarde para ir sumando experiencias positivas."
+  },
+  {
+    "id": "consejo-clima-calor",
+    "title": "Cuidado con el calor ☀️",
+    "content": "En días de mucho calor, evitá los paseos en las horas de sol fuerte y ofrecé siempre sombra y agua fresca. El asfalto caliente puede lastimar las patitas — probá tocarlo con tu mano antes de salir."
+  },
+  {
+    "id": "consejo-clima-frio",
+    "title": "Abrigo en días fríos ❄️",
+    "content": "Las razas pequeñas, de pelo corto o los animales mayores agradecen un abrigo extra y una cama alejada de corrientes de aire cuando baja la temperatura. Cada mascota tiene su propia tolerancia al frío."
+  },
+  {
+    "id": "consejo-arenero",
+    "title": "Arenero limpio, gato feliz 🐱",
+    "content": "Limpiar el arenero a diario y cambiarlo por completo cada una o dos semanas ayuda a prevenir problemas urinarios y evita que tu gato busque otro lugar para hacer sus necesidades."
+  },
+  {
+    "id": "consejo-transporte",
+    "title": "Viajes seguros en auto 🚗",
+    "content": "Usar un transportín o un arnés de seguridad para el auto protege a tu mascota (y a vos) ante una frenada brusca. Nunca la dejes sola dentro del vehículo, especialmente en días de calor."
+  },
+  {
+    "id": "consejo-adopcion-adaptacion",
+    "title": "Los primeros días en casa 🏡",
+    "content": "Es normal que una mascota recién adoptada esté un poco insegura al principio. Dale tiempo y espacio para explorar a su ritmo, mantené una rutina estable y evitá presentarle demasiadas novedades de golpe."
+  },
+  {
+    "id": "consejo-mascota-mayor",
+    "title": "Cuidados en la etapa senior 🐾",
+    "content": "Las mascotas mayores se benefician de controles veterinarios más frecuentes, camas más cómodas y paseos más cortos pero regulares. Cualquier cambio en su energía o apetito vale la pena comentarlo con el veterinario."
+  },
+  {
+    "id": "consejo-veterinario-rutina",
+    "title": "Chequeos veterinarios de rutina 🩺",
+    "content": "Una visita al veterinario una o dos veces al año, aunque tu mascota se vea sana, ayuda a detectar a tiempo cualquier cosa que no se note a simple vista. Prevenir siempre es más simple que curar."
+  },
+  {
+    "id": "consejo-nueva-mascota-convivencia",
+    "title": "Presentar mascotas nuevas 🤝",
+    "content": "Si sumás una nueva mascota a la familia, presentala de a poco y en un espacio neutral. Cada animal necesita su propio tiempo para acostumbrarse — la paciencia acá rinde muchísimo."
+  }
+]

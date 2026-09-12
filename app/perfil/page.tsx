@@ -1,55 +1,31 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/app/context/AuthContext";
-import { useMascotas } from "@/app/context/MascotasContext";
-import { useSolicitudes } from "@/app/context/SolicitudesContext";
-import type { MascotaMock } from "@/data/mock-mascotas";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
+import { logoutAction } from "@/app/actions/auth";
+import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
+import { AgregarMascotaForm } from "./AgregarMascotaForm";
+import { LogoProtectoraForm } from "./LogoProtectoraForm";
+import type { EstadoSolicitud } from "@prisma/client";
 
-function badgeClasses(estado: "PENDIENTE" | "APROBADA" | "RECHAZADA") {
+function badgeClasses(estado: EstadoSolicitud) {
   if (estado === "APROBADA") return "bg-[var(--green-ok)] text-white";
-  if (estado === "PENDIENTE") return "bg-[var(--gold)] text-[var(--brown-darker)]";
+  if (estado === "PENDIENTE" || estado === "EN_REVISION") return "bg-[var(--gold)] text-[var(--brown-darker)]";
   return "border border-red-300 text-[var(--text-mid)]";
 }
 
-function badgeLabel(estado: "PENDIENTE" | "APROBADA" | "RECHAZADA") {
+function badgeLabel(estado: EstadoSolicitud) {
   if (estado === "APROBADA") return "Aprobada";
   if (estado === "PENDIENTE") return "Pendiente";
+  if (estado === "EN_REVISION") return "En revisión";
+  if (estado === "CANCELADA") return "Cancelada";
   return "Rechazada";
 }
 
-export default function PerfilPage() {
-  const { loggedIn, role, nombre, logout } = useAuth();
-  const { mascotas, addMascota } = useMascotas();
-  const { solicitudes, actualizarEstado } = useSolicitudes();
+export default async function PerfilPage() {
+  const session = await getSession();
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [nombreMascota, setNombreMascota] = useState("");
-  const [especie, setEspecie] = useState<MascotaMock["especie"]>("PERRO");
-  const [raza, setRaza] = useState("");
-  const [edadAproximada, setEdadAproximada] = useState("");
-  const [tamanio, setTamanio] = useState<MascotaMock["tamanio"]>("MEDIANO");
-  const [descripcion, setDescripcion] = useState("");
-  const [mediaUrl, setMediaUrl] = useState<string | undefined>(undefined);
-  const [mediaType, setMediaType] = useState<"image" | "video" | undefined>(undefined);
-
-  function handleAgregarMascota(e: React.FormEvent) {
-    e.preventDefault();
-    addMascota({ nombre: nombreMascota, especie, raza, edadAproximada, tamanio, descripcion, mediaUrl, mediaType });
-    setNombreMascota("");
-    setEspecie("PERRO");
-    setRaza("");
-    setEdadAproximada("");
-    setTamanio("MEDIANO");
-    setDescripcion("");
-    setMediaUrl(undefined);
-    setMediaType(undefined);
-    setMostrarFormulario(false);
-  }
-
-  if (!loggedIn) {
+  if (!session) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--brown-lightest)] px-6 text-center">
         <div className="mx-auto max-w-3xl">
@@ -74,8 +50,54 @@ export default function PerfilPage() {
     );
   }
 
-  const misSolicitudes = solicitudes.filter((s) => s.adoptanteNombre === nombre);
-  const inicial = nombre?.charAt(0).toUpperCase() || "?";
+  const esAdoptante = session.rol === "ADOPTANTE";
+  const inicial = session.nombre.charAt(0).toUpperCase() || "?";
+
+  const misSolicitudes = esAdoptante
+    ? await prisma.solicitudAdopcion.findMany({
+        where: { adoptante: { userId: session.userId } },
+        include: { mascota: true },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  const misFavoritos = esAdoptante
+    ? await prisma.favorito.findMany({
+        where: { adoptante: { userId: session.userId } },
+        include: { mascota: true },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  const protectora = !esAdoptante
+    ? await prisma.protectora.findFirst({
+        where: { duenioId: session.userId },
+        include: { mascotas: true },
+      })
+    : null;
+
+  const solicitudesRecibidas = protectora
+    ? await prisma.solicitudAdopcion.findMany({
+        where: { mascota: { protectoraId: protectora.id } },
+        include: { mascota: true, adoptante: { include: { user: true } } },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  const inicioDeMes = new Date();
+  inicioDeMes.setDate(1);
+  inicioDeMes.setHours(0, 0, 0, 0);
+
+  const dashboard = protectora
+    ? {
+        total: protectora.mascotas.length,
+        disponibles: protectora.mascotas.filter((m) => m.estado !== "ADOPTADO").length,
+        pendientes: solicitudesRecibidas.filter((s) => s.estado === "PENDIENTE").length,
+        adopcionesEsteMes: solicitudesRecibidas.filter(
+          (s) => s.estado === "APROBADA" && s.updatedAt >= inicioDeMes
+        ).length,
+      }
+    : null;
 
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
@@ -85,21 +107,17 @@ export default function PerfilPage() {
             {inicial}
           </span>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-dark)]">
-              Hola, {nombre}
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-dark)]">Hola, {session.nombre}</h1>
             <p className="text-sm text-[var(--text-light)]">
-              {role === "adoptante" ? "Cuenta de adoptante" : "Cuenta de protectora"}
+              {esAdoptante ? "Cuenta de adoptante" : "Cuenta de protectora"}
             </p>
           </div>
         </div>
 
-        {role === "adoptante" && (
+        {esAdoptante && (
           <div className="mt-6 space-y-3">
             <div className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">
-                Mis solicitudes de adopción
-              </h2>
+              <h2 className="font-semibold text-[var(--text-dark)]">Mis solicitudes de adopción</h2>
               {misSolicitudes.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--text-mid)]">
                   Todavía no enviaste ninguna solicitud.
@@ -112,8 +130,10 @@ export default function PerfilPage() {
                       className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascotaNombre}</p>
-                        <p className="text-xs text-[var(--text-light)]">{s.fecha}</p>
+                        <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascota.nombre}</p>
+                        <p className="text-xs text-[var(--text-light)]">
+                          {s.createdAt.toLocaleDateString("es-AR")}
+                        </p>
                       </div>
                       <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
                         {badgeLabel(s.estado)}
@@ -124,181 +144,109 @@ export default function PerfilPage() {
               )}
             </div>
             <div className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">
-                Explorar mascotas
-              </h2>
-              <Link
-                href="/mascotas"
-                className="mt-2 inline-block text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
-              >
+              <h2 className="font-semibold text-[var(--text-dark)]">Mis favoritos</h2>
+              {misFavoritos.length === 0 ? (
+                <p className="mt-1 text-sm text-[var(--text-mid)]">
+                  Todavía no guardaste ninguna mascota como favorita.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {misFavoritos.map((f) => (
+                    <Link
+                      key={f.id}
+                      href={`/mascotas/${f.mascotaId}`}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3 hover:bg-[var(--brown-lightest)]"
+                    >
+                      <span className="truncate text-sm font-medium text-[var(--text-dark)]">
+                        ★ {f.mascota.nombre}
+                      </span>
+                      <span className="shrink-0 text-xs text-[var(--text-light)]">Ver ficha →</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="card p-4">
+              <h2 className="font-semibold text-[var(--text-dark)]">Explorar mascotas</h2>
+              <Link href="/mascotas" className="mt-2 inline-block text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]">
                 Ver mascotas en adopción →
               </Link>
             </div>
           </div>
         )}
 
-        {role === "protectora" && (
+        {!esAdoptante && (
           <div className="mt-6 space-y-3">
+            {dashboard && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--text-dark)]">{dashboard.total}</p>
+                  <p className="text-xs text-[var(--text-light)]">Mascotas totales</p>
+                </div>
+                <div className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--text-dark)]">{dashboard.disponibles}</p>
+                  <p className="text-xs text-[var(--text-light)]">Disponibles</p>
+                </div>
+                <div className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--gold)]">{dashboard.pendientes}</p>
+                  <p className="text-xs text-[var(--text-light)]">Solicitudes pendientes</p>
+                </div>
+                <div className="card p-4 text-center">
+                  <p className="text-2xl font-bold text-[var(--green-ok)]">{dashboard.adopcionesEsteMes}</p>
+                  <p className="text-xs text-[var(--text-light)]">Adopciones este mes</p>
+                </div>
+              </div>
+            )}
             <div className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">
-                Mis mascotas publicadas
-              </h2>
+              <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
               <p className="mt-1 text-sm text-[var(--text-mid)]">
-                {mascotas.length} {mascotas.length === 1 ? "mascota publicada" : "mascotas publicadas"}.
+                {protectora?.mascotas.length ?? 0}{" "}
+                {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
               </p>
-              <button
-                type="button"
-                onClick={() => setMostrarFormulario((v) => !v)}
-                className="mt-3 text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
-              >
-                {mostrarFormulario ? "Cancelar" : "+ Agregar mascota"}
-              </button>
-
-              {mostrarFormulario && (
-                <form
-                  onSubmit={handleAgregarMascota}
-                  className="mt-4 space-y-3 border-t border-[var(--brown-light)] pt-4"
-                >
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Nombre
-                    <input
-                      type="text"
-                      required
-                      value={nombreMascota}
-                      onChange={(e) => setNombreMascota(e.target.value)}
-                      className="input"
-                    />
-                  </label>
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Especie
-                    <select
-                      value={especie}
-                      onChange={(e) => setEspecie(e.target.value as MascotaMock["especie"])}
-                      className="input"
-                    >
-                      <option value="PERRO">Perro</option>
-                      <option value="GATO">Gato</option>
-                    </select>
-                  </label>
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Raza
-                    <input
-                      type="text"
-                      required
-                      value={raza}
-                      onChange={(e) => setRaza(e.target.value)}
-                      className="input"
-                    />
-                  </label>
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Edad aproximada
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej: 2 años"
-                      value={edadAproximada}
-                      onChange={(e) => setEdadAproximada(e.target.value)}
-                      className="input"
-                    />
-                  </label>
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Tamaño
-                    <select
-                      value={tamanio}
-                      onChange={(e) => setTamanio(e.target.value as MascotaMock["tamanio"])}
-                      className="input"
-                    >
-                      <option value="PEQUEÑO">Pequeño</option>
-                      <option value="MEDIANO">Mediano</option>
-                      <option value="GRANDE">Grande</option>
-                    </select>
-                  </label>
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Descripción
-                    <textarea
-                      required
-                      rows={3}
-                      value={descripcion}
-                      onChange={(e) => setDescripcion(e.target.value)}
-                      className="input"
-                    />
-                  </label>
-                  <label className="block text-sm text-[var(--text-mid)]">
-                    Foto o video (opcional)
-                    <input
-                      type="file"
-                      accept="image/*,video/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const url = URL.createObjectURL(file);
-                        const tipo = file.type.startsWith("video/") ? "video" : "image";
-                        setMediaUrl(url);
-                        setMediaType(tipo);
-                      }}
-                      className="mt-1 w-full text-sm text-[var(--text-mid)]"
-                    />
-                  </label>
-
-                  {mediaUrl && mediaType === "image" && (
-                    <img
-                      src={mediaUrl}
-                      alt="Vista previa"
-                      className="mt-3 h-32 w-full rounded-xl object-cover"
-                    />
-                  )}
-                  {mediaUrl && mediaType === "video" && (
-                    <video
-                      src={mediaUrl}
-                      controls
-                      className="mt-3 h-32 w-full rounded-xl object-cover"
-                    />
-                  )}
-                  <button type="submit" className="btn-dark w-full">
-                    Publicar mascota
-                  </button>
-                </form>
-              )}
+              <AgregarMascotaForm />
             </div>
 
             <div className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">
-                Solicitudes recibidas
-              </h2>
-              {solicitudes.length === 0 ? (
+              <h2 className="font-semibold text-[var(--text-dark)]">Solicitudes recibidas</h2>
+              {solicitudesRecibidas.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--text-mid)]">
                   Todavía no recibiste solicitudes de adopción.
                 </p>
               ) : (
                 <div className="mt-3 space-y-2">
-                  {solicitudes.map((s) => (
+                  {solicitudesRecibidas.map((s) => (
                     <div key={s.id} className="rounded-xl border border-[var(--brown-light)] p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascotaNombre}</p>
-                          <p className="truncate text-xs text-[var(--text-light)]">{s.adoptanteNombre} · {s.fecha}</p>
+                          <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascota.nombre}</p>
+                          <p className="truncate text-xs text-[var(--text-light)]">
+                            {s.adoptante.user.nombre} · {s.createdAt.toLocaleDateString("es-AR")}
+                          </p>
                         </div>
                         <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
                           {badgeLabel(s.estado)}
                         </span>
                       </div>
                       {s.estado === "PENDIENTE" && (
-                        <div className="mt-2 flex gap-2">
+                        <form action={actualizarEstadoSolicitudAction} className="mt-2 flex gap-2">
+                          <input type="hidden" name="solicitudId" value={s.id} />
                           <button
-                            type="button"
-                            onClick={() => actualizarEstado(s.id, "APROBADA")}
+                            type="submit"
+                            name="estado"
+                            value="APROBADA"
                             className="flex-1 rounded-lg bg-[var(--green-ok)] px-3 py-1.5 text-xs font-semibold text-white transition-transform duration-150 hover:-translate-y-0.5"
                           >
                             Aprobar
                           </button>
                           <button
-                            type="button"
-                            onClick={() => actualizarEstado(s.id, "RECHAZADA")}
+                            type="submit"
+                            name="estado"
+                            value="RECHAZADA"
                             className="flex-1 rounded-lg border border-[var(--brown-light)] px-3 py-1.5 text-xs font-semibold text-[var(--text-mid)] transition-colors duration-150 hover:bg-[var(--brown-lightest)]"
                           >
                             Rechazar
                           </button>
-                        </div>
+                        </form>
                       )}
                     </div>
                   ))}
@@ -307,19 +255,20 @@ export default function PerfilPage() {
             </div>
 
             <div className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">
-                Datos de la protectora
-              </h2>
+              <h2 className="font-semibold text-[var(--text-dark)]">Datos de la protectora</h2>
               <p className="mt-1 text-sm text-[var(--text-mid)]">
-                Ubicación, contacto y descripción pública.
+                {protectora?.ubicacion} · {protectora?.email}
               </p>
+              <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
             </div>
           </div>
         )}
 
-        <button onClick={logout} className="btn-outline mt-8 w-full">
-          Cerrar sesión
-        </button>
+        <form action={logoutAction}>
+          <button type="submit" className="btn-outline mt-8 w-full">
+            Cerrar sesión
+          </button>
+        </form>
       </div>
     </main>
   );

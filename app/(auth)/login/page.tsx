@@ -1,9 +1,12 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/app/context/AuthContext";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import { loginAction } from "@/app/actions/auth";
+import LoginMascot from "@/app/components/LoginMascot";
 
 export default function LoginPage() {
   return (
@@ -14,38 +17,16 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [rolSeleccionado, setRolSeleccionado] = useState<"adoptante" | "protectora" | null>(null);
-  const [mostrarErrorRol, setMostrarErrorRol] = useState(false);
-
-  const { login } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
-
-  // MOCK: acá va la validación real contra el backend cuando exista.
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!rolSeleccionado) {
-      setMostrarErrorRol(true);
-      return;
-    }
-
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      login(email.split("@")[0], rolSeleccionado);
-      const redirectTo = searchParams.get("redirect");
-      router.push(redirectTo || "/perfil");
-    }, 800);
-  }
+  const redirectTo = searchParams.get("redirect") || "/perfil";
+  const [state, formAction, pending] = useActionState(loginAction, null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
       <form
-        onSubmit={handleSubmit}
+        action={formAction}
         className="w-full max-w-sm rounded-2xl border border-[var(--brown-light)] bg-white p-8 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
       >
         <Image
@@ -55,85 +36,59 @@ function LoginForm() {
           height={48}
           className="h-12 w-12 rounded-full bg-white object-cover"
         />
+        <LoginMascot isPasswordFocused={passwordFocused} isPasswordVisible={showPassword} />
         <h1 className="mt-4 text-xl font-bold text-[var(--text-dark)]">
           Iniciar sesión
         </h1>
         <p className="mt-1 text-sm text-[var(--text-light)]">
           Qué bueno tenerte de vuelta.
         </p>
+
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+
         <label className="mt-6 block text-sm text-[var(--text-mid)]">
           Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input"
-          />
+          <input type="email" name="email" required className="input" />
         </label>
         <label className="mt-4 block text-sm text-[var(--text-mid)]">
           Contraseña
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="input"
-          />
-        </label>
-
-        <div className="mt-4">
-          <span className="block text-sm text-[var(--text-mid)]">Ingresar como</span>
-          <div className="mt-2 grid grid-cols-2 gap-3">
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              required
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
+              className="input pr-10"
+            />
             <button
               type="button"
-              onClick={() => {
-                setRolSeleccionado("adoptante");
-                setMostrarErrorRol(false);
-              }}
-              className={`rounded-xl border p-3 text-center text-sm font-medium text-[var(--text-dark)] transition-colors duration-200 ${
-                rolSeleccionado === "adoptante"
-                  ? "border-[var(--brown-main)] bg-[var(--brown-light)]"
-                  : "border-[var(--brown-light)] bg-white hover:bg-[var(--brown-lightest)]"
-              }`}
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-light)]"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
-              Adoptante
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRolSeleccionado("protectora");
-                setMostrarErrorRol(false);
-              }}
-              className={`rounded-xl border p-3 text-center text-sm font-medium text-[var(--text-dark)] transition-colors duration-200 ${
-                rolSeleccionado === "protectora"
-                  ? "border-[var(--brown-main)] bg-[var(--brown-light)]"
-                  : "border-[var(--brown-light)] bg-white hover:bg-[var(--brown-lightest)]"
-              }`}
-            >
-              Protectora
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {mostrarErrorRol && (
-            <p className="mt-2 text-xs font-medium text-red-600">
-              Elegí con qué rol querés ingresar.
-            </p>
-          )}
-        </div>
+        </label>
+
+        {state?.error && (
+          <p className="mt-4 text-sm font-medium text-red-600">{state.error}</p>
+        )}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={pending}
           className="btn-dark mt-6 w-full disabled:opacity-60"
         >
-          {loading ? "Ingresando..." : "Iniciar sesión"}
+          {pending ? "Ingresando..." : "Iniciar sesión"}
         </button>
-        <a
+        <Link
           href="/registro"
           className="mt-4 block text-center text-sm font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
         >
           ¿No tenés cuenta? Registrate
-        </a>
+        </Link>
       </form>
     </main>
   );

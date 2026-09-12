@@ -1,28 +1,38 @@
-import { mockProtectoras } from "@/data/mock-protectoras";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
-export default function ProtectorasPage() {
+export default async function ProtectorasPage() {
+  const protectoras = await prisma.protectora.findMany({
+    include: { _count: { select: { mascotas: { where: { estado: { not: "ADOPTADO" } } } } } },
+    orderBy: { nombre: "asc" },
+  });
+
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-2xl font-bold text-[var(--text-dark)]">
-          Protectoras
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-dark)]">Protectoras</h1>
         <p className="mt-1 text-sm text-[var(--text-light)]">
           Organizaciones que rescatan y cuidan mascotas hasta encontrarles un hogar.
         </p>
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {mockProtectoras.map((protectora) => (
-            <div
-              key={protectora.id}
-              className="card p-5"
-            >
-              <h3 className="font-semibold text-[var(--text-dark)]">{protectora.nombre}</h3>
-              <p className="text-sm text-[var(--text-light)]">{protectora.ubicacion}</p>
-              <p className="mt-2 text-sm text-[var(--text-mid)]">{protectora.descripcion}</p>
-              <p className="mt-3 text-sm font-semibold text-[var(--brown-main)]">
-                {protectora.cantidadMascotas} mascotas en adopción
-              </p>
-            </div>
+          {protectoras.map((protectora) => (
+            <Link key={protectora.id} href={`/protectoras/${protectora.id}`} className="card flex gap-4 p-5">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--brown-light)] bg-white text-2xl">
+                {protectora.logoUrl ? (
+                  <img src={protectora.logoUrl} alt={protectora.nombre} className="h-full w-full object-cover" />
+                ) : (
+                  "🏠"
+                )}
+              </span>
+              <div className="min-w-0">
+                <h3 className="font-semibold text-[var(--text-dark)]">{protectora.nombre}</h3>
+                <p className="text-sm text-[var(--text-light)]">{protectora.ubicacion}</p>
+                <p className="mt-2 text-sm text-[var(--text-mid)]">{protectora.descripcion}</p>
+                <p className="mt-3 text-sm font-semibold text-[var(--brown-main)]">
+                  {protectora._count.mascotas} mascotas en adopción
+                </p>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

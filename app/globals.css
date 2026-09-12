@@ -94,3 +94,36 @@ h1, h2, h3 {
 .animate-fade-in-up {
   animation: fade-in-up 0.7s ease-out both;
 }
+
+@keyframes float-up {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(18px, -30vh, 0) rotate(10deg);
+  }
+  50% {
+    transform: translate3d(-18px, -60vh, 0) rotate(-8deg);
+  }
+  75% {
+    transform: translate3d(14px, -90vh, 0) rotate(8deg);
+  }
+  100% {
+    transform: translate3d(0, -120vh, 0) rotate(0deg);
+  }
+}
+
+.floating-paw {
+  position: absolute;
+  bottom: -10vh;
+  will-change: transform;
+  animation-name: float-up;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-paw {
+    animation-duration: 90s !important;
+  }
+}

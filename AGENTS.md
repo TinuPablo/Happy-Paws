@@ -147,34 +147,67 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
 - [x] Perfil de protectora funcional (mock): agregar mascota, ver/aprobar/rechazar solicitudes
 - [x] Foto/video mock en formulario de agregar mascota
 - [x] MySQL + Prisma conectado y migrado
-- [ ] Autenticación real (reemplaza AuthContext mock)
-- [ ] Mascotas reales en MySQL (reemplaza MascotasContext mock)
-- [ ] Solicitudes de adopción reales en MySQL (reemplaza SolicitudesContext mock)
-- [ ] Vacunación real en MySQL (reemplaza libreta mock)
-- [ ] Seed de datos reales de FUPA (reemplaza datos de ejemplo)
+- [x] Autenticación real (reemplaza AuthContext mock) — hash bcrypt + sesión
+      firmada en cookie httpOnly (ver `lib/session.ts`), sin NextAuth
+- [x] Mascotas reales en MySQL (reemplaza MascotasContext mock, eliminado)
+- [x] Solicitudes de adopción reales en MySQL (reemplaza SolicitudesContext
+      mock, eliminado) + transferencia de "propiedad" al aprobar
+- [x] Vacunación real en MySQL (reemplaza libreta mock, se arma desde
+      `Vacunacion` real en `/mascotas/[id]`)
+- [x] Permisos verificados del lado del servidor en toda mutación (ver
+      `requireRole()` en `lib/session.ts` + chequeo de dueño de protectora
+      en `actualizarEstadoSolicitudAction`) — el rol ya no es falsificable
+      vía localStorage, sale de la cookie firmada
+- [x] Seed de datos de ejemplo de FUPA vía Prisma (`npm run db:seed`) —
+      sigue siendo data placeholder, no la real de la ONG (ver backlog)
 
 ## Backlog
 
 ### Imprescindibles (para que la app sea real, no solo demo)
-- [ ] Autenticación real (hash + sesión) — reemplaza AuthContext mock.
-      Recomendación técnica: evaluar Auth.js (NextAuth) con adapter de
-      Prisma en vez de armar sesión/JWT a mano — cubre hash, sesiones y
-      reset de contraseña sin reinventar la rueda, dado el tiempo y equipo
-      chico.
-- [ ] Mascotas conectadas a MySQL — reemplaza MascotasContext mock
-- [ ] Solicitudes conectadas a MySQL — reemplaza SolicitudesContext mock
-- [ ] Transferencia de "propiedad" de mascota al aprobar una adopción (falta
-      campo/relación en el schema para esto)
-- [ ] Storage real de fotos/video (hoy es blob URL de sesión, no persiste)
-- [ ] Vacunación conectada a MySQL (hoy es lista mock hardcodeada)
-- [ ] Permisos verificados del lado del servidor (hoy el rol vive solo en
-      el navegador/mock). CRÍTICO: hoy el rol "protectora" es 100%
-      falsificable editando localStorage a mano (happy_paws_mock_session)
-      para desbloquear "agregar mascota" o "aprobar solicitudes" — con
-      auth mock no importa, pero es el punto #1 a blindar apenas haya
-      sesión real. No alcanza con ocultar el botón en el cliente, cada
-      mutación de la API tiene que revalidar el rol server-side.
-- [ ] Datos reales de FUPA (reemplaza el seed de ejemplo)
+- [x] Autenticación real (hash + sesión) — reemplaza AuthContext mock.
+      Se implementó con bcrypt + cookie httpOnly firmada con HMAC
+      (`lib/session.ts`), sin NextAuth: dado que el login es solo
+      email+contraseña (sin proveedores OAuth), el adapter de Prisma de
+      NextAuth no aportaba demasiado y el signing casero evita traer una
+      dependencia mayor con compatibilidad incierta contra Next 16/React 19
+      en este momento. Server actions en `app/actions/auth.ts`
+      (`loginAction`, `registerAdoptanteAction`, `registerProtectoraAction`,
+      `logoutAction`), con errores reales vía `useActionState` en
+      `/login` y `/registro` (email ya registrado, contraseña incorrecta,
+      contraseña muy corta). El selector de rol falso en `/login` se sacó:
+      el rol ahora sale siempre de la base, nunca de lo que elige el
+      usuario en el formulario.
+- [x] Mascotas conectadas a MySQL — reemplaza MascotasContext mock
+      (eliminado junto con `data/mock-mascotas.ts`). `/mascotas`,
+      `/mascotas/[id]` y la landing leen directo de Prisma.
+- [x] Solicitudes conectadas a MySQL — reemplaza SolicitudesContext mock
+      (eliminado junto con `data/mock-protectoras.ts`). Ver
+      `app/actions/solicitudes.ts`.
+- [x] Transferencia de "propiedad" de mascota al aprobar una adopción — se
+      agregó `Mascota.adoptanteId` al schema (migración
+      `20260911234041_auth_real_mascotas_solicitudes`); al aprobar,
+      `actualizarEstadoSolicitudAction` pone `estado: ADOPTADO` y completa
+      `adoptanteId`.
+- [ ] Storage real de fotos/video (hoy sigue siendo blob URL de sesión, no
+      persiste entre navegadores — el campo `Mascota.mediaUrl` ya existe en
+      el schema pero guarda esa misma blob URL no portable hasta que haya
+      un storage real, S3/Cloudinary/similar).
+- [x] Vacunación conectada a MySQL (se arma en `/mascotas/[id]` a partir de
+      la tabla `Vacunacion` real: cada fila es una dosis aplicada, y si
+      tiene `proximaDosis` se muestra además como pendiente).
+- [x] Permisos verificados del lado del servidor — CRÍTICO, resuelto: el
+      rol ya no vive en el navegador. La sesión es una cookie httpOnly
+      firmada con HMAC (`lib/session.ts`), y toda mutación (`addMascotaAction`,
+      `crearSolicitudAction`, `actualizarEstadoSolicitudAction`) revalida el
+      rol contra esa cookie con `requireRole()` — `actualizarEstadoSolicitudAction`
+      además verifica que la protectora dueña de la mascota sea la de la
+      sesión, no solo el rol. No se puede forzar ninguna de estas acciones
+      editando estado del cliente.
+- [x] Datos de ejemplo de FUPA cargados en MySQL vía `prisma/seed.ts`
+      (`npm run db:seed`) — mismo contenido que tenían los mocks (Firulais,
+      Michi, Rocky, Luna + 2 protectoras + usuarios demo, contraseña
+      `happypaws123`). Sigue sin ser la data real de la ONG: falta que FUPA
+      provea sus mascotas/fotos reales para reemplazar este seed.
 - [ ] Modelo de "seguimiento posterior a la adopción" en schema.prisma —
       hoy Mascota pasa a ADOPTADO y ahí termina, no hay tabla para
       checkpoints (7 días, 1 mes, etc.). contexto.md lo describe como
@@ -182,27 +215,38 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       Si se va a mostrar en la presentación como parte de la propuesta de
       valor, diseñar esta tabla junto con el resto del schema, no como
       parche después.
-- [ ] Estados de error en /login y /registro (contraseña incorrecta, email
-      ya registrado, etc.) — no existen hoy porque no hacían falta con el
-      mock. Diseñarlos ahora, no descubrirlos sobre la marcha al conectar
-      auth real.
-- [ ] Pasada general de links `<a href>` sueltos (landing, /protectoras)
-      que fuerzan recarga completa de página en vez de navegación SPA —
-      solo se corrigió el de /mascotas porque rompía la foto. Conviene
-      resolver esto antes de sumar más estado en memoria (sesión real),
-      porque cada recarga completa lo tira todo.
+- [x] Estados de error en /login y /registro (contraseña incorrecta, email
+      ya registrado, contraseña muy corta) — implementados vía
+      `useActionState`, mensaje inline en el propio formulario.
+- [x] Pasada general de links `<a href>` sueltos — no queda ninguno en
+      `app/` (confirmado por búsqueda), todos son `<Link>` de `next/link`.
 
 ### Recomendaciones (suman valor, no bloquean)
-- [ ] Filtros de búsqueda en /mascotas (especie, tamaño, edad)
-- [ ] Recuperación de contraseña
-- [ ] Notificación por email al cambiar estado de solicitud
-- [ ] Dashboard simple para protectora (mascotas activas, adopciones del mes)
-- [ ] Favoritos para adoptantes
-- [ ] Deploy a producción (Vercel + MySQL en la nube)
-- [ ] Página de términos/privacidad reales (hoy es texto placeholder)
-- [ ] Reemplazar los alert() nativos (login, registro, adoptar) por un
-      toast/notificación con la estética del proyecto — hoy interrumpen la
-      interfaz y desentonan con el resto del diseño cuidado.
-- [ ] Foto/logo de protectora — ni ProtectoraMock ni el schema lo tienen
-      hoy. Para FUPA en particular, un logo real en /protectoras da mucha
-      más credibilidad que una card de solo texto.
+- [x] Filtros de búsqueda en /mascotas (especie, tamaño) — vía query params
+      (`?especie=&tamanio=`), filtro server-side con Prisma. Edad no se
+      filtra: sigue siendo texto libre (`edadTexto`), no hay un campo
+      numérico cargado todavía para poder rangear.
+- [ ] Recuperación de contraseña — no se implementó: requiere una decisión
+      de proveedor de email (SMTP/Resend/similar) que no estaba tomada, y
+      una versión sin envío real de mail hubiera sido más confusa que útil.
+- [ ] Notificación por email al cambiar estado de solicitud — mismo
+      motivo, depende de la misma decisión de proveedor de email.
+- [x] Dashboard simple para protectora — 4 tiles en `/perfil` (mascotas
+      totales, disponibles, solicitudes pendientes, adopciones del mes).
+- [x] Favoritos para adoptantes — tabla `Favorito` nueva, botón ☆/★ en
+      `/mascotas`, `/mascotas/[id]` y listado en "Mis favoritos" en
+      `/perfil`.
+- [ ] Deploy a producción (Vercel + MySQL en la nube) — no se tocó: implica
+      acceso a cuentas/infra del usuario, se hace a pedido explícito.
+- [ ] Página de términos/privacidad reales — no se creó: hoy no hay ningún
+      placeholder en el código (se ve que se sacó en algún rediseño previo,
+      no quedó rastro), y escribir texto legal "real" no es algo para
+      inventar — falta que alguien redacte el contenido real.
+- [x] Reemplazar los alert() nativos — ya no queda ninguno en `app/`
+      (confirmado por búsqueda): se fueron solos al reescribir
+      login/registro/perfil con server actions + `useActionState`, que
+      muestran el mensaje inline en vez de con `alert()`.
+- [x] Foto/logo de protectora — `Protectora.logoUrl` nuevo en el schema,
+      se carga desde "Datos de la protectora" en `/perfil` (mismo patrón de
+      preview con blob URL que ya se usaba para fotos de mascota) y se
+      muestra en `/protectoras`, `/protectoras/[id]` y la landing.

@@ -1,9 +1,7 @@
-"use client";
-
+import Link from "next/link";
 import { Search, ClipboardCheck, HeartHandshake } from "lucide-react";
-import { mockMascotas } from "@/data/mock-mascotas";
-import { mockProtectoras } from "@/data/mock-protectoras";
-import { useAuth } from "@/app/context/AuthContext";
+import { prisma } from "@/lib/prisma";
+import { HeroCTA } from "./components/HeroCTA";
 
 const PASOS = [
   {
@@ -20,8 +18,15 @@ const PASOS = [
   },
 ];
 
-export default function HomePage() {
-  const { loggedIn } = useAuth();
+export default async function HomePage() {
+  const [mascotas, protectoras] = await Promise.all([
+    prisma.mascota.findMany({
+      where: { estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] } },
+      orderBy: { fechaIngreso: "desc" },
+      take: 4,
+    }),
+    prisma.protectora.findMany({ orderBy: { nombre: "asc" }, take: 2 }),
+  ]);
 
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)]">
@@ -41,16 +46,7 @@ export default function HomePage() {
             Happy Paws conecta protectoras de animales de la zona con familias que
             quieren adoptar de forma responsable.
           </p>
-          {!loggedIn && (
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <a href="/mascotas" className="btn-primary">
-                Quiero adoptar 🐶
-              </a>
-              <a href="/registro" className="btn-secondary">
-                Soy una protectora
-              </a>
-            </div>
-          )}
+          <HeroCTA />
         </div>
       </section>
 
@@ -60,11 +56,8 @@ export default function HomePage() {
             Mascotas que te esperan
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {mockMascotas.map((mascota) => (
-              <div
-                key={mascota.id}
-                className="card group overflow-hidden p-4"
-              >
+            {mascotas.map((mascota) => (
+              <div key={mascota.id} className="card group overflow-hidden p-4">
                 <div className="relative mb-3 flex h-32 items-center justify-center overflow-hidden rounded-xl bg-[var(--brown-light)] text-4xl">
                   <span className="transition-transform duration-300 group-hover:scale-110">
                     {mascota.especie === "PERRO" ? "🐶" : "🐱"}
@@ -75,11 +68,11 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-semibold text-[var(--text-dark)]">{mascota.nombre}</h3>
                 <p className="text-sm text-[var(--text-light)]">
-                  {mascota.raza} · {mascota.edadAproximada}
+                  {mascota.razaTexto} · {mascota.edadTexto}
                 </p>
-                <a href={`/mascotas/${mascota.id}`} className="btn-dark mt-3 block">
+                <Link href={`/mascotas/${mascota.id}`} className="btn-dark mt-3 block">
                   Ver más
-                </a>
+                </Link>
               </div>
             ))}
           </div>
@@ -108,18 +101,21 @@ export default function HomePage() {
             Protectoras participantes
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {mockProtectoras.map((protectora) => (
-              <div
-                key={protectora.id}
-                className="card p-5"
-              >
-                <h3 className="font-semibold text-[var(--text-dark)]">{protectora.nombre}</h3>
-                <p className="text-sm text-[var(--text-light)]">{protectora.ubicacion}</p>
-                <p className="mt-2 text-sm text-[var(--text-mid)]">{protectora.descripcion}</p>
-                <p className="mt-3 text-sm font-semibold text-[var(--brown-main)]">
-                  {protectora.cantidadMascotas} mascotas en adopción
-                </p>
-              </div>
+            {protectoras.map((protectora) => (
+              <Link key={protectora.id} href={`/protectoras/${protectora.id}`} className="card flex gap-4 p-5">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--brown-light)] bg-white text-xl">
+                  {protectora.logoUrl ? (
+                    <img src={protectora.logoUrl} alt={protectora.nombre} className="h-full w-full object-cover" />
+                  ) : (
+                    "🏠"
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-[var(--text-dark)]">{protectora.nombre}</h3>
+                  <p className="text-sm text-[var(--text-light)]">{protectora.ubicacion}</p>
+                  <p className="mt-2 text-sm text-[var(--text-mid)]">{protectora.descripcion}</p>
+                </div>
+              </Link>
             ))}
           </div>
         </div>

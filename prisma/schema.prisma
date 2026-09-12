@@ -52,6 +52,7 @@ model Protectora {
   telefono    String?
   email       String?
   redSocial   String?
+  logoUrl     String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -106,12 +107,16 @@ model Mascota {
   id            String        @id @default(cuid())
   nombre        String
   especie       Especie
-  razaId        Int?          // FK al catálogo existente de razas
+  razaId        Int?          // FK al catálogo existente de razas (todavía sin cargar, ver Raza)
+  razaTexto     String?       // texto libre cargado por la protectora (ej: "Mestizo"), mientras no se usa el catálogo Raza
   edadAproxMeses Int?
+  edadTexto     String?       // texto libre cargado por la protectora (ej: "2 años")
   sexo          String?       // "MACHO" | "HEMBRA" | null si no se sabe
-  tamanio       String?       // "PEQUENIO" | "MEDIANO" | "GRANDE"
+  tamanio       String?       // "PEQUEÑO" | "MEDIANO" | "GRANDE"
   descripcion   String?       @db.Text
   fotos         Json?         // array de URLs
+  mediaUrl      String?       @db.Text // foto/video cargado desde el perfil de protectora (hoy blob: URL de sesión, no persiste entre navegadores)
+  mediaType     String?       // "image" | "video"
   estado        EstadoMascota @default(EN_PROTECTORA)
   fechaIngreso  DateTime      @default(now())
   createdAt     DateTime      @default(now())
@@ -123,6 +128,11 @@ model Mascota {
   raza          Raza?         @relation(fields: [razaId], references: [id])
   vacunaciones  Vacunacion[]
   solicitudes   SolicitudAdopcion[]
+  favoritos     Favorito[]
+
+  // Se completa al aprobar una solicitud de adopción (transferencia de "propiedad")
+  adoptanteId   String?
+  adoptante     Adoptante?    @relation(fields: [adoptanteId], references: [id])
 
   @@map("mascotas")
 }
@@ -171,8 +181,27 @@ model Adoptante {
 
   user          User     @relation(fields: [userId], references: [id])
   solicitudes   SolicitudAdopcion[]
+  mascotasAdoptadas Mascota[]
+  favoritos     Favorito[]
 
   @@map("adoptantes")
+}
+
+// ------------------------------------------------------------
+// FAVORITOS
+// ------------------------------------------------------------
+
+model Favorito {
+  id          String    @id @default(cuid())
+  adoptanteId String
+  mascotaId   String
+  createdAt   DateTime  @default(now())
+
+  adoptante   Adoptante @relation(fields: [adoptanteId], references: [id])
+  mascota     Mascota   @relation(fields: [mascotaId], references: [id])
+
+  @@unique([adoptanteId, mascotaId])
+  @@map("favoritos")
 }
 
 // ------------------------------------------------------------
