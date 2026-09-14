@@ -3,7 +3,6 @@ import Image from "next/image";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
-import { FloatingPawsBackground } from "./components/FloatingPawsBackground";
 import { AuthProvider } from "./context/AuthContext";
 import { getSession, toUiRole } from "@/lib/session";
 
@@ -37,7 +36,6 @@ export default async function RootLayout({
   return (
     <html lang="es" className={`${fredoka.variable} ${nunito.variable}`}>
       <body>
-        <FloatingPawsBackground />
         <AuthProvider session={authState}>
           <Navbar />
           {children}

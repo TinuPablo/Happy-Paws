@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown, Search, ClipboardCheck, HeartHandshake } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { HeroCTA } from "./components/HeroCTA";
+import { FloatingPawsBackground } from "./components/FloatingPawsBackground";
 import { Reveal } from "./components/Reveal";
 import { Counter } from "./components/Counter";
 import { ImpactTicker } from "./components/ImpactTicker";
@@ -49,6 +50,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)]">
       <section className="bg-grain relative overflow-hidden bg-gradient-to-br from-[var(--brown-dark)] to-[var(--brown-darker)] px-6 pb-20 pt-28 text-center text-[var(--brown-lightest)] sm:pt-32">
+        <FloatingPawsBackground />
         <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[var(--gold)]/20 blur-3xl animate-blob" />
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-[var(--brown-mid)]/25 blur-3xl animate-blob-slow" />
 
