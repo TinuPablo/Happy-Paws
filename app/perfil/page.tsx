@@ -1,28 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logoutAction } from "@/app/actions/auth";
-import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
-import { AgregarMascotaForm } from "./AgregarMascotaForm";
-import { LogoProtectoraForm } from "./LogoProtectoraForm";
 import { Reveal } from "@/app/components/Reveal";
-import { Counter } from "@/app/components/Counter";
-import type { EstadoSolicitud } from "@prisma/client";
-
-function badgeClasses(estado: EstadoSolicitud) {
-  if (estado === "APROBADA") return "bg-[var(--green-ok)] text-white";
-  if (estado === "PENDIENTE" || estado === "EN_REVISION") return "bg-[var(--gold)] text-[var(--brown-darker)]";
-  return "border border-red-300 text-[var(--text-mid)]";
-}
-
-function badgeLabel(estado: EstadoSolicitud) {
-  if (estado === "APROBADA") return "Aprobada";
-  if (estado === "PENDIENTE") return "Pendiente";
-  if (estado === "EN_REVISION") return "En revisión";
-  if (estado === "CANCELADA") return "Cancelada";
-  return "Rechazada";
-}
+import { PerfilAdoptante } from "./PerfilAdoptante";
+import { PerfilProtectora } from "./PerfilProtectora";
 
 export default async function PerfilPage() {
   const session = await getSession();
@@ -55,52 +37,6 @@ export default async function PerfilPage() {
   const esAdoptante = session.rol === "ADOPTANTE";
   const inicial = session.nombre.charAt(0).toUpperCase() || "?";
 
-  const misSolicitudes = esAdoptante
-    ? await prisma.solicitudAdopcion.findMany({
-        where: { adoptante: { userId: session.userId } },
-        include: { mascota: true },
-        orderBy: { createdAt: "desc" },
-      })
-    : [];
-
-  const misFavoritos = esAdoptante
-    ? await prisma.favorito.findMany({
-        where: { adoptante: { userId: session.userId } },
-        include: { mascota: true },
-        orderBy: { createdAt: "desc" },
-      })
-    : [];
-
-  const protectora = !esAdoptante
-    ? await prisma.protectora.findFirst({
-        where: { duenioId: session.userId },
-        include: { mascotas: true },
-      })
-    : null;
-
-  const solicitudesRecibidas = protectora
-    ? await prisma.solicitudAdopcion.findMany({
-        where: { mascota: { protectoraId: protectora.id } },
-        include: { mascota: true, adoptante: { include: { user: true } } },
-        orderBy: { createdAt: "desc" },
-      })
-    : [];
-
-  const inicioDeMes = new Date();
-  inicioDeMes.setDate(1);
-  inicioDeMes.setHours(0, 0, 0, 0);
-
-  const dashboard = protectora
-    ? {
-        total: protectora.mascotas.length,
-        disponibles: protectora.mascotas.filter((m) => m.estado !== "ADOPTADO").length,
-        pendientes: solicitudesRecibidas.filter((s) => s.estado === "PENDIENTE").length,
-        adopcionesEsteMes: solicitudesRecibidas.filter(
-          (s) => s.estado === "APROBADA" && s.updatedAt >= inicioDeMes
-        ).length,
-      }
-    : null;
-
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-3xl">
@@ -116,162 +52,10 @@ export default async function PerfilPage() {
           </div>
         </Reveal>
 
-        {esAdoptante && (
-          <div className="mt-6 space-y-3">
-            <Reveal className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">Mis solicitudes de adopción</h2>
-              {misSolicitudes.length === 0 ? (
-                <p className="mt-1 text-sm text-[var(--text-mid)]">
-                  Todavía no enviaste ninguna solicitud.
-                </p>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {misSolicitudes.map((s) => (
-                    <div
-                      key={s.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascota.nombre}</p>
-                        <p className="text-xs text-[var(--text-light)]">
-                          {s.createdAt.toLocaleDateString("es-AR")}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
-                        {badgeLabel(s.estado)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Reveal>
-            <Reveal delay={80} className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">Mis favoritos</h2>
-              {misFavoritos.length === 0 ? (
-                <p className="mt-1 text-sm text-[var(--text-mid)]">
-                  Todavía no guardaste ninguna mascota como favorita.
-                </p>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {misFavoritos.map((f) => (
-                    <Link
-                      key={f.id}
-                      href={`/mascotas/${f.mascotaId}`}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3 hover:bg-[var(--brown-lightest)]"
-                    >
-                      <span className="truncate text-sm font-medium text-[var(--text-dark)]">
-                        ★ {f.mascota.nombre}
-                      </span>
-                      <span className="shrink-0 text-xs text-[var(--text-light)]">Ver ficha →</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </Reveal>
-            <Reveal delay={160} className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">Explorar mascotas</h2>
-              <Link href="/mascotas" className="mt-2 inline-block text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]">
-                Ver mascotas en adopción →
-              </Link>
-            </Reveal>
-          </div>
-        )}
-
-        {!esAdoptante && (
-          <div className="mt-6 space-y-3">
-            {dashboard && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Reveal className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-dark)]">
-                    <Counter value={dashboard.total} />
-                  </p>
-                  <p className="text-xs text-[var(--text-light)]">Mascotas totales</p>
-                </Reveal>
-                <Reveal delay={60} className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-dark)]">
-                    <Counter value={dashboard.disponibles} />
-                  </p>
-                  <p className="text-xs text-[var(--text-light)]">Disponibles</p>
-                </Reveal>
-                <Reveal delay={120} className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--gold)]">
-                    <Counter value={dashboard.pendientes} />
-                  </p>
-                  <p className="text-xs text-[var(--text-light)]">Solicitudes pendientes</p>
-                </Reveal>
-                <Reveal delay={180} className="card p-4 text-center">
-                  <p className="text-2xl font-bold text-[var(--green-ok)]">
-                    <Counter value={dashboard.adopcionesEsteMes} />
-                  </p>
-                  <p className="text-xs text-[var(--text-light)]">Adopciones este mes</p>
-                </Reveal>
-              </div>
-            )}
-            <Reveal className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
-              <p className="mt-1 text-sm text-[var(--text-mid)]">
-                {protectora?.mascotas.length ?? 0}{" "}
-                {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
-              </p>
-              <AgregarMascotaForm />
-            </Reveal>
-
-            <Reveal delay={80} className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">Solicitudes recibidas</h2>
-              {solicitudesRecibidas.length === 0 ? (
-                <p className="mt-1 text-sm text-[var(--text-mid)]">
-                  Todavía no recibiste solicitudes de adopción.
-                </p>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {solicitudesRecibidas.map((s) => (
-                    <div key={s.id} className="rounded-xl border border-[var(--brown-light)] p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascota.nombre}</p>
-                          <p className="truncate text-xs text-[var(--text-light)]">
-                            {s.adoptante.user.nombre} · {s.createdAt.toLocaleDateString("es-AR")}
-                          </p>
-                        </div>
-                        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
-                          {badgeLabel(s.estado)}
-                        </span>
-                      </div>
-                      {s.estado === "PENDIENTE" && (
-                        <form action={actualizarEstadoSolicitudAction} className="mt-2 flex gap-2">
-                          <input type="hidden" name="solicitudId" value={s.id} />
-                          <button
-                            type="submit"
-                            name="estado"
-                            value="APROBADA"
-                            className="flex-1 rounded-lg bg-[var(--green-ok)] px-3 py-1.5 text-xs font-semibold text-white transition-transform duration-150 hover:-translate-y-0.5"
-                          >
-                            Aprobar
-                          </button>
-                          <button
-                            type="submit"
-                            name="estado"
-                            value="RECHAZADA"
-                            className="flex-1 rounded-lg border border-[var(--brown-light)] px-3 py-1.5 text-xs font-semibold text-[var(--text-mid)] transition-colors duration-150 hover:bg-[var(--brown-lightest)]"
-                          >
-                            Rechazar
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Reveal>
-
-            <Reveal delay={160} className="card p-4">
-              <h2 className="font-semibold text-[var(--text-dark)]">Datos de la protectora</h2>
-              <p className="mt-1 text-sm text-[var(--text-mid)]">
-                {protectora?.ubicacion} · {protectora?.email}
-              </p>
-              <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
-            </Reveal>
-          </div>
+        {esAdoptante ? (
+          <PerfilAdoptante userId={session.userId} />
+        ) : (
+          <PerfilProtectora userId={session.userId} />
         )}
 
         <form action={logoutAction}>

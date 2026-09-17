@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
+import {
+  calcularCompatibilidad,
+  esRespuestasQuizValidas,
+  type RespuestasQuiz,
+} from "@/lib/calcularCompatibilidad";
 
 export type SolicitudActionState = { error?: string; success?: string } | null;
 
@@ -35,8 +40,35 @@ export async function crearSolicitudAction(
   if (!mascota) return { error: "Mascota no encontrada." };
   if (mascota.estado === "ADOPTADO") return { error: "Esta mascota ya fue adoptada." };
 
+  // Si el adoptante completó el quiz de compatibilidad, se recalcula el %
+  // acá (no se confía en un valor que mande el cliente) y se compara contra
+  // el resto de las mascotas disponibles para saber si esta era la
+  // recomendada — se muestra después en "Ver formulario" del lado protectora.
+  let quizRespuestas: RespuestasQuiz | undefined;
+  let quizPorcentaje: number | undefined;
+  let quizEraRecomendada: boolean | undefined;
+
+  const quizRaw = String(formData.get("quizRespuestas") || "");
+  if (quizRaw) {
+    try {
+      const parsed = JSON.parse(quizRaw);
+      if (esRespuestasQuizValidas(parsed)) {
+        quizRespuestas = parsed;
+        quizPorcentaje = calcularCompatibilidad(mascota, parsed);
+
+        const disponibles = await prisma.mascota.findMany({
+          where: { estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] } },
+        });
+        const mejorPuntaje = Math.max(...disponibles.map((m) => calcularCompatibilidad(m, parsed)));
+        quizEraRecomendada = quizPorcentaje === mejorPuntaje;
+      }
+    } catch {
+      // JSON inválido en el hidden input — se guarda la solicitud igual, sin quiz
+    }
+  }
+
   await prisma.solicitudAdopcion.create({
-    data: { mascotaId, adoptanteId: adoptante.id },
+    data: { mascotaId, adoptanteId: adoptante.id, quizRespuestas, quizPorcentaje, quizEraRecomendada },
   });
 
   revalidatePath(`/mascotas/${mascotaId}`);

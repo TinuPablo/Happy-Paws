@@ -11,13 +11,14 @@ const DEMO_PASSWORD = "happypaws123";
 
 async function main() {
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+  const fupaPasswordHash = await bcrypt.hash("123456", 10);
 
   const fupaAdmin = await prisma.user.upsert({
-    where: { email: "fupa@happypaws.demo" },
+    where: { email: "fupa@gmail.com" },
     update: {},
     create: {
-      email: "fupa@happypaws.demo",
-      passwordHash,
+      email: "fupa@gmail.com",
+      passwordHash: fupaPasswordHash,
       nombre: "FUPA",
       rol: "ADMIN_PROTECTORA",
     },
@@ -31,7 +32,7 @@ async function main() {
         ubicacion: "Villa Carlos Paz, Córdoba",
         descripcion:
           "Protectora piloto de Happy Paws, rescata y aloja animales en situación de calle.",
-        email: "fupa@happypaws.demo",
+        email: "fupa@gmail.com",
         duenioId: fupaAdmin.id,
       },
     });
@@ -71,6 +72,10 @@ async function main() {
         edadTexto: "2 años",
         tamanio: "MEDIANO",
         descripcion: "Muy juguetón y cariñoso, se lleva bien con otros perros.",
+        aptaDepartamento: true,
+        aptaNinos: true,
+        nivelEnergia: "alto",
+        conviveOtrasMascotas: true,
         protectoraId: fupa.id,
         vacunaciones: {
           create: [
@@ -96,6 +101,10 @@ async function main() {
         edadTexto: "1 año",
         tamanio: "PEQUEÑO",
         descripcion: "Tranquila y curiosa, ideal para departamento.",
+        aptaDepartamento: true,
+        aptaNinos: true,
+        nivelEnergia: "bajo",
+        conviveOtrasMascotas: true,
         protectoraId: fupa.id,
         vacunaciones: {
           create: [
@@ -118,6 +127,10 @@ async function main() {
           edadTexto: "4 años",
           tamanio: "GRANDE",
           descripcion: "Energético, necesita espacio y paseos diarios.",
+          aptaDepartamento: false,
+          aptaNinos: true,
+          nivelEnergia: "alto",
+          conviveOtrasMascotas: false,
           protectoraId: fupa.id,
         },
         {
@@ -127,6 +140,10 @@ async function main() {
           edadTexto: "3 años",
           tamanio: "PEQUEÑO",
           descripcion: "Independiente pero muy cariñosa con su familia.",
+          aptaDepartamento: true,
+          aptaNinos: false,
+          nivelEnergia: "medio",
+          conviveOtrasMascotas: false,
           protectoraId: fupa.id,
         },
       ],
@@ -148,10 +165,10 @@ async function main() {
   });
 
   console.log("Seed completo.");
-  console.log("Usuarios de demo (contraseña para todos: " + DEMO_PASSWORD + "):");
-  console.log("- Protectora FUPA: fupa@happypaws.demo");
-  console.log("- Protectora Huellitas de Punilla: huellitas@happypaws.demo");
-  console.log("- Adoptante: adoptante@happypaws.demo");
+  console.log("Usuarios de demo:");
+  console.log("- Protectora FUPA: fupa@gmail.com / 123456");
+  console.log("- Protectora Huellitas de Punilla: huellitas@happypaws.demo / " + DEMO_PASSWORD);
+  console.log("- Adoptante: adoptante@happypaws.demo / " + DEMO_PASSWORD);
   void adoptanteDemo;
 }
 

@@ -114,6 +114,13 @@ model Mascota {
   sexo          String?       // "MACHO" | "HEMBRA" | null si no se sabe
   tamanio       String?       // "PEQUEÑO" | "MEDIANO" | "GRANDE"
   descripcion   String?       @db.Text
+  // Atributos de compatibilidad para el quiz de match adoptante-mascota
+  // (ver lib/calcularCompatibilidad.ts). Nullable porque la protectora
+  // todavía no los carga al publicar — null se trata distinto de false.
+  aptaDepartamento     Boolean?
+  aptaNinos            Boolean?
+  nivelEnergia         String?  // "bajo" | "medio" | "alto"
+  conviveOtrasMascotas Boolean?
   fotos         Json?         // array de URLs
   mediaUrl      String?       @db.Text // foto/video cargado desde el perfil de protectora (hoy blob: URL de sesión, no persiste entre navegadores)
   mediaType     String?       // "image" | "video"
@@ -224,6 +231,15 @@ model SolicitudAdopcion {
   mensaje       String?         @db.Text
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+
+  // Respuestas del quiz de compatibilidad (/mascotas), si el adoptante lo
+  // completó antes de solicitar — null si lo omitió. quizPorcentaje y
+  // quizEraRecomendada se calculan server-side al crear la solicitud (ver
+  // calcularCompatibilidad en lib/), no se confía en un % mandado por el
+  // cliente.
+  quizRespuestas     Json?
+  quizPorcentaje     Int?
+  quizEraRecomendada Boolean?
 
   mascota       Mascota         @relation(fields: [mascotaId], references: [id])
   adoptante     Adoptante       @relation(fields: [adoptanteId], references: [id])
