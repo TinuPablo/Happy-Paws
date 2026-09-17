@@ -1,8 +1,8 @@
 # Backlog — Lado Protectora (Daniel)
 
 ## Perfil de la protectora
-- [ ] Completar/editar datos (descripción, contacto, dirección)
-- [ ] Subir y cambiar logo
+- [x] Completar/editar datos (descripción, contacto, dirección)
+- [x] Subir y cambiar logo
 
 ## Gestión de mascotas
 - [ ] Alta de mascota (formulario + fotos)
