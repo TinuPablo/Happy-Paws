@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
 import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
+import { EditarDatosProtectoraForm } from "./EditarDatosProtectoraForm";
 import { VerFormularioSolicitud } from "./VerFormularioSolicitud";
 import { Reveal } from "@/app/components/Reveal";
 import { Counter } from "@/app/components/Counter";
@@ -142,7 +143,19 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
         <p className="mt-1 text-sm text-[var(--text-mid)]">
           {protectora?.ubicacion} · {protectora?.email}
         </p>
+        {protectora?.descripcion && (
+          <p className="mt-1 text-sm text-[var(--text-light)]">{protectora.descripcion}</p>
+        )}
         <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
+        {protectora && (
+          <EditarDatosProtectoraForm
+            ubicacion={protectora.ubicacion}
+            descripcion={protectora.descripcion}
+            telefono={protectora.telefono}
+            email={protectora.email}
+            redSocial={protectora.redSocial}
+          />
+        )}
       </Reveal>
     </div>
   );

@@ -24,7 +24,9 @@ export function LogoProtectoraForm({ logoActualUrl }: { logoActualUrl: string | 
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            setPreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onloadend = () => setPreview(reader.result as string);
+            reader.readAsDataURL(file);
           }}
           className="w-full text-sm text-[var(--text-mid)]"
         />
