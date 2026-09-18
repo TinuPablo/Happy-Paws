@@ -58,3 +58,15 @@ Toqué `app/components/Navbar.tsx`, `app/layout.tsx` y `app/globals.css` (los 3 
 `Navbar` ahora acepta un prop nuevo `notificacionesNoLeidas?: number` (opcional, default `0`) — no rompe nada si en algún momento vos también necesitás renderizar `<Navbar />` sin pasarlo.
 
 No debería requerir ninguna acción de tu parte, es solo aviso por si notás el Navbar distinto al hacer pull.
+
+---
+
+## [INFO - Pablo] Más @keyframes nuevos en globals.css + otro fetch en app/perfil/page.tsx
+Fecha: 2026-09-18
+
+Dos cambios chicos más, mismo criterio que el aviso anterior (aditivos, no tocan nada existente):
+
+1. `app/globals.css`: 3 `@keyframes` nuevos (`paw-bump-dog`, `paw-bump-cat`, `paw-bump-flash`) para una animación de perro/gato en `/perfil`. No se modificó ni se borró ninguna clase/keyframe que ya existía.
+2. `app/perfil/page.tsx` (el shell de `/perfil`, no estaba en tu lista pero avisamos igual por las dudas): ahora hace un `prisma.protectora.findFirst(...)` extra para mostrar el logo real en el avatar grande, **gateado a `session.rol !== "ADOPTANTE"`** — para tu vista de adoptante ese branch ni se ejecuta, sigue exactamente igual que antes ("Hola, X" / "Cuenta de adoptante").
+
+Sin acción necesaria de tu parte.
