@@ -24,3 +24,22 @@ Agregá una entrada acá con fecha, qué cambió, y qué necesita hacer Pablo
    - `app/actions/solicitudes.ts` → `crearSolicitudAction` (las 2 queries de mascota: la que busca la mascota puntual y la que arma "disponibles" para el % de recomendación del quiz)
 
 No toqué ninguno de esos 4 archivos (son tuyos) — solo te dejo la lista para que decidas cómo integrarlo.
+
+---
+
+## [PENDIENTE - Pablo] Notificaciones al crear solicitud
+Fecha: 2026-09-18
+
+Necesito que en `crearSolicitudAction` (`app/actions/solicitudes.ts`) agregues, al final (justo después del `prisma.solicitudAdopcion.create(...)`, antes del `return`), una llamada a la función de notificación que te dejo lista en `lib/notificaciones.ts`:
+
+```ts
+await notificarNuevaSolicitud(solicitud.id)
+```
+
+(vas a necesitar guardar el resultado de `prisma.solicitudAdopcion.create(...)` en una variable, ej. `const solicitud = await prisma.solicitudAdopcion.create({...})`, para tener `solicitud.id` a mano — hoy ese `create` no guarda el resultado en ninguna variable).
+
+Esta función se encarga de crear la notificación interna (visible en `/perfil` de la protectora) y de disparar el email de aviso (por ahora solo loguea en consola — el proveedor de email todavía no está decidido, ver backlog de `AGENTS.md`; cuando se elija uno, el cambio queda encapsulado ahí adentro, no vas a tener que tocar nada de tu lado). Solo hace falta que la llames después de crear la solicitud exitosamente, no necesitás tocar nada más de tu lógica.
+
+Import: `import { notificarNuevaSolicitud } from "@/lib/notificaciones";`
+
+No hace falta ninguna migración de tu lado para esto — el modelo `Notificacion` ya está en el schema que vas a traer con el próximo pull + `npx prisma migrate dev`.

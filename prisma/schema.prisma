@@ -61,6 +61,7 @@ model Protectora {
 
   miembros    MiembroProtectora[]
   mascotas    Mascota[]
+  notificaciones Notificacion[]
 
   @@map("protectoras")
 }
@@ -250,6 +251,26 @@ model SolicitudAdopcion {
 
   mascota       Mascota         @relation(fields: [mascotaId], references: [id])
   adoptante     Adoptante       @relation(fields: [adoptanteId], references: [id])
+  notificaciones Notificacion[]
 
   @@map("solicitudes_adopcion")
+}
+
+// ------------------------------------------------------------
+// NOTIFICACIONES (internas, lado protectora)
+// ------------------------------------------------------------
+
+model Notificacion {
+  id           String    @id @default(cuid())
+  protectoraId String
+  tipo         String    // ej: "SOLICITUD_NUEVA" — texto libre, un solo tipo existe hoy
+  mensaje      String    @db.Text
+  leida        Boolean   @default(false)
+  solicitudId  String?
+  createdAt    DateTime  @default(now())
+
+  protectora   Protectora          @relation(fields: [protectoraId], references: [id])
+  solicitud    SolicitudAdopcion?  @relation(fields: [solicitudId], references: [id])
+
+  @@map("notificaciones")
 }

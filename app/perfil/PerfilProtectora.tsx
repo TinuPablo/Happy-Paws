@@ -4,6 +4,7 @@ import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
 import { EditarDatosProtectoraForm } from "./EditarDatosProtectoraForm";
 import { MascotaRow } from "./MascotaRow";
+import { NotificacionesPanel } from "./NotificacionesPanel";
 import { VerFormularioSolicitud } from "./VerFormularioSolicitud";
 import { Reveal } from "@/app/components/Reveal";
 import { Counter } from "@/app/components/Counter";
@@ -28,6 +29,14 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
   // que la protectora tenga registro), pero las métricas del dashboard
   // solo cuentan mascotas activas.
   const mascotasActivas = protectora?.mascotas.filter((m) => m.activo) ?? [];
+
+  const notificaciones = protectora
+    ? await prisma.notificacion.findMany({
+        where: { protectoraId: protectora.id },
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      })
+    : [];
 
   const solicitudesRecibidas = protectora
     ? await prisma.solicitudAdopcion.findMany({
@@ -54,6 +63,7 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
 
   return (
     <div className="mt-6 space-y-3">
+      {protectora && <NotificacionesPanel notificaciones={notificaciones} />}
       {dashboard && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Reveal className="card p-4 text-center">
