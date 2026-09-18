@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
 import { AgregarMascotaForm } from "./AgregarMascotaForm";
@@ -91,6 +92,14 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
             <p className="text-xs text-[var(--text-light)]">Adopciones este mes</p>
           </Reveal>
         </div>
+      )}
+      {protectora && (
+        <Link
+          href="/protectoras/historial"
+          className="block text-center text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+        >
+          Ver historial completo de adopciones →
+        </Link>
       )}
       <Reveal className="card p-4">
         <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
