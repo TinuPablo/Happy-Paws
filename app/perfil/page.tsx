@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { logoutAction } from "@/app/actions/auth";
+import { prisma } from "@/lib/prisma";
 import { Reveal } from "@/app/components/Reveal";
 import { PerfilAdoptante } from "./PerfilAdoptante";
 import { PerfilProtectora } from "./PerfilProtectora";
@@ -37,18 +38,39 @@ export default async function PerfilPage() {
   const esAdoptante = session.rol === "ADOPTANTE";
   const inicial = session.nombre.charAt(0).toUpperCase() || "?";
 
+  const logoProtectora = esAdoptante
+    ? null
+    : (await prisma.protectora.findFirst({ where: { duenioId: session.userId }, select: { logoUrl: true } }))
+        ?.logoUrl ?? null;
+
   return (
     <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
       <div className="mx-auto max-w-3xl">
         <Reveal className="flex items-center gap-4">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brown-main)] to-[var(--brown-dark)] text-xl font-bold text-white">
-            {inicial}
+          <span
+            className={
+              logoProtectora
+                ? "flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--brown-light)] bg-white p-3"
+                : "flex h-28 w-28 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brown-main)] to-[var(--brown-dark)] text-3xl font-bold text-white"
+            }
+          >
+            {logoProtectora ? (
+              <img src={logoProtectora} alt={session.nombre} className="h-full w-full object-contain" />
+            ) : (
+              inicial
+            )}
           </span>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-dark)]">Hola, {session.nombre}</h1>
-            <p className="text-sm text-[var(--text-light)]">
-              {esAdoptante ? "Cuenta de adoptante" : "Cuenta de protectora"}
-            </p>
+            {esAdoptante ? (
+              <>
+                <h1 className="text-xl font-bold text-[var(--text-dark)]">Hola, {session.nombre}</h1>
+                <p className="text-sm text-[var(--text-light)]">Cuenta de adoptante</p>
+              </>
+            ) : (
+              <h1 className="text-lg font-bold leading-snug text-[var(--text-dark)] sm:text-xl">
+                Hola {session.nombre}, ¿a cuántos peludos amigos ayudamos hoy?
+              </h1>
+            )}
           </div>
         </Reveal>
 
