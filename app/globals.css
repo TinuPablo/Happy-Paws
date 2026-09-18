@@ -343,3 +343,71 @@ html {
     animation: none !important;
   }
 }
+
+/* Perro y gato "chocando patas" en /perfil (protectora). Loop continuo de
+   9s: se acercan (3s), se tocan un instante (0.5s), vuelven (3s), pausa
+   (2.5s). */
+@keyframes paw-bump-dog {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33.3%,
+  38.9% {
+    transform: translateX(14px);
+  }
+  72.2% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes paw-bump-cat {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33.3%,
+  38.9% {
+    transform: translateX(-14px);
+  }
+  72.2% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes paw-bump-flash {
+  0%,
+  30%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  42% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.paw-bump-dog {
+  animation: paw-bump-dog 9s ease-in-out infinite;
+}
+
+.paw-bump-cat {
+  animation: paw-bump-cat 9s ease-in-out infinite;
+}
+
+.paw-bump-flash {
+  animation: paw-bump-flash 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-bump-dog,
+  .paw-bump-cat,
+  .paw-bump-flash {
+    animation: none !important;
+  }
+}

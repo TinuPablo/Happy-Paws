@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Reveal } from "@/app/components/Reveal";
 import { PerfilAdoptante } from "./PerfilAdoptante";
 import { PerfilProtectora } from "./PerfilProtectora";
+import { PawBump } from "./PawBump";
 
 export default async function PerfilPage() {
   const session = await getSession();
@@ -73,6 +74,8 @@ export default async function PerfilPage() {
             )}
           </div>
         </Reveal>
+
+        {!esAdoptante && <PawBump />}
 
         {esAdoptante ? (
           <PerfilAdoptante userId={session.userId} />
