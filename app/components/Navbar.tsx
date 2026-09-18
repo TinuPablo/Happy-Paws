@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { HeaderPawSteps } from "./HeaderPawSteps";
 import { NotificationBell } from "./NotificationBell";
 
-const PAW_STEPS_INTERVAL_MS = 20_000;
+const PAW_STEPS_INTERVAL_MS = 10_000;
 
 const NAV_ITEMS = [
   { href: "/", label: "Inicio" },

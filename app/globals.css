@@ -350,28 +350,38 @@ html {
 @keyframes paw-bump-dog {
   0%,
   100% {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
-  33.3%,
+  33.3% {
+    transform: translateX(14px) scale(1);
+  }
+  35.5% {
+    transform: translateX(14px) scale(1.15);
+  }
   38.9% {
-    transform: translateX(14px);
+    transform: translateX(14px) scale(1);
   }
   72.2% {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
 @keyframes paw-bump-cat {
   0%,
   100% {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
-  33.3%,
+  33.3% {
+    transform: translateX(-14px) scale(1);
+  }
+  35.5% {
+    transform: translateX(-14px) scale(1.15);
+  }
   38.9% {
-    transform: translateX(-14px);
+    transform: translateX(-14px) scale(1);
   }
   72.2% {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
