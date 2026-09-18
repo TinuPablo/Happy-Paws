@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navbar } from "./components/Navbar";
 import { AuthProvider } from "./context/AuthContext";
 import { getSession, toUiRole } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -33,11 +34,23 @@ export default async function RootLayout({
     ? { loggedIn: true, role: toUiRole(session.rol), nombre: session.nombre }
     : { loggedIn: false, role: null, nombre: "" };
 
+  // Campana del header: solo para cuentas de protectora, cuenta de
+  // notificaciones sin leer de su propia protectora.
+  let notificacionesNoLeidas = 0;
+  if (session && session.rol !== "ADOPTANTE") {
+    const protectora = await prisma.protectora.findFirst({ where: { duenioId: session.userId } });
+    if (protectora) {
+      notificacionesNoLeidas = await prisma.notificacion.count({
+        where: { protectoraId: protectora.id, leida: false },
+      });
+    }
+  }
+
   return (
     <html lang="es" className={`${fredoka.variable} ${nunito.variable}`}>
       <body>
         <AuthProvider session={authState}>
-          <Navbar />
+          <Navbar notificacionesNoLeidas={notificacionesNoLeidas} />
           {children}
           <footer className="border-t border-brown-light bg-brown-lightest px-6 py-10 text-center">
             <p className="flex items-center justify-center gap-2 font-heading text-lg font-semibold text-brown-dark">
