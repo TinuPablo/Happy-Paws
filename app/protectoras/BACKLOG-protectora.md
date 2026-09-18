@@ -5,10 +5,10 @@
 - [x] Subir y cambiar logo
 
 ## Gestión de mascotas
-- [ ] Alta de mascota (formulario + fotos)
-- [ ] Edición de datos de mascota
-- [ ] Cambiar estado (disponible / en proceso / adoptada)
-- [ ] Baja de mascota
+- [x] Alta de mascota (formulario + fotos)
+- [x] Edición de datos de mascota
+- [x] Cambiar estado (disponible / en proceso / adoptada)
+- [x] Baja de mascota
 
 ## Vacunación
 - [ ] Registrar vacuna por mascota
