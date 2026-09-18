@@ -25,9 +25,9 @@
 - [x] Filtro por fecha / mascota
 
 ## Dashboard con métricas
-- [ ] Cantidad de mascotas activas
-- [ ] Solicitudes pendientes
-- [ ] Adopciones concretadas (total y por período)
+- [x] Cantidad de mascotas activas
+- [x] Solicitudes pendientes
+- [x] Adopciones concretadas (total y por período)
 
 ---
 Marcá con [x] cada ítem a medida que se termina. Si agregás una tarea nueva 
