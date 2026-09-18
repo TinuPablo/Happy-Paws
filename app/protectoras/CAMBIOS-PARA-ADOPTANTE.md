@@ -43,3 +43,18 @@ Esta función se encarga de crear la notificación interna (visible en `/perfil`
 Import: `import { notificarNuevaSolicitud } from "@/lib/notificaciones";`
 
 No hace falta ninguna migración de tu lado para esto — el modelo `Notificacion` ya está en el schema que vas a traer con el próximo pull + `npx prisma migrate dev`.
+
+---
+
+## [INFO - Pablo] Cambios visuales en el header (Navbar) y layout.tsx
+Fecha: 2026-09-18
+
+Toqué `app/components/Navbar.tsx`, `app/layout.tsx` y `app/globals.css` (los 3 son compartidos) para 3 mejoras visuales del lado protectora:
+
+1. **Huellitas animadas junto al logo "Happy Paws"** (`app/components/HeaderPawSteps.tsx`, nuevo): 4 huellas que aparecen en secuencia cada 20s, decorativo, no cambia nada de la navegación ni del layout existente.
+2. **Campana de notificaciones en el header** (`app/components/NotificationBell.tsx`, nuevo): solo se muestra si la sesión es de protectora Y tiene notificaciones sin leer — para cuentas adoptante nunca aparece nada nuevo en el header, no debería notarse ningún cambio visual de tu lado.
+3. `app/layout.tsx` ahora hace **una query extra** (`prisma.notificacion.count(...)`) para calcular ese badge, pero **solo si `session.rol !== "ADOPTANTE"`** — para sesiones de adoptante (o sin sesión) esa rama ni se ejecuta, así que no debería afectar el tiempo de carga de tus páginas.
+
+`Navbar` ahora acepta un prop nuevo `notificacionesNoLeidas?: number` (opcional, default `0`) — no rompe nada si en algún momento vos también necesitás renderizar `<Navbar />` sin pasarlo.
+
+No debería requerir ninguna acción de tu parte, es solo aviso por si notás el Navbar distinto al hacer pull.
