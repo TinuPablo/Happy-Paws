@@ -3,6 +3,7 @@ import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
 import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
 import { EditarDatosProtectoraForm } from "./EditarDatosProtectoraForm";
+import { MascotaRow } from "./MascotaRow";
 import { VerFormularioSolicitud } from "./VerFormularioSolicitud";
 import { Reveal } from "@/app/components/Reveal";
 import { Counter } from "@/app/components/Counter";
@@ -16,8 +17,12 @@ import { badgeClasses, badgeLabel } from "./estadoBadge";
 export async function PerfilProtectora({ userId }: { userId: string }) {
   const protectora = await prisma.protectora.findFirst({
     where: { duenioId: userId },
-    include: { mascotas: true },
+    include: { mascotas: { orderBy: { createdAt: "desc" } } },
   });
+  // El listado de gestión muestra todo (incluidas las dadas de baja, para
+  // que la protectora tenga registro), pero las métricas del dashboard
+  // solo cuentan mascotas activas.
+  const mascotasActivas = protectora?.mascotas.filter((m) => m.activo) ?? [];
 
   const solicitudesRecibidas = protectora
     ? await prisma.solicitudAdopcion.findMany({
@@ -33,8 +38,8 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
 
   const dashboard = protectora
     ? {
-        total: protectora.mascotas.length,
-        disponibles: protectora.mascotas.filter((m) => m.estado !== "ADOPTADO").length,
+        total: mascotasActivas.length,
+        disponibles: mascotasActivas.filter((m) => m.estado !== "ADOPTADO").length,
         pendientes: solicitudesRecibidas.filter((s) => s.estado === "PENDIENTE").length,
         adopcionesEsteMes: solicitudesRecibidas.filter(
           (s) => s.estado === "APROBADA" && s.updatedAt >= inicioDeMes
@@ -75,10 +80,29 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
       <Reveal className="card p-4">
         <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
         <p className="mt-1 text-sm text-[var(--text-mid)]">
-          {protectora?.mascotas.length ?? 0}{" "}
-          {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
+          {mascotasActivas.length} {mascotasActivas.length === 1 ? "mascota publicada" : "mascotas publicadas"}.
         </p>
         <AgregarMascotaForm />
+        {protectora && protectora.mascotas.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {protectora.mascotas.map((m) => (
+              <MascotaRow
+                key={m.id}
+                id={m.id}
+                nombre={m.nombre}
+                especie={m.especie}
+                razaTexto={m.razaTexto}
+                edadTexto={m.edadTexto}
+                tamanio={m.tamanio}
+                descripcion={m.descripcion}
+                mediaUrl={m.mediaUrl}
+                mediaType={m.mediaType}
+                estado={m.estado}
+                activo={m.activo}
+              />
+            ))}
+          </div>
+        )}
       </Reveal>
 
       <Reveal delay={80} className="card p-4">

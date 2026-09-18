@@ -76,9 +76,12 @@ export function AgregarMascotaForm() {
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                const url = URL.createObjectURL(file);
-                setMediaUrl(url);
-                setMediaType(file.type.startsWith("video/") ? "video" : "image");
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  setMediaUrl(reader.result as string);
+                  setMediaType(file.type.startsWith("video/") ? "video" : "image");
+                };
+                reader.readAsDataURL(file);
               }}
               className="mt-1 w-full text-sm text-[var(--text-mid)]"
             />

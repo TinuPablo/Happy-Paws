@@ -125,6 +125,10 @@ model Mascota {
   mediaUrl      String?       @db.Text // foto/video cargado desde el perfil de protectora (hoy blob: URL de sesión, no persiste entre navegadores)
   mediaType     String?       // "image" | "video"
   estado        EstadoMascota @default(EN_PROTECTORA)
+  // Soft-delete: "dar de baja" pone esto en false, nunca se borra la fila
+  // (hay vacunaciones/solicitudes ya vinculadas). Todo listado del lado
+  // adoptante debe filtrar activo: true.
+  activo        Boolean       @default(true)
   fechaIngreso  DateTime      @default(now())
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
