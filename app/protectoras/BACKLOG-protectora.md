@@ -11,9 +11,10 @@
 - [x] Baja de mascota
 
 ## Vacunación
-- [ ] Registrar vacuna por mascota
-- [ ] Editar/eliminar registro de vacuna
-- [ ] Ver historial de vacunación por mascota
+- [x] Registrar vacuna por mascota
+- [x] Editar/eliminar registro de vacuna
+- [x] Ver historial de vacunación por mascota
+- [x] Estado de salud interno (texto libre, solo lado protectora — no pedido originalmente, sumado en esta tarea)
 
 ## Notificaciones
 - [ ] Aviso cuando llega una solicitud nueva
