@@ -21,8 +21,8 @@
 - [x] (definir: interno en la app, o también email) — ambos: notificación interna real (visible en /perfil) + email con función lista, pero el envío real de mail está pendiente de que se decida un proveedor (SMTP/Resend/etc., ver backlog de AGENTS.md). Falta que Pablo enganche `notificarNuevaSolicitud()` en `crearSolicitudAction` (ver `app/protectoras/CAMBIOS-PARA-ADOPTANTE.md`).
 
 ## Historial de adopciones
-- [ ] Listado de adopciones concretadas
-- [ ] Filtro por fecha / mascota
+- [x] Listado de adopciones concretadas
+- [x] Filtro por fecha / mascota
 
 ## Dashboard con métricas
 - [ ] Cantidad de mascotas activas
