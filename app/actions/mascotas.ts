@@ -125,6 +125,29 @@ export async function cambiarEstadoMascotaAction(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function actualizarEstadoSaludAction(
+  _prevState: MascotaActionState,
+  formData: FormData
+): Promise<MascotaActionState> {
+  const session = await requireRole("ADMIN_PROTECTORA");
+
+  const mascotaId = String(formData.get("mascotaId") || "");
+  const mascota = await mascotaDePropiedad(mascotaId, session.userId);
+  if (!mascota) return { error: "No se encontró esa mascota en tu protectora." };
+
+  const estadoSalud = String(formData.get("estadoSalud") || "").trim().slice(0, 280);
+
+  await prisma.mascota.update({
+    where: { id: mascotaId },
+    data: { estadoSalud: estadoSalud || null },
+  });
+
+  // Nota: estadoSalud es interno del lado protectora — no revalidar ni
+  // exponer en /mascotas ni /mascotas/[id] (dominio de Pablo).
+  revalidatePath("/perfil");
+  return null;
+}
+
 export async function darDeBajaMascotaAction(formData: FormData) {
   const session = await requireRole("ADMIN_PROTECTORA");
 

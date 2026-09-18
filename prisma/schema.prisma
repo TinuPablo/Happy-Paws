@@ -114,6 +114,9 @@ model Mascota {
   sexo          String?       // "MACHO" | "HEMBRA" | null si no se sabe
   tamanio       String?       // "PEQUEÑO" | "MEDIANO" | "GRANDE"
   descripcion   String?       @db.Text
+  // Interno, solo lado protectora — NO exponer en app/mascotas/** ni en
+  // ninguna query/vista del lado adoptante.
+  estadoSalud   String?       @db.VarChar(280)
   // Atributos de compatibilidad para el quiz de match adoptante-mascota
   // (ver lib/calcularCompatibilidad.ts). Nullable porque la protectora
   // todavía no los carga al publicar — null se trata distinto de false.

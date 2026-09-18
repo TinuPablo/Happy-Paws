@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cambiarEstadoMascotaAction, darDeBajaMascotaAction } from "@/app/actions/mascotas";
 import { EditarMascotaForm } from "./EditarMascotaForm";
+import { VacunacionPanel } from "./VacunacionPanel";
 import { estadoMascotaClasses, estadoMascotaLabel } from "./estadoMascotaBadge";
 
 const ESTADOS = ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO", "ADOPTADO", "FALLECIDO"] as const;
@@ -19,10 +20,19 @@ type Props = {
   mediaType: string | null;
   estado: string;
   activo: boolean;
+  estadoSalud: string | null;
+  vacunaciones: {
+    id: string;
+    nombreVacuna: string;
+    fechaAplicacion: Date;
+    proximaDosis: Date | null;
+    observaciones: string | null;
+  }[];
 };
 
 export function MascotaRow(props: Props) {
   const [editando, setEditando] = useState(false);
+  const [mostrarVacunacion, setMostrarVacunacion] = useState(false);
 
   return (
     <div className="rounded-xl border border-[var(--brown-light)] p-3">
@@ -88,7 +98,22 @@ export function MascotaRow(props: Props) {
                 Dar de baja
               </button>
             </form>
+            <button
+              type="button"
+              onClick={() => setMostrarVacunacion((v) => !v)}
+              className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+            >
+              {mostrarVacunacion ? "Ocultar vacunación" : "Vacunación"}
+            </button>
           </div>
+
+          {mostrarVacunacion && (
+            <VacunacionPanel
+              mascotaId={props.id}
+              estadoSalud={props.estadoSalud}
+              vacunaciones={props.vacunaciones}
+            />
+          )}
 
           {editando && (
             <EditarMascotaForm

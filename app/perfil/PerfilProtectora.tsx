@@ -17,7 +17,12 @@ import { badgeClasses, badgeLabel } from "./estadoBadge";
 export async function PerfilProtectora({ userId }: { userId: string }) {
   const protectora = await prisma.protectora.findFirst({
     where: { duenioId: userId },
-    include: { mascotas: { orderBy: { createdAt: "desc" } } },
+    include: {
+      mascotas: {
+        orderBy: { createdAt: "desc" },
+        include: { vacunaciones: { orderBy: { fechaAplicacion: "desc" } } },
+      },
+    },
   });
   // El listado de gestión muestra todo (incluidas las dadas de baja, para
   // que la protectora tenga registro), pero las métricas del dashboard
@@ -99,6 +104,8 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
                 mediaType={m.mediaType}
                 estado={m.estado}
                 activo={m.activo}
+                estadoSalud={m.estadoSalud}
+                vacunaciones={m.vacunaciones}
               />
             ))}
           </div>
