@@ -94,12 +94,20 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
         </div>
       )}
       {protectora && (
-        <Link
-          href="/protectoras/historial"
-          className="block text-center text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
-        >
-          Ver historial completo de adopciones →
-        </Link>
+        <div className="flex flex-col items-center gap-1">
+          <Link
+            href="/protectoras/dashboard"
+            className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+          >
+            Ver dashboard completo →
+          </Link>
+          <Link
+            href="/protectoras/historial"
+            className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+          >
+            Ver historial completo de adopciones →
+          </Link>
+        </div>
       )}
       <Reveal className="card p-4">
         <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
