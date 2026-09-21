@@ -101,7 +101,11 @@ export default async function MascotaDetallePage({
             </p>
             <p className="mt-3 text-sm text-[var(--text-mid)]">{mascota.descripcion}</p>
 
-            {mascota.estado === "ADOPTADO" ? (
+            {!mascota.activo ? (
+              <p className="badge-pill mt-6 inline-flex bg-[var(--brown-light)] text-[var(--text-mid)] shadow-none">
+                Ya no está disponible
+              </p>
+            ) : mascota.estado === "ADOPTADO" ? (
               <p className="badge-pill mt-6 inline-flex bg-[var(--green-ok)] text-white shadow-none">
                 Ya encontró un hogar 🏡
               </p>

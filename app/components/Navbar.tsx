@@ -11,7 +11,7 @@ import { NotificationBell } from "./NotificationBell";
 
 const PAW_STEPS_INTERVAL_MS = 10_000;
 
-const NAV_ITEMS = [
+const NAV_ITEMS_BASE = [
   { href: "/", label: "Inicio" },
   { href: "/mascotas", label: "Mascotas" },
   { href: "/protectoras", label: "Protectoras" },
@@ -19,8 +19,25 @@ const NAV_ITEMS = [
   { href: "/perfil", label: "Perfil" },
 ];
 
-export function Navbar({ notificacionesNoLeidas = 0 }: { notificacionesNoLeidas?: number }) {
+// Para cuentas de protectora, "Guías" (consejos de cuidado, pensados para
+// adoptantes) se reemplaza por "Adopciones" (gestión de mascotas,
+// solicitudes, vacunación, equipo — ver app/adopciones/page.tsx).
+function navItemsPara(esProtectora: boolean) {
+  if (!esProtectora) return NAV_ITEMS_BASE;
+  return NAV_ITEMS_BASE.map((item) =>
+    item.href === "/guias" ? { href: "/adopciones", label: "Adopciones" } : item
+  );
+}
+
+export function Navbar({
+  notificacionesNoLeidas = 0,
+  esProtectora = false,
+}: {
+  notificacionesNoLeidas?: number;
+  esProtectora?: boolean;
+}) {
   const pathname = usePathname();
+  const navItems = navItemsPara(esProtectora);
   const [open, setOpen] = useState(false);
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(!isHome);
@@ -81,7 +98,7 @@ export function Navbar({ notificacionesNoLeidas = 0 }: { notificacionesNoLeidas?
 
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-1 md:flex">
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -121,7 +138,7 @@ export function Navbar({ notificacionesNoLeidas = 0 }: { notificacionesNoLeidas?
         )}
       >
         <div className="flex flex-col gap-1 overflow-hidden px-6 py-3">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

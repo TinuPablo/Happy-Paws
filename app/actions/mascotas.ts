@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
+import { esUrlDeCloudinaryValida } from "@/lib/mediaUrl";
 
 export type MascotaActionState = { error: string } | null;
 
@@ -26,8 +27,9 @@ export async function addMascotaAction(
   const edadTexto = String(formData.get("edadAproximada") || "").trim();
   const tamanio = String(formData.get("tamanio") || "MEDIANO");
   const descripcion = String(formData.get("descripcion") || "").trim();
-  const mediaUrl = String(formData.get("mediaUrl") || "").trim() || null;
-  const mediaType = String(formData.get("mediaType") || "").trim() || null;
+  const mediaUrlRaw = String(formData.get("mediaUrl") || "").trim();
+  const mediaUrl = mediaUrlRaw && esUrlDeCloudinaryValida(mediaUrlRaw) ? mediaUrlRaw : null;
+  const mediaType = mediaUrl ? String(formData.get("mediaType") || "").trim() || null : null;
 
   if (!nombre || !razaTexto || !edadTexto || !descripcion) {
     return { error: "Completá todos los campos obligatorios." };
@@ -81,8 +83,9 @@ export async function editarMascotaAction(
   const edadTexto = String(formData.get("edadAproximada") || "").trim();
   const tamanio = String(formData.get("tamanio") || "MEDIANO");
   const descripcion = String(formData.get("descripcion") || "").trim();
-  const mediaUrl = String(formData.get("mediaUrl") || "").trim() || null;
-  const mediaType = String(formData.get("mediaType") || "").trim() || null;
+  const mediaUrlRaw = String(formData.get("mediaUrl") || "").trim();
+  const mediaUrl = mediaUrlRaw && esUrlDeCloudinaryValida(mediaUrlRaw) ? mediaUrlRaw : null;
+  const mediaType = mediaUrl ? String(formData.get("mediaType") || "").trim() || null : null;
 
   if (!nombre || !razaTexto || !edadTexto || !descripcion) {
     return { error: "Completá todos los campos obligatorios." };

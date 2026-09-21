@@ -39,7 +39,7 @@ export async function crearSolicitudAction(
   if (yaExiste) return { error: "Ya tenés una solicitud en curso para esta mascota." };
 
   const mascota = await prisma.mascota.findUnique({ where: { id: mascotaId } });
-  if (!mascota) return { error: "Mascota no encontrada." };
+  if (!mascota || !mascota.activo) return { error: "Mascota no encontrada." };
   if (mascota.estado === "ADOPTADO") return { error: "Esta mascota ya fue adoptada." };
 
   // Si el adoptante completó el quiz de compatibilidad, se recalcula el %
@@ -59,7 +59,7 @@ export async function crearSolicitudAction(
         quizPorcentaje = calcularCompatibilidad(mascota, parsed);
 
         const disponibles = await prisma.mascota.findMany({
-          where: { estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] } },
+          where: { activo: true, estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] } },
         });
         const mejorPuntaje = Math.max(...disponibles.map((m) => calcularCompatibilidad(m, parsed)));
         quizEraRecomendada = quizPorcentaje === mejorPuntaje;
@@ -98,6 +98,14 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
   const protectoraId = await protectoraIdDeUsuario(session.userId);
   if (!protectoraId || protectoraId !== solicitud.mascota.protectoraId) {
     throw new Error("No tenés permiso sobre esta solicitud.");
+  }
+
+  // Sin este chequeo, aprobar dos veces (doble click, o forzando el mismo
+  // POST de nuevo) volvía a correr todo lo que dispara una aprobación:
+  // duplicaba los 4 checkpoints de seguimiento y volvía a mandar el mail de
+  // aviso al adoptante cada vez. Una solicitud solo puede resolverse una vez.
+  if (solicitud.estado !== "PENDIENTE") {
+    throw new Error("Esta solicitud ya fue resuelta.");
   }
 
   await prisma.solicitudAdopcion.update({

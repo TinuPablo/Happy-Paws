@@ -70,3 +70,18 @@ Dos cambios chicos más, mismo criterio que el aviso anterior (aditivos, no toca
 2. `app/perfil/page.tsx` (el shell de `/perfil`, no estaba en tu lista pero avisamos igual por las dudas): ahora hace un `prisma.protectora.findFirst(...)` extra para mostrar el logo real en el avatar grande, **gateado a `session.rol !== "ADOPTANTE"`** — para tu vista de adoptante ese branch ni se ejecuta, sigue exactamente igual que antes ("Hola, X" / "Cuenta de adoptante").
 
 Sin acción necesaria de tu parte.
+
+---
+
+## [INFO - Pablo] Nav item "Guías" -> "Adopciones" para cuentas de protectora
+Fecha: 2026-09-21
+
+Reorganizamos el lado protectora: `/perfil` quedó solo para edición de cuenta (foto, mail, "acerca de"), y todo lo operativo (mascotas, solicitudes, vacunación, notificaciones, equipo) se movió a una página nueva, `/adopciones` (mío, `app/adopciones/page.tsx`).
+
+**Lo que toqué de lo tuyo/compartido:**
+1. `app/components/Navbar.tsx`: el ítem "Guías" (`/guias`) ahora se reemplaza por "Adopciones" (`/adopciones`) **solo cuando la sesión es de protectora** (nuevo prop `esProtectora`, default `false`). Para cuentas adoptante o sin sesión, el nav sigue exactamente igual — "Guías" sigue apuntando a `/guias`, confirmado con `curl` sin cambios.
+2. `app/layout.tsx`: agregué el booleano `esProtectora` (mismo cálculo que ya usaba para la campana de notificaciones) y se lo paso a `Navbar` como prop nuevo.
+
+No toqué `app/guias/page.tsx` ni nada de su contenido — sigue existiendo tal cual, solo dejó de estar en el nav para protectoras.
+
+Sin acción necesaria de tu parte.
