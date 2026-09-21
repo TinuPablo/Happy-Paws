@@ -34,11 +34,12 @@ export default async function RootLayout({
     ? { loggedIn: true, role: toUiRole(session.rol), nombre: session.nombre }
     : { loggedIn: false, role: null, nombre: "" };
 
-  // Campana del header: solo para cuentas de protectora, cuenta de
-  // notificaciones sin leer de su propia protectora.
+  // Campana del header y nav "Adopciones" en vez de "Guías": solo para
+  // cuentas de protectora.
+  const esProtectora = Boolean(session) && session!.rol !== "ADOPTANTE";
   let notificacionesNoLeidas = 0;
-  if (session && session.rol !== "ADOPTANTE") {
-    const protectora = await prisma.protectora.findFirst({ where: { duenioId: session.userId } });
+  if (esProtectora) {
+    const protectora = await prisma.protectora.findFirst({ where: { duenioId: session!.userId } });
     if (protectora) {
       notificacionesNoLeidas = await prisma.notificacion.count({
         where: { protectoraId: protectora.id, leida: false },
@@ -50,7 +51,7 @@ export default async function RootLayout({
     <html lang="es" className={`${fredoka.variable} ${nunito.variable}`}>
       <body>
         <AuthProvider session={authState}>
-          <Navbar notificacionesNoLeidas={notificacionesNoLeidas} />
+          <Navbar notificacionesNoLeidas={notificacionesNoLeidas} esProtectora={esProtectora} />
           {children}
           <footer className="border-t border-brown-light bg-brown-lightest px-6 py-10 text-center">
             <p className="flex items-center justify-center gap-2 font-heading text-lg font-semibold text-brown-dark">

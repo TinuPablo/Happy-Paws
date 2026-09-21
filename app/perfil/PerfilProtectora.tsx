@@ -1,278 +1,60 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { protectoraIdDeUsuario } from "@/lib/protectora";
-import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
-import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
 import { EditarDatosProtectoraForm } from "./EditarDatosProtectoraForm";
-import { MascotaRow } from "./MascotaRow";
-import { NotificacionesPanel } from "./NotificacionesPanel";
-import { VerFormularioSolicitud } from "./VerFormularioSolicitud";
-import { InvitarMiembroForm } from "./InvitarMiembroForm";
 import { Reveal } from "@/app/components/Reveal";
-import { Counter } from "@/app/components/Counter";
-import { esRespuestasQuizValidas } from "@/lib/calcularCompatibilidad";
-import { badgeClasses, badgeLabel } from "./estadoBadge";
-
-const ETIQUETA_ROL_MIEMBRO: Record<string, string> = {
-  COLABORADOR: "Colaborador/a",
-  HOGAR_TRANSITO: "Hogar de tránsito",
-};
 
 // Vista de perfil para cuentas de protectora (ADMIN_PROTECTORA/COLABORADOR/
-// HOGAR_TRANSITO). Dominio del lado "protectora" del proyecto — la vista de
-// adoptante vive en PerfilAdoptante.tsx, aparte a propósito para que ambas
-// puedan evolucionar sin pisarse.
-//
-// Un colaborador/hogar de tránsito no es dueño de la protectora (no tiene
-// duenioId) sino miembro vía MiembroProtectora — protectoraIdDeUsuario()
-// resuelve los dos casos, así esta vista funciona igual para cualquiera.
+// HOGAR_TRANSITO). Solo edición de cuenta — foto, mail, "acerca de" — como
+// el perfil de cualquier app. Todo lo operativo (mascotas, solicitudes,
+// vacunación, notificaciones, equipo) se movió a /adopciones.
 export async function PerfilProtectora({ userId }: { userId: string }) {
   const protectoraId = await protectoraIdDeUsuario(userId);
 
   const protectora = protectoraId
-    ? await prisma.protectora.findUnique({
-        where: { id: protectoraId },
-        include: {
-          mascotas: {
-            orderBy: { createdAt: "desc" },
-            include: { vacunaciones: { orderBy: { fechaAplicacion: "desc" } } },
-          },
-          miembros: { include: { user: true }, orderBy: { createdAt: "asc" } },
-        },
-      })
+    ? await prisma.protectora.findUnique({ where: { id: protectoraId } })
     : null;
 
-  // Solo quien es dueño de la protectora puede publicar/editar mascotas,
-  // cambiar los datos/logo o invitar gente nueva — un colaborador tiene
-  // "permisos limitados" (ver glosario en AGENTS.md): gestiona solicitudes
-  // y seguimiento, no administra la cuenta. Las server actions detrás de
-  // estas secciones (app/actions/mascotas.ts, app/actions/protectoras.ts)
-  // también verifican duenioId, así que esto no es solo cosmético.
+  // Un colaborador/hogar de tránsito puede ver estos datos pero no
+  // editarlos — las server actions detrás (protectoras.ts) verifican
+  // duenioId, así que esto no es solo cosmético.
   const esAdmin = protectora?.duenioId === userId;
-
-  // El listado de gestión muestra todo (incluidas las dadas de baja, para
-  // que la protectora tenga registro), pero las métricas del dashboard
-  // solo cuentan mascotas activas.
-  const mascotasActivas = protectora?.mascotas.filter((m) => m.activo) ?? [];
-
-  const notificaciones = protectora
-    ? await prisma.notificacion.findMany({
-        where: { protectoraId: protectora.id },
-        orderBy: { createdAt: "desc" },
-        take: 15,
-      })
-    : [];
-
-  const solicitudesRecibidas = protectora
-    ? await prisma.solicitudAdopcion.findMany({
-        where: { mascota: { protectoraId: protectora.id } },
-        include: { mascota: true, adoptante: { include: { user: true } } },
-        orderBy: { createdAt: "desc" },
-      })
-    : [];
-
-  const inicioDeMes = new Date();
-  inicioDeMes.setDate(1);
-  inicioDeMes.setHours(0, 0, 0, 0);
-
-  const dashboard = protectora
-    ? {
-        total: mascotasActivas.length,
-        disponibles: mascotasActivas.filter((m) => m.estado !== "ADOPTADO").length,
-        pendientes: solicitudesRecibidas.filter((s) => s.estado === "PENDIENTE").length,
-        adopcionesEsteMes: solicitudesRecibidas.filter(
-          (s) => s.estado === "APROBADA" && s.updatedAt >= inicioDeMes
-        ).length,
-      }
-    : null;
 
   return (
     <div className="mt-6 space-y-3">
-      {protectora && <NotificacionesPanel notificaciones={notificaciones} />}
-      {dashboard && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Reveal className="card p-4 text-center">
-            <p className="text-2xl font-bold text-[var(--text-dark)]">
-              <Counter value={dashboard.total} />
-            </p>
-            <p className="text-xs text-[var(--text-light)]">Mascotas totales</p>
-          </Reveal>
-          <Reveal delay={60} className="card p-4 text-center">
-            <p className="text-2xl font-bold text-[var(--text-dark)]">
-              <Counter value={dashboard.disponibles} />
-            </p>
-            <p className="text-xs text-[var(--text-light)]">Disponibles</p>
-          </Reveal>
-          <Reveal delay={120} className="card p-4 text-center">
-            <p className="text-2xl font-bold text-[var(--gold)]">
-              <Counter value={dashboard.pendientes} />
-            </p>
-            <p className="text-xs text-[var(--text-light)]">Solicitudes pendientes</p>
-          </Reveal>
-          <Reveal delay={180} className="card p-4 text-center">
-            <p className="text-2xl font-bold text-[var(--green-ok)]">
-              <Counter value={dashboard.adopcionesEsteMes} />
-            </p>
-            <p className="text-xs text-[var(--text-light)]">Adopciones este mes</p>
-          </Reveal>
-        </div>
-      )}
-      {/* /protectoras/dashboard y /protectoras/historial resuelven la
-          protectora por duenioId (dominio de Daniel) — un colaborador todavía
-          no tiene acceso ahí, así que estos links quedan atrás de esAdmin
-          igual que el resto de las secciones de administración. */}
-      {esAdmin && (
-        <div className="flex flex-col items-center gap-1">
-          <Link
-            href="/protectoras/dashboard"
-            className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
-          >
-            Ver dashboard completo →
-          </Link>
-          <Link
-            href="/protectoras/historial"
-            className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
-          >
-            Ver historial completo de adopciones →
-          </Link>
-        </div>
-      )}
-
-      {esAdmin && (
-        <Reveal className="card p-4">
-          <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
-          <p className="mt-1 text-sm text-[var(--text-mid)]">
-            {mascotasActivas.length} {mascotasActivas.length === 1 ? "mascota publicada" : "mascotas publicadas"}.
-          </p>
-          <AgregarMascotaForm />
-          {protectora && protectora.mascotas.length > 0 && (
-            <div className="mt-4 space-y-2">
-              {protectora.mascotas.map((m) => (
-                <MascotaRow
-                  key={m.id}
-                  id={m.id}
-                  nombre={m.nombre}
-                  especie={m.especie}
-                  razaTexto={m.razaTexto}
-                  edadTexto={m.edadTexto}
-                  tamanio={m.tamanio}
-                  descripcion={m.descripcion}
-                  mediaUrl={m.mediaUrl}
-                  mediaType={m.mediaType}
-                  estado={m.estado}
-                  activo={m.activo}
-                  estadoSalud={m.estadoSalud}
-                  vacunaciones={m.vacunaciones}
-                />
-              ))}
-            </div>
-          )}
-        </Reveal>
-      )}
-
-      <Reveal delay={80} className="card p-4">
-        <h2 className="font-semibold text-[var(--text-dark)]">Solicitudes recibidas</h2>
-        {solicitudesRecibidas.length === 0 ? (
-          <p className="mt-1 text-sm text-[var(--text-mid)]">
-            Todavía no recibiste solicitudes de adopción.
-          </p>
+      <Reveal className="card p-4">
+        <h2 className="font-semibold text-[var(--text-dark)]">Foto de perfil</h2>
+        {esAdmin ? (
+          <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
         ) : (
-          <div className="mt-3 space-y-2">
-            {solicitudesRecibidas.map((s) => (
-              <div key={s.id} className="rounded-xl border border-[var(--brown-light)] p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascota.nombre}</p>
-                    <p className="truncate text-xs text-[var(--text-light)]">
-                      {s.adoptante.user.nombre} · {s.createdAt.toLocaleDateString("es-AR")}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
-                    {badgeLabel(s.estado)}
-                  </span>
-                </div>
-                {esRespuestasQuizValidas(s.quizRespuestas) && typeof s.quizPorcentaje === "number" && (
-                  <VerFormularioSolicitud
-                    respuestas={s.quizRespuestas}
-                    porcentaje={s.quizPorcentaje}
-                    eraRecomendada={Boolean(s.quizEraRecomendada)}
-                    nombreMascota={s.mascota.nombre}
-                    nombreAdoptante={s.adoptante.user.nombre}
-                  />
-                )}
-                {s.estado === "PENDIENTE" && (
-                  <form action={actualizarEstadoSolicitudAction} className="mt-2 flex gap-2">
-                    <input type="hidden" name="solicitudId" value={s.id} />
-                    <button
-                      type="submit"
-                      name="estado"
-                      value="APROBADA"
-                      className="flex-1 rounded-lg bg-[var(--green-ok)] px-3 py-1.5 text-xs font-semibold text-white transition-transform duration-150 hover:-translate-y-0.5"
-                    >
-                      Aprobar
-                    </button>
-                    <button
-                      type="submit"
-                      name="estado"
-                      value="RECHAZADA"
-                      className="flex-1 rounded-lg border border-[var(--brown-light)] px-3 py-1.5 text-xs font-semibold text-[var(--text-mid)] transition-colors duration-150 hover:bg-[var(--brown-lightest)]"
-                    >
-                      Rechazar
-                    </button>
-                  </form>
-                )}
-              </div>
-            ))}
-          </div>
+          <p className="mt-1 text-sm text-[var(--text-mid)]">Solo el dueño de la cuenta puede cambiar el logo.</p>
         )}
+      </Reveal>
+
+      <Reveal delay={60} className="card p-4">
+        <h2 className="font-semibold text-[var(--text-dark)]">Correo electrónico</h2>
+        <p className="mt-1 text-sm text-[var(--text-mid)]">{protectora?.email ?? "Sin cargar"}</p>
       </Reveal>
 
       <Reveal delay={120} className="card p-4">
-        <h2 className="font-semibold text-[var(--text-dark)]">Equipo de la protectora</h2>
-        {!protectora || protectora.miembros.length === 0 ? (
-          <p className="mt-1 text-sm text-[var(--text-mid)]">
-            Todavía no hay colaboradores ni hogares de tránsito sumados.
-          </p>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {protectora.miembros.map((m) => (
-              <div
-                key={m.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3"
-              >
-                <span className="truncate text-sm font-medium text-[var(--text-dark)]">{m.user.nombre}</span>
-                <span className="shrink-0 rounded-full bg-[var(--brown-light)] px-3 py-1 text-xs font-medium text-[var(--text-dark)]">
-                  {ETIQUETA_ROL_MIEMBRO[m.rol] ?? m.rol}
-                </span>
-              </div>
-            ))}
-          </div>
+        <h2 className="font-semibold text-[var(--text-dark)]">Acerca de</h2>
+        <p className="mt-1 text-sm text-[var(--text-mid)]">
+          {protectora?.ubicacion}
+          {protectora?.telefono ? ` · ${protectora.telefono}` : ""}
+        </p>
+        {protectora?.descripcion && (
+          <p className="mt-1 text-sm text-[var(--text-light)]">{protectora.descripcion}</p>
         )}
-        {esAdmin && <InvitarMiembroForm />}
+        {esAdmin && protectora && (
+          <EditarDatosProtectoraForm
+            ubicacion={protectora.ubicacion}
+            descripcion={protectora.descripcion}
+            telefono={protectora.telefono}
+            email={protectora.email}
+            redSocial={protectora.redSocial}
+          />
+        )}
       </Reveal>
-
-      {esAdmin && (
-        <Reveal delay={160} className="card p-4">
-          <h2 className="font-semibold text-[var(--text-dark)]">Datos de la protectora</h2>
-          <p className="mt-1 text-sm text-[var(--text-mid)]">
-            {protectora?.ubicacion} · {protectora?.email}
-          </p>
-          {protectora?.descripcion && (
-            <p className="mt-1 text-sm text-[var(--text-light)]">{protectora.descripcion}</p>
-          )}
-          <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
-          {protectora && (
-            <EditarDatosProtectoraForm
-              ubicacion={protectora.ubicacion}
-              descripcion={protectora.descripcion}
-              telefono={protectora.telefono}
-              email={protectora.email}
-              redSocial={protectora.redSocial}
-            />
-          )}
-        </Reveal>
-      )}
     </div>
   );
 }
