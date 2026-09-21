@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Gavel } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { protectoraIdDeUsuario } from "@/lib/protectora";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
@@ -54,6 +56,16 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
             redSocial={protectora.redSocial}
           />
         )}
+      </Reveal>
+
+      <Reveal delay={180} className="card p-4">
+        <Link
+          href="/legal"
+          className="flex items-center gap-3 text-sm font-medium text-[var(--text-dark)] hover:text-[var(--brown-dark)]"
+        >
+          <Gavel size={18} className="shrink-0 text-[var(--brown-main)]" />
+          Derechos de autor
+        </Link>
       </Reveal>
     </div>
   );
