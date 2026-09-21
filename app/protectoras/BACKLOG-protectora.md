@@ -3,6 +3,7 @@
 ## Perfil de la protectora
 - [x] Completar/editar datos (descripción, contacto, dirección)
 - [x] Subir y cambiar logo
+- [x] Reorganizar: /perfil solo edición de cuenta (foto/mail/acerca de), todo lo operativo (mascotas/solicitudes/vacunación/notificaciones/equipo) movido a /adopciones, que reemplaza a "Guías" en el nav para protectora (no pedido originalmente, sumado en esta tarea)
 
 ## Gestión de mascotas
 - [x] Alta de mascota (formulario + fotos)
