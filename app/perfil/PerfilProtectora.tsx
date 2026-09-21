@@ -1,22 +1,43 @@
 import { prisma } from "@/lib/prisma";
+import { protectoraIdDeUsuario } from "@/lib/protectora";
 import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
 import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
 import { VerFormularioSolicitud } from "./VerFormularioSolicitud";
+import { InvitarMiembroForm } from "./InvitarMiembroForm";
 import { Reveal } from "@/app/components/Reveal";
 import { Counter } from "@/app/components/Counter";
 import { esRespuestasQuizValidas } from "@/lib/calcularCompatibilidad";
 import { badgeClasses, badgeLabel } from "./estadoBadge";
 
+const ETIQUETA_ROL_MIEMBRO: Record<string, string> = {
+  COLABORADOR: "Colaborador/a",
+  HOGAR_TRANSITO: "Hogar de tránsito",
+};
+
 // Vista de perfil para cuentas de protectora (ADMIN_PROTECTORA/COLABORADOR/
 // HOGAR_TRANSITO). Dominio del lado "protectora" del proyecto — la vista de
 // adoptante vive en PerfilAdoptante.tsx, aparte a propósito para que ambas
 // puedan evolucionar sin pisarse.
+//
+// Un colaborador/hogar de tránsito no es dueño de la protectora (no tiene
+// duenioId) sino miembro vía MiembroProtectora — protectoraIdDeUsuario()
+// resuelve los dos casos, así esta vista funciona igual para cualquiera.
 export async function PerfilProtectora({ userId }: { userId: string }) {
-  const protectora = await prisma.protectora.findFirst({
-    where: { duenioId: userId },
-    include: { mascotas: true },
-  });
+  const protectoraId = await protectoraIdDeUsuario(userId);
+
+  const protectora = protectoraId
+    ? await prisma.protectora.findUnique({
+        where: { id: protectoraId },
+        include: { mascotas: true, miembros: { include: { user: true }, orderBy: { createdAt: "asc" } } },
+      })
+    : null;
+
+  // Solo quien es dueño de la protectora puede publicar mascotas, cambiar
+  // el logo o invitar gente nueva — un colaborador tiene "permisos
+  // limitados" (ver glosario en AGENTS.md): puede gestionar solicitudes y
+  // seguimiento, no administrar la cuenta.
+  const esAdmin = protectora?.duenioId === userId;
 
   const solicitudesRecibidas = protectora
     ? await prisma.solicitudAdopcion.findMany({
@@ -71,14 +92,16 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
           </Reveal>
         </div>
       )}
-      <Reveal className="card p-4">
-        <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
-        <p className="mt-1 text-sm text-[var(--text-mid)]">
-          {protectora?.mascotas.length ?? 0}{" "}
-          {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
-        </p>
-        <AgregarMascotaForm />
-      </Reveal>
+      {esAdmin && (
+        <Reveal className="card p-4">
+          <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
+          <p className="mt-1 text-sm text-[var(--text-mid)]">
+            {protectora?.mascotas.length ?? 0}{" "}
+            {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
+          </p>
+          <AgregarMascotaForm />
+        </Reveal>
+      )}
 
       <Reveal delay={80} className="card p-4">
         <h2 className="font-semibold text-[var(--text-dark)]">Solicitudes recibidas</h2>
@@ -137,13 +160,39 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
         )}
       </Reveal>
 
-      <Reveal delay={160} className="card p-4">
-        <h2 className="font-semibold text-[var(--text-dark)]">Datos de la protectora</h2>
-        <p className="mt-1 text-sm text-[var(--text-mid)]">
-          {protectora?.ubicacion} · {protectora?.email}
-        </p>
-        <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
+      <Reveal delay={120} className="card p-4">
+        <h2 className="font-semibold text-[var(--text-dark)]">Equipo de la protectora</h2>
+        {!protectora || protectora.miembros.length === 0 ? (
+          <p className="mt-1 text-sm text-[var(--text-mid)]">
+            Todavía no hay colaboradores ni hogares de tránsito sumados.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {protectora.miembros.map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3"
+              >
+                <span className="truncate text-sm font-medium text-[var(--text-dark)]">{m.user.nombre}</span>
+                <span className="shrink-0 rounded-full bg-[var(--brown-light)] px-3 py-1 text-xs font-medium text-[var(--text-dark)]">
+                  {ETIQUETA_ROL_MIEMBRO[m.rol] ?? m.rol}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        {esAdmin && <InvitarMiembroForm />}
       </Reveal>
+
+      {esAdmin && (
+        <Reveal delay={160} className="card p-4">
+          <h2 className="font-semibold text-[var(--text-dark)]">Datos de la protectora</h2>
+          <p className="mt-1 text-sm text-[var(--text-mid)]">
+            {protectora?.ubicacion} · {protectora?.email}
+          </p>
+          <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
+        </Reveal>
+      )}
     </div>
   );
 }
