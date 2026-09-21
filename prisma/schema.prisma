@@ -76,9 +76,10 @@ model Protectora {
   duenioId    String
   duenio      User     @relation("DuenioProtectora", fields: [duenioId], references: [id])
 
-  miembros      MiembroProtectora[]
-  mascotas      Mascota[]
-  invitaciones  InvitacionProtectora[]
+  miembros       MiembroProtectora[]
+  mascotas       Mascota[]
+  invitaciones   InvitacionProtectora[]
+  notificaciones Notificacion[]
 
   @@map("protectoras")
 }
@@ -151,6 +152,9 @@ model Mascota {
   sexo          String?       // "MACHO" | "HEMBRA" | null si no se sabe
   tamanio       String?       // "PEQUEÑO" | "MEDIANO" | "GRANDE"
   descripcion   String?       @db.Text
+  // Interno, solo lado protectora — NO exponer en app/mascotas/** ni en
+  // ninguna query/vista del lado adoptante.
+  estadoSalud   String?       @db.VarChar(280)
   // Atributos de compatibilidad para el quiz de match adoptante-mascota
   // (ver lib/calcularCompatibilidad.ts). Nullable porque la protectora
   // todavía no los carga al publicar — null se trata distinto de false.
@@ -162,6 +166,10 @@ model Mascota {
   mediaUrl      String?       @db.Text // foto/video cargado desde el perfil de protectora (hoy blob: URL de sesión, no persiste entre navegadores)
   mediaType     String?       // "image" | "video"
   estado        EstadoMascota @default(EN_PROTECTORA)
+  // Soft-delete: "dar de baja" pone esto en false, nunca se borra la fila
+  // (hay vacunaciones/solicitudes ya vinculadas). Todo listado del lado
+  // adoptante debe filtrar activo: true.
+  activo        Boolean       @default(true)
   fechaIngreso  DateTime      @default(now())
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -312,6 +320,26 @@ model SolicitudAdopcion {
 
   mascota       Mascota         @relation(fields: [mascotaId], references: [id])
   adoptante     Adoptante       @relation(fields: [adoptanteId], references: [id])
+  notificaciones Notificacion[]
 
   @@map("solicitudes_adopcion")
+}
+
+// ------------------------------------------------------------
+// NOTIFICACIONES (internas, lado protectora)
+// ------------------------------------------------------------
+
+model Notificacion {
+  id           String    @id @default(cuid())
+  protectoraId String
+  tipo         String    // ej: "SOLICITUD_NUEVA" — texto libre, un solo tipo existe hoy
+  mensaje      String    @db.Text
+  leida        Boolean   @default(false)
+  solicitudId  String?
+  createdAt    DateTime  @default(now())
+
+  protectora   Protectora          @relation(fields: [protectoraId], references: [id])
+  solicitud    SolicitudAdopcion?  @relation(fields: [solicitudId], references: [id])
+
+  @@map("notificaciones")
 }

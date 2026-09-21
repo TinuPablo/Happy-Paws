@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { protectoraIdDeUsuario } from "@/lib/protectora";
 import { actualizarEstadoSolicitudAction } from "@/app/actions/solicitudes";
 import { AgregarMascotaForm } from "./AgregarMascotaForm";
 import { LogoProtectoraForm } from "./LogoProtectoraForm";
+import { EditarDatosProtectoraForm } from "./EditarDatosProtectoraForm";
+import { MascotaRow } from "./MascotaRow";
+import { NotificacionesPanel } from "./NotificacionesPanel";
 import { VerFormularioSolicitud } from "./VerFormularioSolicitud";
 import { InvitarMiembroForm } from "./InvitarMiembroForm";
 import { Reveal } from "@/app/components/Reveal";
@@ -29,15 +33,36 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
   const protectora = protectoraId
     ? await prisma.protectora.findUnique({
         where: { id: protectoraId },
-        include: { mascotas: true, miembros: { include: { user: true }, orderBy: { createdAt: "asc" } } },
+        include: {
+          mascotas: {
+            orderBy: { createdAt: "desc" },
+            include: { vacunaciones: { orderBy: { fechaAplicacion: "desc" } } },
+          },
+          miembros: { include: { user: true }, orderBy: { createdAt: "asc" } },
+        },
       })
     : null;
 
-  // Solo quien es dueño de la protectora puede publicar mascotas, cambiar
-  // el logo o invitar gente nueva — un colaborador tiene "permisos
-  // limitados" (ver glosario en AGENTS.md): puede gestionar solicitudes y
-  // seguimiento, no administrar la cuenta.
+  // Solo quien es dueño de la protectora puede publicar/editar mascotas,
+  // cambiar los datos/logo o invitar gente nueva — un colaborador tiene
+  // "permisos limitados" (ver glosario en AGENTS.md): gestiona solicitudes
+  // y seguimiento, no administra la cuenta. Las server actions detrás de
+  // estas secciones (app/actions/mascotas.ts, app/actions/protectoras.ts)
+  // también verifican duenioId, así que esto no es solo cosmético.
   const esAdmin = protectora?.duenioId === userId;
+
+  // El listado de gestión muestra todo (incluidas las dadas de baja, para
+  // que la protectora tenga registro), pero las métricas del dashboard
+  // solo cuentan mascotas activas.
+  const mascotasActivas = protectora?.mascotas.filter((m) => m.activo) ?? [];
+
+  const notificaciones = protectora
+    ? await prisma.notificacion.findMany({
+        where: { protectoraId: protectora.id },
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      })
+    : [];
 
   const solicitudesRecibidas = protectora
     ? await prisma.solicitudAdopcion.findMany({
@@ -53,8 +78,8 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
 
   const dashboard = protectora
     ? {
-        total: protectora.mascotas.length,
-        disponibles: protectora.mascotas.filter((m) => m.estado !== "ADOPTADO").length,
+        total: mascotasActivas.length,
+        disponibles: mascotasActivas.filter((m) => m.estado !== "ADOPTADO").length,
         pendientes: solicitudesRecibidas.filter((s) => s.estado === "PENDIENTE").length,
         adopcionesEsteMes: solicitudesRecibidas.filter(
           (s) => s.estado === "APROBADA" && s.updatedAt >= inicioDeMes
@@ -64,6 +89,7 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
 
   return (
     <div className="mt-6 space-y-3">
+      {protectora && <NotificacionesPanel notificaciones={notificaciones} />}
       {dashboard && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Reveal className="card p-4 text-center">
@@ -92,14 +118,56 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
           </Reveal>
         </div>
       )}
+      {/* /protectoras/dashboard y /protectoras/historial resuelven la
+          protectora por duenioId (dominio de Daniel) — un colaborador todavía
+          no tiene acceso ahí, así que estos links quedan atrás de esAdmin
+          igual que el resto de las secciones de administración. */}
+      {esAdmin && (
+        <div className="flex flex-col items-center gap-1">
+          <Link
+            href="/protectoras/dashboard"
+            className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+          >
+            Ver dashboard completo →
+          </Link>
+          <Link
+            href="/protectoras/historial"
+            className="text-sm font-semibold text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+          >
+            Ver historial completo de adopciones →
+          </Link>
+        </div>
+      )}
+
       {esAdmin && (
         <Reveal className="card p-4">
           <h2 className="font-semibold text-[var(--text-dark)]">Mis mascotas publicadas</h2>
           <p className="mt-1 text-sm text-[var(--text-mid)]">
-            {protectora?.mascotas.length ?? 0}{" "}
-            {(protectora?.mascotas.length ?? 0) === 1 ? "mascota publicada" : "mascotas publicadas"}.
+            {mascotasActivas.length} {mascotasActivas.length === 1 ? "mascota publicada" : "mascotas publicadas"}.
           </p>
           <AgregarMascotaForm />
+          {protectora && protectora.mascotas.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {protectora.mascotas.map((m) => (
+                <MascotaRow
+                  key={m.id}
+                  id={m.id}
+                  nombre={m.nombre}
+                  especie={m.especie}
+                  razaTexto={m.razaTexto}
+                  edadTexto={m.edadTexto}
+                  tamanio={m.tamanio}
+                  descripcion={m.descripcion}
+                  mediaUrl={m.mediaUrl}
+                  mediaType={m.mediaType}
+                  estado={m.estado}
+                  activo={m.activo}
+                  estadoSalud={m.estadoSalud}
+                  vacunaciones={m.vacunaciones}
+                />
+              ))}
+            </div>
+          )}
         </Reveal>
       )}
 
@@ -190,7 +258,19 @@ export async function PerfilProtectora({ userId }: { userId: string }) {
           <p className="mt-1 text-sm text-[var(--text-mid)]">
             {protectora?.ubicacion} · {protectora?.email}
           </p>
+          {protectora?.descripcion && (
+            <p className="mt-1 text-sm text-[var(--text-light)]">{protectora.descripcion}</p>
+          )}
           <LogoProtectoraForm logoActualUrl={protectora?.logoUrl ?? null} />
+          {protectora && (
+            <EditarDatosProtectoraForm
+              ubicacion={protectora.ubicacion}
+              descripcion={protectora.descripcion}
+              telefono={protectora.telefono}
+              email={protectora.email}
+              redSocial={protectora.redSocial}
+            />
+          )}
         </Reveal>
       )}
     </div>

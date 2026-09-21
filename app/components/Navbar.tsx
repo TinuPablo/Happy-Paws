@@ -6,6 +6,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HeaderPawSteps } from "./HeaderPawSteps";
+import { NotificationBell } from "./NotificationBell";
+
+const PAW_STEPS_INTERVAL_MS = 10_000;
 
 const NAV_ITEMS = [
   { href: "/", label: "Inicio" },
@@ -15,11 +19,17 @@ const NAV_ITEMS = [
   { href: "/perfil", label: "Perfil" },
 ];
 
-export function Navbar() {
+export function Navbar({ notificacionesNoLeidas = 0 }: { notificacionesNoLeidas?: number }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(!isHome);
+  const [pawTick, setPawTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setPawTick((t) => t + 1), PAW_STEPS_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!isHome) {
@@ -50,51 +60,58 @@ export function Navbar() {
       )}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-heading text-lg font-semibold"
-          onClick={() => setOpen(false)}
-        >
-          <Image
-            src="/assets/logo.jpg"
-            alt="Happy Paws"
-            width={36}
-            height={36}
-            priority
-            className="h-9 w-9 shrink-0 rounded-full bg-white object-cover"
-          />
-          Happy Paws
-        </Link>
-
-        <div className="hidden items-center gap-1 md:flex">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200",
-                solid
-                  ? isActive(item.href)
-                    ? "bg-white/15 text-brown-lightest"
-                    : "text-brown-lightest/70 hover:bg-white/10 hover:text-brown-lightest"
-                  : isActive(item.href)
-                    ? "bg-brown-dark/10 text-brown-dark"
-                    : "text-text-mid hover:bg-brown-dark/5 hover:text-brown-dark"
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="relative flex items-center">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-heading text-lg font-semibold"
+            onClick={() => setOpen(false)}
+          >
+            <Image
+              src="/assets/logo.jpg"
+              alt="Happy Paws"
+              width={36}
+              height={36}
+              priority
+              className="h-9 w-9 shrink-0 rounded-full bg-white object-cover"
+            />
+            Happy Paws
+          </Link>
+          <HeaderPawSteps tick={pawTick} />
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className={cn(solid ? "text-brown-lightest" : "text-brown-dark", "md:hidden")}
-          aria-label={open ? "Cerrar menú" : "Abrir menú"}
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="hidden items-center gap-1 md:flex">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200",
+                  solid
+                    ? isActive(item.href)
+                      ? "bg-white/15 text-brown-lightest"
+                      : "text-brown-lightest/70 hover:bg-white/10 hover:text-brown-lightest"
+                    : isActive(item.href)
+                      ? "bg-brown-dark/10 text-brown-dark"
+                      : "text-text-mid hover:bg-brown-dark/5 hover:text-brown-dark"
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          {notificacionesNoLeidas > 0 && <NotificationBell noLeidas={notificacionesNoLeidas} />}
+
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className={cn(solid ? "text-brown-lightest" : "text-brown-dark", "md:hidden")}
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       <div

@@ -269,3 +269,155 @@ html {
     display: none;
   }
 }
+
+/* --- Header: huellitas junto al logo, y campana de notificaciones --- */
+
+@keyframes header-paw-step {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes bell-glow-shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  10%,
+  30%,
+  50% {
+    transform: rotate(-14deg);
+  }
+  20%,
+  40%,
+  60% {
+    transform: rotate(14deg);
+  }
+  70% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes bell-ring-wave {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.animate-header-paw-step {
+  animation-name: header-paw-step;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.animate-bell-glow-shake {
+  animation: bell-glow-shake 2.4s ease-in-out 1;
+}
+
+.animate-bell-ring-wave {
+  animation: bell-ring-wave 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-header-paw-step,
+  .animate-bell-glow-shake,
+  .animate-bell-ring-wave {
+    animation: none !important;
+  }
+}
+
+/* Perro y gato "chocando patas" en /perfil (protectora). Loop continuo de
+   9s: se acercan (3s), se tocan un instante (0.5s), vuelven (3s), pausa
+   (2.5s). */
+@keyframes paw-bump-dog {
+  0%,
+  100% {
+    transform: translateX(0) scale(1);
+  }
+  33.3% {
+    transform: translateX(14px) scale(1);
+  }
+  35.5% {
+    transform: translateX(14px) scale(1.15);
+  }
+  38.9% {
+    transform: translateX(14px) scale(1);
+  }
+  72.2% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes paw-bump-cat {
+  0%,
+  100% {
+    transform: translateX(0) scale(1);
+  }
+  33.3% {
+    transform: translateX(-14px) scale(1);
+  }
+  35.5% {
+    transform: translateX(-14px) scale(1.15);
+  }
+  38.9% {
+    transform: translateX(-14px) scale(1);
+  }
+  72.2% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes paw-bump-flash {
+  0%,
+  30%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  42% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.paw-bump-dog {
+  animation: paw-bump-dog 9s ease-in-out infinite;
+}
+
+.paw-bump-cat {
+  animation: paw-bump-cat 9s ease-in-out infinite;
+}
+
+.paw-bump-flash {
+  animation: paw-bump-flash 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paw-bump-dog,
+  .paw-bump-cat,
+  .paw-bump-flash {
+    animation: none !important;
+  }
+}
