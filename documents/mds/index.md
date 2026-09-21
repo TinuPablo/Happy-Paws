@@ -11,6 +11,7 @@ decisiones de diseño, navegables por grafo de enlaces.
 - `bdd pets/` — dataset de razas, guías y lógica de recomendaciones.
 - `calendario/` — agenda y libreta de vacunación (protocolos WSAVA).
 - `login/`, `perfil/`, `bdd/` — notas puntuales de features.
+- [[usuario/pendientes-protectora-para-daniel|usuario/pendientes-protectora-para-daniel]] — hand-off para el agente de Daniel (trabajo en paralelo, lado protectora).
 
 > Esta carpeta (`documents/mds/`) es la fuente real de las notas — este sitio
 > (`notes/`) es solo el visor generado con Quartz, apuntando a ella por symlink.

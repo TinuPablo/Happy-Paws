@@ -188,10 +188,13 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       `20260911234041_auth_real_mascotas_solicitudes`); al aprobar,
       `actualizarEstadoSolicitudAction` pone `estado: ADOPTADO` y completa
       `adoptanteId`.
-- [ ] Storage real de fotos/video (hoy sigue siendo blob URL de sesión, no
-      persiste entre navegadores — el campo `Mascota.mediaUrl` ya existe en
-      el schema pero guarda esa misma blob URL no portable hasta que haya
-      un storage real, S3/Cloudinary/similar).
+- [x] Storage real de fotos/video con Cloudinary — upload firmado desde el
+      navegador directo a Cloudinary (`app/actions/upload.ts` +
+      `lib/uploadCloudinary.ts`), conectado en `AgregarMascotaForm.tsx` y
+      `LogoProtectoraForm.tsx`. Código completo, pero sin probar en vivo:
+      falta que el usuario cree la cuenta de Cloudinary y complete
+      `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`
+      en su `.env` (quedaron vacíos a propósito).
 - [x] Vacunación conectada a MySQL (se arma en `/mascotas/[id]` a partir de
       la tabla `Vacunacion` real: cada fila es una dosis aplicada, y si
       tiene `proximaDosis` se muestra además como pendiente).
@@ -208,13 +211,12 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       Michi, Rocky, Luna + 2 protectoras + usuarios demo, contraseña
       `happypaws123`). Sigue sin ser la data real de la ONG: falta que FUPA
       provea sus mascotas/fotos reales para reemplazar este seed.
-- [ ] Modelo de "seguimiento posterior a la adopción" en schema.prisma —
-      hoy Mascota pasa a ADOPTADO y ahí termina, no hay tabla para
-      checkpoints (7 días, 1 mes, etc.). contexto.md lo describe como
-      diferencial del producto ("la historia de una mascota no termina").
-      Si se va a mostrar en la presentación como parte de la propuesta de
-      valor, diseñar esta tabla junto con el resto del schema, no como
-      parche después.
+- [x] Modelo de "seguimiento posterior a la adopción" — tabla
+      `SeguimientoAdopcion` (checkpoints DIAS_7/MES_1/MES_3/MES_6),
+      generados automáticamente al aprobar una solicitud
+      (`actualizarEstadoSolicitudAction`). La protectora los marca como
+      hechos con una nota desde la ficha pública de la mascota
+      (`/mascotas/[id]`, sección "Seguimiento post-adopción").
 - [x] Estados de error en /login y /registro (contraseña incorrecta, email
       ya registrado, contraseña muy corta) — implementados vía
       `useActionState`, mensaje inline en el propio formulario.
@@ -226,11 +228,16 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       (`?especie=&tamanio=`), filtro server-side con Prisma. Edad no se
       filtra: sigue siendo texto libre (`edadTexto`), no hay un campo
       numérico cargado todavía para poder rangear.
-- [ ] Recuperación de contraseña — no se implementó: requiere una decisión
-      de proveedor de email (SMTP/Resend/similar) que no estaba tomada, y
-      una versión sin envío real de mail hubiera sido más confusa que útil.
-- [ ] Notificación por email al cambiar estado de solicitud — mismo
-      motivo, depende de la misma decisión de proveedor de email.
+- [x] Recuperación de contraseña con Resend — `/recuperar` (pide el link) +
+      `/restablecer?token=` (elige nueva contraseña), token de un solo uso
+      con expiración de 2hs (`PasswordResetToken`). El mismo mensaje se
+      muestra exista o no el email, para no filtrar qué cuentas existen.
+      Código completo, pero sin probar el envío real: falta que el usuario
+      complete `RESEND_API_KEY` en su `.env` (sin eso, el link queda
+      logueado en la consola del servidor en vez de mandarse por mail).
+- [x] Notificación por email al cambiar estado de solicitud — se manda al
+      aprobar/rechazar desde `actualizarEstadoSolicitudAction`, mismo
+      proveedor (Resend) y misma salvedad de credenciales pendientes.
 - [x] Dashboard simple para protectora — 4 tiles en `/perfil` (mascotas
       totales, disponibles, solicitudes pendientes, adopciones del mes).
 - [x] Favoritos para adoptantes — tabla `Favorito` nueva, botón ☆/★ en
@@ -242,6 +249,22 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       placeholder en el código (se ve que se sacó en algún rediseño previo,
       no quedó rastro), y escribir texto legal "real" no es algo para
       inventar — falta que alguien redacte el contenido real.
+- [x] Colaboradores y hogares de tránsito — el modelo `MiembroProtectora`
+      existía en el schema desde el principio pero nunca se pudo crear uno:
+      no había registro para esos roles, y los chequeos de permisos solo
+      reconocían al dueño (`duenioId`) de la protectora, no a sus miembros
+      (aunque `requireRole()` ya los incluía en varias acciones). Se agregó
+      `InvitacionProtectora` (token de un solo uso, 7 días de validez): el
+      dueño invita por email desde "Equipo de la protectora" en `/perfil`
+      (`invitarMiembroAction`), la persona invitada crea su cuenta en
+      `/invitacion?token=` (`aceptarInvitacionAction`, sin necesitar cuenta
+      previa). Se agregó `lib/protectora.ts` (`protectoraIdDeUsuario`) que
+      resuelve la protectora tanto para el dueño como para un miembro, y se
+      usa ahora en `actualizarEstadoSolicitudAction`, `completarSeguimientoAction`
+      y en `PerfilProtectora.tsx` (antes los tres solo miraban `duenioId`).
+      Un colaborador ve el mismo dashboard/solicitudes/seguimiento que el
+      dueño, pero no ve "Agregar mascota", "Datos de la protectora" ni
+      "Invitar" — permisos limitados, como dice el glosario.
 - [x] Reemplazar los alert() nativos — ya no queda ninguno en `app/`
       (confirmado por búsqueda): se fueron solos al reescribir
       login/registro/perfil con server actions + `useActionState`, que
