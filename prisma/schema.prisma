@@ -36,8 +36,25 @@ model User {
   protectorasPropias   Protectora[]        @relation("DuenioProtectora")
   membresias           MiembroProtectora[]
   adoptante            Adoptante?
+  resetTokens          PasswordResetToken[]
 
   @@map("users")
+}
+
+// Token de un solo uso para "olvidé mi contraseña" (ver app/actions/auth.ts).
+// Se genera al pedir la recuperación, se invalida (usedAt) al usarse o expira
+// solo a las 2hs — igual que la sesión, no vive en el cliente.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("password_reset_tokens")
 }
 
 // ------------------------------------------------------------
@@ -59,8 +76,9 @@ model Protectora {
   duenioId    String
   duenio      User     @relation("DuenioProtectora", fields: [duenioId], references: [id])
 
-  miembros    MiembroProtectora[]
-  mascotas    Mascota[]
+  miembros      MiembroProtectora[]
+  mascotas      Mascota[]
+  invitaciones  InvitacionProtectora[]
 
   @@map("protectoras")
 }
@@ -68,6 +86,25 @@ model Protectora {
 enum RolEnProtectora {
   COLABORADOR
   HOGAR_TRANSITO
+}
+
+// Invitación de un solo uso para sumar un colaborador o hogar de tránsito a
+// una protectora (ver app/actions/miembros.ts). Solo el dueño de la
+// protectora puede crearlas. Al aceptarla se crea el User (rol global
+// COLABORADOR/HOGAR_TRANSITO) + el MiembroProtectora correspondiente.
+model InvitacionProtectora {
+  id           String          @id @default(cuid())
+  token        String          @unique
+  protectoraId String
+  email        String
+  rol          RolEnProtectora
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime        @default(now())
+
+  protectora   Protectora      @relation(fields: [protectoraId], references: [id])
+
+  @@map("invitaciones_protectora")
 }
 
 // Tabla intermedia: un usuario puede colaborar con una protectora
@@ -136,6 +173,7 @@ model Mascota {
   vacunaciones  Vacunacion[]
   solicitudes   SolicitudAdopcion[]
   favoritos     Favorito[]
+  seguimientos  SeguimientoAdopcion[]
 
   // Se completa al aprobar una solicitud de adopción (transferencia de "propiedad")
   adoptanteId   String?
@@ -169,6 +207,37 @@ model Vacunacion {
   mascota     Mascota  @relation(fields: [mascotaId], references: [id])
 
   @@map("vacunaciones")
+}
+
+// ------------------------------------------------------------
+// SEGUIMIENTO POST-ADOPCIÓN
+// ------------------------------------------------------------
+// "La historia de una mascota no termina con la adopción" (ver contexto.md):
+// al aprobarse una solicitud se generan estos 4 checkpoints automáticos, y la
+// protectora los va marcando como hechos con una nota/foto — se muestran en
+// la ficha pública de la mascota como una línea de tiempo.
+
+enum TipoCheckpoint {
+  DIAS_7
+  MES_1
+  MES_3
+  MES_6
+}
+
+model SeguimientoAdopcion {
+  id              String         @id @default(cuid())
+  mascotaId       String
+  tipo            TipoCheckpoint
+  fechaProgramada DateTime
+  fechaRealizada  DateTime?
+  nota            String?        @db.Text
+  fotoUrl         String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  mascota         Mascota        @relation(fields: [mascotaId], references: [id])
+
+  @@map("seguimientos_adopcion")
 }
 
 // ------------------------------------------------------------
