@@ -31,12 +31,12 @@ export default async function HomePage() {
   const [mascotas, protectoras, totalDisponibles, totalAdoptadas, totalProtectoras] =
     await Promise.all([
       prisma.mascota.findMany({
-        where: { estado: { in: [...ESTADOS_DISPONIBLE] } },
+        where: { activo: true, estado: { in: [...ESTADOS_DISPONIBLE] } },
         orderBy: { fechaIngreso: "desc" },
         take: 4,
       }),
       prisma.protectora.findMany({ orderBy: { nombre: "asc" }, take: 2 }),
-      prisma.mascota.count({ where: { estado: { in: [...ESTADOS_DISPONIBLE] } } }),
+      prisma.mascota.count({ where: { activo: true, estado: { in: [...ESTADOS_DISPONIBLE] } } }),
       prisma.mascota.count({ where: { estado: "ADOPTADO" } }),
       prisma.protectora.count(),
     ]);

@@ -16,6 +16,8 @@ export async function subirArchivoACloudinary(file: File): Promise<ArchivoSubido
   body.append("timestamp", String(firma.timestamp));
   body.append("signature", firma.signature);
   body.append("folder", firma.folder);
+  body.append("allowed_formats", firma.allowedFormats);
+  body.append("max_file_size", String(firma.maxFileSize));
 
   const res = await fetch(`https://api.cloudinary.com/v1_1/${firma.cloudName}/${tipo}/upload`, {
     method: "POST",

@@ -4,6 +4,20 @@ import { Resend } from "resend";
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "onboarding@resend.dev";
 
+// protectoraNombre y mascotaNombre los elige la protectora al registrarse o
+// publicar una mascota — son texto libre que después se interpola en estos
+// templates. Sin escapar, una protectora podría poner HTML/links falsos en
+// ese campo y que termine incrustado tal cual en un mail real a otra
+// persona (invitación o aviso de solicitud).
+function escaparHtml(valor: string): string {
+  return valor
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Si todavía no se configuró Resend, se avisa por consola en vez de romper
 // el flujo (ej. crear una solicitud no debería fallar porque no se pudo
 // mandar el mail de aviso) — el dato real ya quedó guardado en la base.
@@ -41,13 +55,14 @@ export async function enviarEmailInvitacionProtectora(
   inviteUrl: string
 ) {
   const etiquetaRol = rol === "COLABORADOR" ? "colaborador/a" : "hogar de tránsito";
+  const nombreSeguro = escaparHtml(protectoraNombre);
   await enviar(
     to,
     `Te invitaron a sumarte a ${protectoraNombre} — Happy Paws`,
     `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
         <h2 style="color:#6B3F1F">Happy Paws 🐾</h2>
-        <p>${protectoraNombre} te invitó a sumarte como <strong>${etiquetaRol}</strong>.</p>
+        <p>${nombreSeguro} te invitó a sumarte como <strong>${etiquetaRol}</strong>.</p>
         <p>Si querés aceptar, entrá al siguiente link y creá tu cuenta (vale por 7 días):</p>
         <p><a href="${inviteUrl}" style="display:inline-block;background:#6B3F1F;color:#fff;padding:10px 20px;border-radius:10px;text-decoration:none">Aceptar invitación</a></p>
         <p style="color:#6B4A2F;font-size:13px">Si no esperabas esto, podés ignorar este mensaje.</p>
@@ -61,10 +76,11 @@ export async function enviarEmailCambioEstadoSolicitud(
   mascotaNombre: string,
   estado: "APROBADA" | "RECHAZADA"
 ) {
+  const nombreSeguro = escaparHtml(mascotaNombre);
   const mensaje =
     estado === "APROBADA"
-      ? `¡Buenas noticias! Tu solicitud para adoptar a ${mascotaNombre} fue aprobada 🎉`
-      : `Tu solicitud para adoptar a ${mascotaNombre} no fue aprobada esta vez.`;
+      ? `¡Buenas noticias! Tu solicitud para adoptar a ${nombreSeguro} fue aprobada 🎉`
+      : `Tu solicitud para adoptar a ${nombreSeguro} no fue aprobada esta vez.`;
 
   await enviar(
     to,
