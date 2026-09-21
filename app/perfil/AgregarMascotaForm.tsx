@@ -2,12 +2,15 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addMascotaAction } from "@/app/actions/mascotas";
+import { subirArchivoACloudinary } from "@/lib/uploadCloudinary";
 
 export function AgregarMascotaForm() {
   const [state, formAction, pending] = useActionState(addMascotaAction, null);
   const [mostrar, setMostrar] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | undefined>(undefined);
   const [mediaType, setMediaType] = useState<"image" | "video" | undefined>(undefined);
+  const [subiendo, setSubiendo] = useState(false);
+  const [errorSubida, setErrorSubida] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const wasPending = useRef(false);
 
@@ -16,6 +19,7 @@ export function AgregarMascotaForm() {
       formRef.current?.reset();
       setMediaUrl(undefined);
       setMediaType(undefined);
+      setErrorSubida(null);
       setMostrar(false);
     }
     wasPending.current = pending;
@@ -73,12 +77,26 @@ export function AgregarMascotaForm() {
             <input
               type="file"
               accept="image/*,video/*"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                const url = URL.createObjectURL(file);
-                setMediaUrl(url);
+                setErrorSubida(null);
+                // Vista previa instantánea con el archivo local mientras se
+                // sube de verdad a Cloudinary en segundo plano.
+                setMediaUrl(URL.createObjectURL(file));
                 setMediaType(file.type.startsWith("video/") ? "video" : "image");
+                setSubiendo(true);
+                try {
+                  const subido = await subirArchivoACloudinary(file);
+                  setMediaUrl(subido.url);
+                  setMediaType(subido.tipo);
+                } catch {
+                  setMediaUrl(undefined);
+                  setMediaType(undefined);
+                  setErrorSubida("No se pudo subir el archivo. Probá de nuevo.");
+                } finally {
+                  setSubiendo(false);
+                }
               }}
               className="mt-1 w-full text-sm text-[var(--text-mid)]"
             />
@@ -93,11 +111,13 @@ export function AgregarMascotaForm() {
           {mediaUrl && mediaType === "video" && (
             <video src={mediaUrl} controls className="mt-3 h-32 w-full rounded-xl object-cover" />
           )}
+          {subiendo && <p className="text-xs text-[var(--text-light)]">Subiendo archivo...</p>}
+          {errorSubida && <p className="text-sm font-medium text-red-600">{errorSubida}</p>}
 
           {state?.error && <p className="text-sm font-medium text-red-600">{state.error}</p>}
 
-          <button type="submit" disabled={pending} className="btn-dark w-full disabled:opacity-60">
-            {pending ? "Publicando..." : "Publicar mascota"}
+          <button type="submit" disabled={pending || subiendo} className="btn-dark w-full disabled:opacity-60">
+            {pending ? "Publicando..." : subiendo ? "Subiendo archivo..." : "Publicar mascota"}
           </button>
         </form>
       )}
