@@ -1,9 +1,11 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession } from "@/lib/session";
+import { enviarEmailRecuperacion } from "@/lib/email";
 
 export type AuthActionState = { error: string } | null;
 
@@ -117,4 +119,54 @@ export async function registerProtectoraAction(
 export async function logoutAction() {
   await destroySession();
   redirect("/");
+}
+
+export type RecuperacionActionState = { error?: string; success?: string } | null;
+
+export async function solicitarRecuperacionAction(
+  _prevState: RecuperacionActionState,
+  formData: FormData
+): Promise<RecuperacionActionState> {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  if (!email) return { error: "Ingresá tu email." };
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  // Mismo mensaje exista o no el email — no hay que dejar adivinar desde
+  // afuera qué emails están registrados.
+  const mensajeGenerico = "Si ese email está registrado, te mandamos un link para recuperar tu contraseña.";
+  if (!user) return { success: mensajeGenerico };
+
+  const token = crypto.randomBytes(32).toString("base64url");
+  await prisma.passwordResetToken.create({
+    data: { token, userId: user.id, expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000) },
+  });
+
+  const appUrl = process.env.APP_URL || "http://localhost:3000";
+  await enviarEmailRecuperacion(user.email, `${appUrl}/restablecer?token=${token}`);
+
+  return { success: mensajeGenerico };
+}
+
+export async function restablecerContrasenaAction(
+  _prevState: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const token = String(formData.get("token") || "");
+  const password = String(formData.get("password") || "");
+
+  if (!token) return { error: "Falta el token de recuperación." };
+  if (password.length < 6) return { error: "La contraseña tiene que tener al menos 6 caracteres." };
+
+  const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
+  if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+    return { error: "Este link para recuperar la contraseña ya no es válido. Pedí uno nuevo." };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash } }),
+    prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } }),
+  ]);
+
+  redirect("/login");
 }

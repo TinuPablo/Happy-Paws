@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
+import { protectoraIdDeUsuario } from "@/lib/protectora";
+import { enviarEmailCambioEstadoSolicitud } from "@/lib/email";
 import {
   calcularCompatibilidad,
   esRespuestasQuizValidas,
@@ -89,10 +91,12 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
 
   const solicitud = await prisma.solicitudAdopcion.findUnique({
     where: { id: solicitudId },
-    include: { mascota: { include: { protectora: true } } },
+    include: { mascota: true, adoptante: { include: { user: true } } },
   });
   if (!solicitud) throw new Error("Solicitud no encontrada.");
-  if (solicitud.mascota.protectora.duenioId !== session.userId) {
+
+  const protectoraId = await protectoraIdDeUsuario(session.userId);
+  if (!protectoraId || protectoraId !== solicitud.mascota.protectoraId) {
     throw new Error("No tenés permiso sobre esta solicitud.");
   }
 
@@ -108,7 +112,30 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
       where: { id: solicitud.mascotaId },
       data: { estado: "ADOPTADO", adoptanteId: solicitud.adoptanteId },
     });
+
+    // Seguimiento post-adopción: se programan los 4 checkpoints automáticos
+    // (ver schema, SeguimientoAdopcion) a partir de hoy — "la historia de
+    // una mascota no termina con la adopción". La protectora los va a ir
+    // marcando como hechos desde la ficha de la mascota.
+    const hoy = Date.now();
+    const DIA_MS = 24 * 60 * 60 * 1000;
+    await prisma.seguimientoAdopcion.createMany({
+      data: [
+        { mascotaId: solicitud.mascotaId, tipo: "DIAS_7", fechaProgramada: new Date(hoy + 7 * DIA_MS) },
+        { mascotaId: solicitud.mascotaId, tipo: "MES_1", fechaProgramada: new Date(hoy + 30 * DIA_MS) },
+        { mascotaId: solicitud.mascotaId, tipo: "MES_3", fechaProgramada: new Date(hoy + 90 * DIA_MS) },
+        { mascotaId: solicitud.mascotaId, tipo: "MES_6", fechaProgramada: new Date(hoy + 180 * DIA_MS) },
+      ],
+    });
   }
+
+  // No debe romper la actualización si el email falla — el estado real ya
+  // quedó guardado en la base, avisar es secundario.
+  await enviarEmailCambioEstadoSolicitud(
+    solicitud.adoptante.user.email,
+    solicitud.mascota.nombre,
+    nuevoEstado
+  );
 
   revalidatePath("/perfil");
   revalidatePath(`/mascotas/${solicitud.mascotaId}`);

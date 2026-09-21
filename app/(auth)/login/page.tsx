@@ -84,8 +84,14 @@ function LoginForm() {
           {pending ? "Ingresando..." : "Iniciar sesión"}
         </button>
         <Link
+          href="/recuperar"
+          className="mt-3 block text-center text-sm text-[var(--text-light)] hover:text-[var(--brown-dark)]"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+        <Link
           href="/registro"
-          className="mt-4 block text-center text-sm font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+          className="mt-2 block text-center text-sm font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
         >
           ¿No tenés cuenta? Registrate
         </Link>

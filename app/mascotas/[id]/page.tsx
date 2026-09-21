@@ -2,8 +2,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession, toUiRole } from "@/lib/session";
 import { toggleFavoritoAction } from "@/app/actions/favoritos";
+import { completarSeguimientoAction } from "@/app/actions/seguimiento";
 import { AdoptarButton } from "./AdoptarButton";
 import { Reveal } from "@/app/components/Reveal";
+
+const ETIQUETA_CHECKPOINT: Record<string, string> = {
+  DIAS_7: "7 días después",
+  MES_1: "1 mes después",
+  MES_3: "3 meses después",
+  MES_6: "6 meses después",
+};
 
 export default async function MascotaDetallePage({
   params,
@@ -14,7 +22,11 @@ export default async function MascotaDetallePage({
   const [mascota, session] = await Promise.all([
     prisma.mascota.findUnique({
       where: { id },
-      include: { vacunaciones: { orderBy: { fechaAplicacion: "asc" } } },
+      include: {
+        vacunaciones: { orderBy: { fechaAplicacion: "asc" } },
+        seguimientos: { orderBy: { fechaProgramada: "asc" } },
+        protectora: true,
+      },
     }),
     getSession(),
   ]);
@@ -28,6 +40,7 @@ export default async function MascotaDetallePage({
   }
 
   const role = session ? toUiRole(session.rol) : null;
+  const esProtectoraDuenia = Boolean(session) && mascota.protectora.duenioId === session!.userId;
   const esFavorito =
     role === "adoptante"
       ? Boolean(
@@ -133,6 +146,59 @@ export default async function MascotaDetallePage({
                   >
                     {vacuna.estado === "APLICADA" ? "Aplicada" : "Pendiente"}
                   </span>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {mascota.seguimientos.length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-lg font-bold text-[var(--text-dark)]">
+              Seguimiento post-adopción
+            </h2>
+            <p className="mt-1 text-sm text-[var(--text-mid)]">
+              La historia de {mascota.nombre} no termina con la adopción — así le fue en el nuevo hogar.
+            </p>
+            <div className="mt-4 space-y-3">
+              {mascota.seguimientos.map((s, i) => (
+                <Reveal key={s.id} delay={Math.min(i, 8) * 60} className="card p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-[var(--text-dark)]">
+                        {ETIQUETA_CHECKPOINT[s.tipo] ?? s.tipo}
+                      </p>
+                      <p className="text-sm text-[var(--text-light)]">
+                        {s.fechaRealizada
+                          ? `Registrado el ${s.fechaRealizada.toLocaleDateString("es-AR")}`
+                          : `Programado para el ${s.fechaProgramada.toLocaleDateString("es-AR")}`}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+                        s.fechaRealizada
+                          ? "bg-[var(--green-ok)] text-white"
+                          : "bg-[var(--gold)] text-[var(--brown-darker)]"
+                      }`}
+                    >
+                      {s.fechaRealizada ? "Hecho" : "Pendiente"}
+                    </span>
+                  </div>
+                  {s.nota && <p className="mt-2 text-sm text-[var(--text-mid)]">{s.nota}</p>}
+                  {!s.fechaRealizada && esProtectoraDuenia && (
+                    <form action={completarSeguimientoAction} className="mt-3 flex gap-2">
+                      <input type="hidden" name="seguimientoId" value={s.id} />
+                      <input
+                        type="text"
+                        name="nota"
+                        placeholder="¿Cómo le está yendo? (opcional)"
+                        className="input mt-0 flex-1"
+                      />
+                      <button type="submit" className="btn-dark shrink-0">
+                        Marcar hecho
+                      </button>
+                    </form>
+                  )}
                 </Reveal>
               ))}
             </div>
