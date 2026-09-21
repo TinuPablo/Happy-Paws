@@ -6,8 +6,21 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession } from "@/lib/session";
 import { enviarEmailRecuperacion } from "@/lib/email";
+import { estaLimitado, ipCliente } from "@/lib/rateLimit";
 
 export type AuthActionState = { error: string } | null;
+
+// El destino post-login viene de un query param (?redirect=) que cualquiera
+// puede armar a mano — sin esta validación, un link tipo
+// "/login?redirect=https://sitio-falso.com" terminaría mandando a un
+// usuario que sí inició sesión correctamente a un sitio externo (open
+// redirect, clásico para phishing). Solo se acepta una ruta interna.
+function rutaInternaSegura(valor: string): string {
+  if (!valor.startsWith("/") || valor.startsWith("//") || valor.startsWith("/\\")) {
+    return "/perfil";
+  }
+  return valor;
+}
 
 export async function loginAction(
   _prevState: AuthActionState,
@@ -15,10 +28,19 @@ export async function loginAction(
 ): Promise<AuthActionState> {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
-  const redirectTo = String(formData.get("redirectTo") || "/perfil");
+  const redirectTo = rutaInternaSegura(String(formData.get("redirectTo") || "/perfil"));
 
   if (!email || !password) {
     return { error: "Completá email y contraseña." };
+  }
+
+  // Sin esto, el login no tenía ningún límite de intentos — una cuenta se
+  // podía probar por fuerza bruta sin fricción. 10 intentos cada 10 minutos
+  // por IP+email alcanza para frenar un ataque automatizado sin molestar a
+  // alguien que se equivoca de contraseña un par de veces.
+  const clave = `login:${await ipCliente()}:${email}`;
+  if (estaLimitado(clave, 10, 10 * 60 * 1000)) {
+    return { error: "Demasiados intentos. Esperá unos minutos y volvé a probar." };
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -32,7 +54,7 @@ export async function loginAction(
   }
 
   await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
-  redirect(redirectTo || "/perfil");
+  redirect(redirectTo);
 }
 
 export async function registerAdoptanteAction(
@@ -130,10 +152,18 @@ export async function solicitarRecuperacionAction(
   const email = String(formData.get("email") || "").trim().toLowerCase();
   if (!email) return { error: "Ingresá tu email." };
 
-  const user = await prisma.user.findUnique({ where: { email } });
   // Mismo mensaje exista o no el email — no hay que dejar adivinar desde
   // afuera qué emails están registrados.
   const mensajeGenerico = "Si ese email está registrado, te mandamos un link para recuperar tu contraseña.";
+
+  // Sin límite acá, cualquiera podía usar este formulario para bombardear
+  // la casilla de otra persona con mails de recuperación repetidos.
+  const clave = `recuperar:${await ipCliente()}:${email}`;
+  if (estaLimitado(clave, 3, 60 * 60 * 1000)) {
+    return { success: mensajeGenerico };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return { success: mensajeGenerico };
 
   const token = crypto.randomBytes(32).toString("base64url");

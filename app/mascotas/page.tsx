@@ -12,6 +12,7 @@ export default async function MascotasPage({
   const { especie, tamanio } = await searchParams;
 
   const where: Prisma.MascotaWhereInput = {
+    activo: true,
     estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] },
   };
   if (especie === "PERRO" || especie === "GATO") where.especie = especie;
