@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./components/Navbar";
+import ContactModal from "./components/ContactModal";
 import { AuthProvider } from "./context/AuthContext";
 import { getSession, toUiRole } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -36,6 +37,11 @@ export default async function RootLayout({
 
   // Campana del header y nav "Adopciones" en vez de "Guías": solo para
   // cuentas de protectora.
+  // Para precargar el correo en el formulario de reportes del footer.
+  const emailUsuario = session
+    ? (await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true } }))?.email ?? ""
+    : "";
+
   const esAdmin = session?.rol === "ADMIN";
   const esProtectora = Boolean(session) && session!.rol !== "ADOPTANTE" && !esAdmin;
   let notificacionesNoLeidas = 0;
@@ -68,6 +74,7 @@ export default async function RootLayout({
             <p className="mt-1 text-sm text-text-mid">
               Conectando protectoras y familias en Villa Carlos Paz.
             </p>
+            <ContactModal emailInicial={emailUsuario} />
             <p className="mt-4 text-xs text-text-light">
               © {new Date().getFullYear()} Happy Paws
             </p>

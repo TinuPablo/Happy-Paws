@@ -350,6 +350,23 @@ model SolicitudAdopcion {
 }
 
 // ------------------------------------------------------------
+// REPORTES (formulario "¿Tuviste un problema?" del footer)
+// ------------------------------------------------------------
+// Se guarda ANTES de mandar los correos (ver app/api/reportes/route.ts):
+// si el envío falla, el reporte no se pierde. emailEnviado indica si le
+// llegó el aviso a la casilla de Happy Paws.
+
+model Reporte {
+  id           String   @id @default(cuid())
+  email        String
+  mensaje      String   @db.Text
+  emailEnviado Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@map("reportes")
+}
+
+// ------------------------------------------------------------
 // NOTIFICACIONES (internas, lado protectora)
 // ------------------------------------------------------------
 
