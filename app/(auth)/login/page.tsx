@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useActionState, useState } from "react";
+import { Suspense, useActionState, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { loginAction } from "@/app/actions/auth";
 import LoginMascot from "@/app/components/LoginMascot";
+import TurnstileWidget, { type TurnstileWidgetHandle } from "@/app/components/TurnstileWidget";
 
 export default function LoginPage() {
   return (
@@ -22,6 +23,13 @@ function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, null);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+
+  // Cada respuesta con error ya consumió el token del captcha: se pide uno nuevo.
+  useEffect(() => {
+    if (state?.error) turnstileRef.current?.reset();
+  }, [state]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
@@ -72,13 +80,15 @@ function LoginForm() {
           </div>
         </label>
 
+        <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
+
         {state?.error && (
           <p className="mt-4 text-sm font-medium text-red-600">{state.error}</p>
         )}
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !captchaToken}
           className="btn-dark mt-6 w-full disabled:opacity-60"
         >
           {pending ? "Ingresando..." : "Iniciar sesión"}

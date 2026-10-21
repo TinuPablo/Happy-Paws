@@ -13,7 +13,9 @@ const HEADERS_COMUNES = [
 // efectivamente se sirve a los usuarios (`next build` + `next start`).
 const CSP_PRODUCCION = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // challenges.cloudflare.com: script + iframe del captcha (Turnstile).
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  "frame-src https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://res.cloudinary.com",
   "media-src 'self' https://res.cloudinary.com",

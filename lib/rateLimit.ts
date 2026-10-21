@@ -22,6 +22,11 @@ const buckets = new Map<string, Bucket>();
 // Alcanza igual para cortar de entrada los intentos automatizados de fuerza
 // bruta contra el login y el spam de mails de recuperación/invitación, que
 // hoy no tenían ningún límite.
+// Es un MVP válido para un solo proceso: en producción con varias
+// instancias (o serverless) conviene un store compartido (Redis, Upstash,
+// etc.), porque cada instancia tendría su propio Map y su propio conteo.
+export const MENSAJE_LIMITE = "Recibimos muchos intentos seguidos desde tu conexión. Tomate un ratito y volvé a probar en unos minutos.";
+
 export function estaLimitado(clave: string, maxIntentos: number, ventanaMs: number): boolean {
   const ahora = Date.now();
   const bucket = buckets.get(clave);

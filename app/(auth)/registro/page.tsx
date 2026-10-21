@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { registerAdoptanteAction, registerProtectoraAction } from "@/app/actions/auth";
+import TurnstileWidget, { type TurnstileWidgetHandle } from "@/app/components/TurnstileWidget";
 
 type TipoUsuario = "adoptante" | "protectora" | null;
 
@@ -17,6 +18,20 @@ export default function RegistroPage() {
     registerProtectoraAction,
     null
   );
+  // Solo se muestra un formulario a la vez, así que alcanza con un token:
+  // al cambiar de tipo, el widget se vuelve a montar y pide uno nuevo.
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+
+  // Cada respuesta con error ya consumió el token del captcha: se pide uno nuevo.
+  useEffect(() => {
+    if (adoptanteState?.error || protectoraState?.error) turnstileRef.current?.reset();
+  }, [adoptanteState, protectoraState]);
+
+  function elegirTipo(tipo: TipoUsuario) {
+    if (tipo !== tipoUsuario) setCaptchaToken(null);
+    setTipoUsuario(tipo);
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
@@ -39,7 +54,7 @@ export default function RegistroPage() {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => setTipoUsuario("adoptante")}
+            onClick={() => elegirTipo("adoptante")}
             className={`rounded-2xl border p-4 text-center transition-all duration-200 ${
               tipoUsuario === "adoptante"
                 ? "border-[var(--brown-main)] bg-[var(--brown-light)] shadow-sm"
@@ -53,7 +68,7 @@ export default function RegistroPage() {
           </button>
           <button
             type="button"
-            onClick={() => setTipoUsuario("protectora")}
+            onClick={() => elegirTipo("protectora")}
             className={`rounded-2xl border p-4 text-center transition-all duration-200 ${
               tipoUsuario === "protectora"
                 ? "border-[var(--brown-main)] bg-[var(--brown-light)] shadow-sm"
@@ -88,10 +103,11 @@ export default function RegistroPage() {
               Contraseña
               <input type="password" name="password" required className="input" />
             </label>
+            <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
             {adoptanteState?.error && (
               <p className="mt-4 text-sm font-medium text-red-600">{adoptanteState.error}</p>
             )}
-            <button type="submit" disabled={adoptantePending} className="btn-dark mt-6 w-full disabled:opacity-60">
+            <button type="submit" disabled={adoptantePending || !captchaToken} className="btn-dark mt-6 w-full disabled:opacity-60">
               {adoptantePending ? "Creando cuenta..." : "Crear cuenta"}
             </button>
           </form>
@@ -118,10 +134,11 @@ export default function RegistroPage() {
               Contraseña
               <input type="password" name="password" required className="input" />
             </label>
+            <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
             {protectoraState?.error && (
               <p className="mt-4 text-sm font-medium text-red-600">{protectoraState.error}</p>
             )}
-            <button type="submit" disabled={protectoraPending} className="btn-dark mt-6 w-full disabled:opacity-60">
+            <button type="submit" disabled={protectoraPending || !captchaToken} className="btn-dark mt-6 w-full disabled:opacity-60">
               {protectoraPending ? "Creando cuenta..." : "Crear cuenta de protectora"}
             </button>
           </form>

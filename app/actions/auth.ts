@@ -6,9 +6,27 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession } from "@/lib/session";
 import { enviarEmailRecuperacion } from "@/lib/email";
-import { estaLimitado, ipCliente } from "@/lib/rateLimit";
+import { MENSAJE_LIMITE, estaLimitado, ipCliente } from "@/lib/rateLimit";
+import { MENSAJE_CAPTCHA_FALLIDO, verifyTurnstile } from "@/lib/turnstile";
 
 export type AuthActionState = { error: string } | null;
+
+// Primer paso de login y registro, antes de mirar contraseñas, crear
+// usuarios o mandar correos: límite por IP y después el captcha (en ese
+// orden, para que un bot que insiste no nos haga llamar a Cloudflare cada
+// vez). Las server actions no pueden devolver un 429 HTTP real: el "429" es
+// el mensaje de límite en el estado del form.
+async function chequeoAntiBots(
+  formData: FormData,
+  accion: "login" | "registro",
+  maxIntentos: number,
+  ventanaMs: number
+): Promise<string | null> {
+  const ip = await ipCliente();
+  if (estaLimitado(`${accion}-ip:${ip}`, maxIntentos, ventanaMs)) return MENSAJE_LIMITE;
+  const captchaOk = await verifyTurnstile(String(formData.get("turnstileToken") || ""), ip);
+  return captchaOk ? null : MENSAJE_CAPTCHA_FALLIDO;
+}
 
 // El destino post-login viene de un query param (?redirect=) que cualquiera
 // puede armar a mano — sin esta validación, un link tipo
@@ -29,6 +47,9 @@ export async function loginAction(
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
   const redirectTo = rutaInternaSegura(String(formData.get("redirectTo") || "/perfil"));
+
+  const bloqueo = await chequeoAntiBots(formData, "login", 8, 60 * 1000);
+  if (bloqueo) return { error: bloqueo };
 
   if (!email || !password) {
     return { error: "Completá email y contraseña." };
@@ -65,6 +86,9 @@ export async function registerAdoptanteAction(
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const telefono = String(formData.get("telefono") || "").trim();
   const password = String(formData.get("password") || "");
+
+  const bloqueo = await chequeoAntiBots(formData, "registro", 5, 60 * 60 * 1000);
+  if (bloqueo) return { error: bloqueo };
 
   if (!nombre || !email || !password) {
     return { error: "Completá nombre, email y contraseña." };
@@ -103,6 +127,9 @@ export async function registerProtectoraAction(
   const ubicacion = String(formData.get("ubicacion") || "").trim();
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
+
+  const bloqueo = await chequeoAntiBots(formData, "registro", 5, 60 * 60 * 1000);
+  if (bloqueo) return { error: bloqueo };
 
   if (!nombreProtectora || !ubicacion || !email || !password) {
     return { error: "Completá todos los campos." };
