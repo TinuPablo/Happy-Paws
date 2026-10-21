@@ -2,6 +2,7 @@
 
 import { cloudinary } from "@/lib/cloudinary";
 import { requireRole } from "@/lib/session";
+import { protectoraIdDeUsuario } from "@/lib/protectora";
 
 export type FirmaSubida = {
   timestamp: number;
@@ -27,7 +28,10 @@ const TAMANIO_MAXIMO_BYTES = 25 * 1024 * 1024; // 25 MB
 // los hace cumplir del lado de ellos — el navegador no puede mandar un
 // archivo de otro tipo/tamaño aunque salte la validación del `<input>`.
 export async function crearFirmaSubidaAction(): Promise<FirmaSubida> {
-  await requireRole("ADMIN_PROTECTORA");
+  const session = await requireRole("ADMIN_PROTECTORA");
+  if (!(await protectoraIdDeUsuario(session.userId))) {
+    throw new Error("Tu protectora todavía no está verificada.");
+  }
 
   if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
     throw new Error(

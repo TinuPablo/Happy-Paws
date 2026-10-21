@@ -7,8 +7,8 @@ export default async function ProtectoraDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const protectora = await prisma.protectora.findUnique({
-    where: { id },
+  const protectora = await prisma.protectora.findFirst({
+    where: { id, estadoVerificacion: "APROBADA" },
     include: { _count: { select: { mascotas: { where: { estado: { not: "ADOPTADO" } } } } } },
   });
 

@@ -4,6 +4,7 @@ import { Reveal } from "@/app/components/Reveal";
 
 export default async function ProtectorasPage() {
   const protectoras = await prisma.protectora.findMany({
+    where: { estadoVerificacion: "APROBADA" },
     include: { _count: { select: { mascotas: { where: { estado: { not: "ADOPTADO" } } } } } },
     orderBy: { nombre: "asc" },
   });

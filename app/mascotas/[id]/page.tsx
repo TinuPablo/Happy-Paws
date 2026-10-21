@@ -31,7 +31,7 @@ export default async function MascotaDetallePage({
     getSession(),
   ]);
 
-  if (!mascota) {
+  if (!mascota || mascota.protectora.estadoVerificacion !== "APROBADA") {
     return (
       <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
         <p className="text-[var(--text-mid)]">Mascota no encontrada</p>

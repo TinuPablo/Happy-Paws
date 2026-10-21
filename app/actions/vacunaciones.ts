@@ -22,6 +22,7 @@ async function mascotaDePropiedad(mascotaId: string, userId: string) {
     include: { protectora: true },
   });
   if (!mascota || mascota.protectora.duenioId !== userId) return null;
+  if (mascota.protectora.estadoVerificacion !== "APROBADA") return null;
   return mascota;
 }
 
@@ -31,6 +32,7 @@ async function vacunaDePropiedad(vacunaId: string, userId: string) {
     include: { mascota: { include: { protectora: true } } },
   });
   if (!vacuna || vacuna.mascota.protectora.duenioId !== userId) return null;
+  if (vacuna.mascota.protectora.estadoVerificacion !== "APROBADA") return null;
   return vacuna;
 }
 

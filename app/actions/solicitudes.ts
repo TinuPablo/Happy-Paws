@@ -38,8 +38,13 @@ export async function crearSolicitudAction(
   });
   if (yaExiste) return { error: "Ya tenés una solicitud en curso para esta mascota." };
 
-  const mascota = await prisma.mascota.findUnique({ where: { id: mascotaId } });
-  if (!mascota || !mascota.activo) return { error: "Mascota no encontrada." };
+  const mascota = await prisma.mascota.findUnique({
+    where: { id: mascotaId },
+    include: { protectora: { select: { estadoVerificacion: true } } },
+  });
+  if (!mascota || !mascota.activo || mascota.protectora.estadoVerificacion !== "APROBADA") {
+    return { error: "Mascota no encontrada." };
+  }
   if (mascota.estado === "ADOPTADO") return { error: "Esta mascota ya fue adoptada." };
 
   // Si el adoptante completó el quiz de compatibilidad, se recalcula el %
@@ -59,7 +64,11 @@ export async function crearSolicitudAction(
         quizPorcentaje = calcularCompatibilidad(mascota, parsed);
 
         const disponibles = await prisma.mascota.findMany({
-          where: { activo: true, estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] } },
+          where: {
+            activo: true,
+            estado: { in: ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] },
+            protectora: { estadoVerificacion: "APROBADA" },
+          },
         });
         const mejorPuntaje = Math.max(...disponibles.map((m) => calcularCompatibilidad(m, parsed)));
         quizEraRecomendada = quizPorcentaje === mejorPuntaje;

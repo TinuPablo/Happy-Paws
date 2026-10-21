@@ -3,8 +3,9 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { registerAdoptanteAction, registerProtectoraAction } from "@/app/actions/auth";
+import { registerAdoptanteAction } from "@/app/actions/auth";
 import TurnstileWidget, { type TurnstileWidgetHandle } from "@/app/components/TurnstileWidget";
+import RegistroProtectoraForm from "./RegistroProtectoraForm";
 
 type TipoUsuario = "adoptante" | "protectora" | null;
 
@@ -14,19 +15,16 @@ export default function RegistroPage() {
     registerAdoptanteAction,
     null
   );
-  const [protectoraState, protectoraAction, protectoraPending] = useActionState(
-    registerProtectoraAction,
-    null
-  );
-  // Solo se muestra un formulario a la vez, así que alcanza con un token:
-  // al cambiar de tipo, el widget se vuelve a montar y pide uno nuevo.
+  // El form de protectora maneja su propio captcha (RegistroProtectoraForm);
+  // este es el del form de adoptante. Al cambiar de tipo, el widget se
+  // vuelve a montar y pide un token nuevo.
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
 
   // Cada respuesta con error ya consumió el token del captcha: se pide uno nuevo.
   useEffect(() => {
-    if (adoptanteState?.error || protectoraState?.error) turnstileRef.current?.reset();
-  }, [adoptanteState, protectoraState]);
+    if (adoptanteState?.error) turnstileRef.current?.reset();
+  }, [adoptanteState]);
 
   function elegirTipo(tipo: TipoUsuario) {
     if (tipo !== tipoUsuario) setCaptchaToken(null);
@@ -113,36 +111,7 @@ export default function RegistroPage() {
           </form>
         )}
 
-        {tipoUsuario === "protectora" && (
-          <form
-            action={protectoraAction}
-            className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
-          >
-            <label className="block text-sm text-[var(--text-mid)]">
-              Nombre de la protectora
-              <input type="text" name="nombreProtectora" required className="input" />
-            </label>
-            <label className="mt-4 block text-sm text-[var(--text-mid)]">
-              Ubicación
-              <input type="text" name="ubicacion" required className="input" />
-            </label>
-            <label className="mt-4 block text-sm text-[var(--text-mid)]">
-              Email de contacto
-              <input type="email" name="email" required className="input" />
-            </label>
-            <label className="mt-4 block text-sm text-[var(--text-mid)]">
-              Contraseña
-              <input type="password" name="password" required className="input" />
-            </label>
-            <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
-            {protectoraState?.error && (
-              <p className="mt-4 text-sm font-medium text-red-600">{protectoraState.error}</p>
-            )}
-            <button type="submit" disabled={protectoraPending || !captchaToken} className="btn-dark mt-6 w-full disabled:opacity-60">
-              {protectoraPending ? "Creando cuenta..." : "Crear cuenta de protectora"}
-            </button>
-          </form>
-        )}
+        {tipoUsuario === "protectora" && <RegistroProtectoraForm />}
 
         <Link
           href="/login"

@@ -12,7 +12,11 @@ export async function marcarNotificacionLeidaAction(formData: FormData) {
     where: { id: notificacionId },
     include: { protectora: true },
   });
-  if (!notificacion || notificacion.protectora.duenioId !== session.userId) {
+  if (
+    !notificacion ||
+    notificacion.protectora.duenioId !== session.userId ||
+    notificacion.protectora.estadoVerificacion !== "APROBADA"
+  ) {
     throw new Error("No se encontró esa notificación.");
   }
 

@@ -16,8 +16,9 @@ export async function addMascotaAction(
   // aunque fuerce el envío del form (ej. con curl).
   const session = await requireRole("ADMIN_PROTECTORA");
 
+  // Solo una protectora ya verificada por Happy Paws puede publicar.
   const protectora = await prisma.protectora.findFirst({
-    where: { duenioId: session.userId },
+    where: { duenioId: session.userId, estadoVerificacion: "APROBADA" },
   });
   if (!protectora) return { error: "No se encontró una protectora asociada a esta cuenta." };
 
@@ -64,6 +65,7 @@ async function mascotaDePropiedad(mascotaId: string, userId: string) {
     include: { protectora: true },
   });
   if (!mascota || mascota.protectora.duenioId !== userId) return null;
+  if (mascota.protectora.estadoVerificacion !== "APROBADA") return null;
   return mascota;
 }
 

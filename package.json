@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
-    "mail:test": "tsx --env-file=.env scripts/test-mail.ts"
+    "mail:test": "tsx --env-file=.env scripts/test-mail.ts",
+    "admin:crear": "tsx --env-file=.env scripts/crear-admin.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

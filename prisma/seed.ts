@@ -29,6 +29,7 @@ async function main() {
     fupa = await prisma.protectora.create({
       data: {
         nombre: "FUPA",
+        estadoVerificacion: "APROBADA",
         ubicacion: "Villa Carlos Paz, Córdoba",
         descripcion:
           "Protectora piloto de Happy Paws, rescata y aloja animales en situación de calle.",
@@ -54,6 +55,7 @@ async function main() {
     await prisma.protectora.create({
       data: {
         nombre: "Huellitas de Punilla",
+        estadoVerificacion: "APROBADA",
         ubicacion: "Cosquín, Córdoba",
         descripcion: "Trabajan en conjunto con hogares de tránsito de la zona de Punilla.",
         email: "huellitas@happypaws.demo",

@@ -22,7 +22,10 @@ const NAV_ITEMS_BASE = [
 // Para cuentas de protectora, "Guías" (consejos de cuidado, pensados para
 // adoptantes) se reemplaza por "Adopciones" (gestión de mascotas,
 // solicitudes, vacunación, equipo — ver app/adopciones/page.tsx).
-function navItemsPara(esProtectora: boolean) {
+// Para el equipo de Happy Paws (rol ADMIN) se suma el panel de revisión de
+// protectoras nuevas.
+function navItemsPara(esProtectora: boolean, esAdmin: boolean) {
+  if (esAdmin) return [...NAV_ITEMS_BASE, { href: "/admin/protectoras", label: "Revisión" }];
   if (!esProtectora) return NAV_ITEMS_BASE;
   return NAV_ITEMS_BASE.map((item) =>
     item.href === "/guias" ? { href: "/adopciones", label: "Adopciones" } : item
@@ -32,12 +35,14 @@ function navItemsPara(esProtectora: boolean) {
 export function Navbar({
   notificacionesNoLeidas = 0,
   esProtectora = false,
+  esAdmin = false,
 }: {
   notificacionesNoLeidas?: number;
   esProtectora?: boolean;
+  esAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const navItems = navItemsPara(esProtectora);
+  const navItems = navItemsPara(esProtectora, esAdmin);
   const [open, setOpen] = useState(false);
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(!isHome);

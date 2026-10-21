@@ -36,6 +36,27 @@ export default async function PerfilPage() {
     );
   }
 
+  // El equipo de Happy Paws no tiene perfil de adoptante ni de protectora:
+  // su lugar es el panel de revisión.
+  if (session.rol === "ADMIN") {
+    return (
+      <main className="min-h-screen bg-[var(--brown-lightest)] px-6 py-10">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-[var(--brown-light)] bg-white p-6">
+          <h1 className="text-xl font-bold text-[var(--text-dark)]">Hola, {session.nombre}</h1>
+          <p className="mt-1 text-sm text-[var(--text-light)]">Cuenta del equipo de Happy Paws</p>
+          <Link href="/admin/protectoras" className="btn-dark mt-6 inline-flex">
+            Ir a la revisión de protectoras
+          </Link>
+          <form action={logoutAction}>
+            <button type="submit" className="btn-outline mt-4 w-full">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
+
   const esAdoptante = session.rol === "ADOPTANTE";
   const inicial = session.nombre.charAt(0).toUpperCase() || "?";
 

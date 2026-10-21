@@ -26,19 +26,23 @@ const PASOS = [
 ];
 
 const ESTADOS_DISPONIBLE = ["EN_PROTECTORA", "EN_TRANSITO", "EN_PROCESO"] as const;
+// Las protectoras pendientes/rechazadas no se muestran en nada público.
+const PROTECTORA_APROBADA = { estadoVerificacion: "APROBADA" } as const;
 
 export default async function HomePage() {
   const [mascotas, protectoras, totalDisponibles, totalAdoptadas, totalProtectoras] =
     await Promise.all([
       prisma.mascota.findMany({
-        where: { activo: true, estado: { in: [...ESTADOS_DISPONIBLE] } },
+        where: { activo: true, estado: { in: [...ESTADOS_DISPONIBLE] }, protectora: PROTECTORA_APROBADA },
         orderBy: { fechaIngreso: "desc" },
         take: 4,
       }),
-      prisma.protectora.findMany({ orderBy: { nombre: "asc" }, take: 2 }),
-      prisma.mascota.count({ where: { activo: true, estado: { in: [...ESTADOS_DISPONIBLE] } } }),
-      prisma.mascota.count({ where: { estado: "ADOPTADO" } }),
-      prisma.protectora.count(),
+      prisma.protectora.findMany({ where: PROTECTORA_APROBADA, orderBy: { nombre: "asc" }, take: 2 }),
+      prisma.mascota.count({
+        where: { activo: true, estado: { in: [...ESTADOS_DISPONIBLE] }, protectora: PROTECTORA_APROBADA },
+      }),
+      prisma.mascota.count({ where: { estado: "ADOPTADO", protectora: PROTECTORA_APROBADA } }),
+      prisma.protectora.count({ where: PROTECTORA_APROBADA }),
     ]);
 
   const STATS = [

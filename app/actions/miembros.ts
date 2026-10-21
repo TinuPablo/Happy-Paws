@@ -25,7 +25,9 @@ export async function invitarMiembroAction(
     return { error: "Completá el email y elegí un rol." };
   }
 
-  const protectora = await prisma.protectora.findFirst({ where: { duenioId: session.userId } });
+  const protectora = await prisma.protectora.findFirst({
+    where: { duenioId: session.userId, estadoVerificacion: "APROBADA" },
+  });
   if (!protectora) return { error: "No se encontró una protectora asociada a esta cuenta." };
 
   const existente = await prisma.user.findUnique({ where: { email } });

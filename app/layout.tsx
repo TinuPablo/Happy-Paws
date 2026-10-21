@@ -36,7 +36,8 @@ export default async function RootLayout({
 
   // Campana del header y nav "Adopciones" en vez de "Guías": solo para
   // cuentas de protectora.
-  const esProtectora = Boolean(session) && session!.rol !== "ADOPTANTE";
+  const esAdmin = session?.rol === "ADMIN";
+  const esProtectora = Boolean(session) && session!.rol !== "ADOPTANTE" && !esAdmin;
   let notificacionesNoLeidas = 0;
   if (esProtectora) {
     const protectora = await prisma.protectora.findFirst({ where: { duenioId: session!.userId } });
@@ -51,7 +52,7 @@ export default async function RootLayout({
     <html lang="es" className={`${fredoka.variable} ${nunito.variable}`}>
       <body>
         <AuthProvider session={authState}>
-          <Navbar notificacionesNoLeidas={notificacionesNoLeidas} esProtectora={esProtectora} />
+          <Navbar notificacionesNoLeidas={notificacionesNoLeidas} esProtectora={esProtectora} esAdmin={esAdmin} />
           {children}
           <footer className="border-t border-brown-light bg-brown-lightest px-6 py-10 text-center">
             <p className="flex items-center justify-center gap-2 font-heading text-lg font-semibold text-brown-dark">

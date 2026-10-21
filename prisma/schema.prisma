@@ -20,6 +20,7 @@ enum RolGlobal {
   COLABORADOR      // ayuda dentro de una protectora
   HOGAR_TRANSITO   // rol dentro de una protectora, cuida mascotas temporalmente
   ADOPTANTE        // usuario que busca adoptar
+  ADMIN            // equipo de Happy Paws: revisa las protectoras nuevas (/admin/protectoras)
 }
 
 model User {
@@ -73,6 +74,23 @@ model Protectora {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Verificación por parte de Happy Paws (ver app/admin/protectoras). El
+  // default APROBADA es para las protectoras que ya existían (y el seed de
+  // FUPA); el registro nuevo la crea explícitamente en PENDIENTE. Hasta que
+  // esté APROBADA no puede iniciar sesión ni operar, y no aparece en los
+  // listados públicos. `telefono` (arriba) es el teléfono/WhatsApp de
+  // contacto que se pide al registrarse.
+  estadoVerificacion EstadoVerificacion @default(APROBADA)
+  instagram          String?
+  facebook           String?
+  sitioWeb           String?
+  nombreResponsable  String?
+  cargoResponsable   String?
+  textoVerificacion  String?   @db.Text
+  motivoRechazo      String?   @db.Text
+  fechaSolicitud     DateTime?
+  fechaRevision      DateTime?
+
   duenioId    String
   duenio      User     @relation("DuenioProtectora", fields: [duenioId], references: [id])
 
@@ -82,6 +100,12 @@ model Protectora {
   notificaciones Notificacion[]
 
   @@map("protectoras")
+}
+
+enum EstadoVerificacion {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
 }
 
 enum RolEnProtectora {

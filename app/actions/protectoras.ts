@@ -22,7 +22,9 @@ export async function actualizarDatosProtectoraAction(
 
   if (!ubicacion) return { error: "La ubicación no puede quedar vacía." };
 
-  const protectora = await prisma.protectora.findFirst({ where: { duenioId: session.userId } });
+  const protectora = await prisma.protectora.findFirst({
+    where: { duenioId: session.userId, estadoVerificacion: "APROBADA" },
+  });
   if (!protectora) return { error: "No se encontró una protectora asociada a esta cuenta." };
 
   await prisma.protectora.update({
@@ -52,7 +54,9 @@ export async function actualizarLogoProtectoraAction(
   const logoUrl = String(formData.get("logoUrl") || "").trim();
   if (!logoUrl || !esUrlDeCloudinaryValida(logoUrl)) return { error: "Elegí una imagen primero." };
 
-  const protectora = await prisma.protectora.findFirst({ where: { duenioId: session.userId } });
+  const protectora = await prisma.protectora.findFirst({
+    where: { duenioId: session.userId, estadoVerificacion: "APROBADA" },
+  });
   if (!protectora) return { error: "No se encontró una protectora asociada a esta cuenta." };
 
   await prisma.protectora.update({

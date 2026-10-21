@@ -8,6 +8,10 @@ import { createSession, destroySession } from "@/lib/session";
 import { enviarEmailRecuperacion } from "@/lib/email";
 import { MENSAJE_LIMITE, estaLimitado, ipCliente } from "@/lib/rateLimit";
 import { MENSAJE_CAPTCHA_FALLIDO, verifyTurnstile } from "@/lib/turnstile";
+import { sendMail } from "@/lib/mail";
+import { protectoraEnRevision, solicitudProtectoraParaAdmin } from "@/lib/mail-templates";
+import { estadoVerificacionDeUsuario } from "@/lib/protectora";
+import { type DatosRegistroProtectora, validarRegistroProtectora } from "@/lib/validacionProtectora";
 
 export type AuthActionState = { error: string } | null;
 
@@ -74,8 +78,20 @@ export async function loginAction(
     return { error: "Email o contraseña incorrectos." };
   }
 
+  // Recién con la contraseña correcta se informa el estado de verificación
+  // — antes de eso no hay que dejar adivinar qué cuentas existen.
+  if (user.rol !== "ADOPTANTE" && user.rol !== "ADMIN") {
+    const estado = await estadoVerificacionDeUsuario(user.id);
+    if (estado === "PENDIENTE") {
+      return { error: "Tu solicitud está en revisión. Te vamos a avisar por correo." };
+    }
+    if (estado === "RECHAZADA") {
+      return { error: "Tu solicitud no fue aprobada. Revisá tu correo para ver los motivos." };
+    }
+  }
+
   await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
-  redirect(redirectTo);
+  redirect(user.rol === "ADMIN" && redirectTo === "/perfil" ? "/admin/protectoras" : redirectTo);
 }
 
 export async function registerAdoptanteAction(
@@ -119,50 +135,95 @@ export async function registerAdoptanteAction(
   redirect("/perfil");
 }
 
+export type RegistroProtectoraState = { error?: string; enviado?: boolean } | null;
+
 export async function registerProtectoraAction(
-  _prevState: AuthActionState,
+  _prevState: RegistroProtectoraState,
   formData: FormData
-): Promise<AuthActionState> {
-  const nombreProtectora = String(formData.get("nombreProtectora") || "").trim();
-  const ubicacion = String(formData.get("ubicacion") || "").trim();
-  const email = String(formData.get("email") || "").trim().toLowerCase();
-  const password = String(formData.get("password") || "");
+): Promise<RegistroProtectoraState> {
+  const campo = (nombre: string) => String(formData.get(nombre) || "").trim();
+  const datos: DatosRegistroProtectora = {
+    nombreProtectora: campo("nombreProtectora"),
+    ubicacion: campo("ubicacion"),
+    email: campo("email").toLowerCase(),
+    password: String(formData.get("password") || ""),
+    telefono: campo("telefono"),
+    instagram: campo("instagram"),
+    facebook: campo("facebook"),
+    sitioWeb: campo("sitioWeb"),
+    nombreResponsable: campo("nombreResponsable"),
+    cargoResponsable: campo("cargoResponsable"),
+    textoVerificacion: campo("textoVerificacion"),
+  };
 
   const bloqueo = await chequeoAntiBots(formData, "registro", 5, 60 * 60 * 1000);
   if (bloqueo) return { error: bloqueo };
 
-  if (!nombreProtectora || !ubicacion || !email || !password) {
-    return { error: "Completá todos los campos." };
-  }
-  if (password.length < 6) {
-    return { error: "La contraseña tiene que tener al menos 6 caracteres." };
-  }
+  const errorValidacion = validarRegistroProtectora(datos);
+  if (errorValidacion) return { error: errorValidacion };
 
-  const existente = await prisma.user.findUnique({ where: { email } });
+  const existente = await prisma.user.findUnique({ where: { email: datos.email } });
   if (existente) {
     return { error: "Ese email ya está registrado. Iniciá sesión en vez de crear una cuenta nueva." };
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(datos.password, 10);
 
-  const user = await prisma.user.create({
+  // La protectora nace PENDIENTE: no puede entrar ni aparece en los
+  // listados hasta que alguien de Happy Paws la apruebe en /admin/protectoras.
+  await prisma.user.create({
     data: {
-      email,
+      email: datos.email,
       passwordHash,
-      nombre: nombreProtectora,
+      nombre: datos.nombreProtectora,
+      telefono: datos.telefono,
       rol: "ADMIN_PROTECTORA",
       protectorasPropias: {
         create: {
-          nombre: nombreProtectora,
-          ubicacion,
-          email,
+          nombre: datos.nombreProtectora,
+          ubicacion: datos.ubicacion,
+          email: datos.email,
+          telefono: datos.telefono,
+          instagram: datos.instagram || null,
+          facebook: datos.facebook || null,
+          sitioWeb: datos.sitioWeb || null,
+          nombreResponsable: datos.nombreResponsable,
+          cargoResponsable: datos.cargoResponsable,
+          textoVerificacion: datos.textoVerificacion,
+          estadoVerificacion: "PENDIENTE",
+          fechaSolicitud: new Date(),
         },
       },
     },
   });
 
-  await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
-  redirect("/perfil");
+  // Si algún correo no sale, el registro igual quedó guardado y la
+  // solicitud aparece en el panel admin; sendMail ya loguea el error.
+  const mailAdmin = process.env.MAIL_ADMIN;
+  if (!mailAdmin) console.warn("[registro] MAIL_ADMIN no configurado — no se avisó de la nueva protectora.");
+  await Promise.all([
+    sendMail({ to: datos.email, ...protectoraEnRevision(datos.nombreProtectora) }),
+    mailAdmin
+      ? sendMail({
+          to: mailAdmin,
+          replyTo: datos.email,
+          ...solicitudProtectoraParaAdmin({
+            nombre: datos.nombreProtectora,
+            ubicacion: datos.ubicacion,
+            email: datos.email,
+            telefono: datos.telefono,
+            instagram: datos.instagram,
+            facebook: datos.facebook,
+            sitioWeb: datos.sitioWeb,
+            nombreResponsable: datos.nombreResponsable,
+            cargoResponsable: datos.cargoResponsable,
+            textoVerificacion: datos.textoVerificacion,
+          }),
+        })
+      : null,
+  ]);
+
+  return { enviado: true };
 }
 
 export async function logoutAction() {
