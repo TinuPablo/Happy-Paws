@@ -19,7 +19,8 @@ export default function LoginPage() {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/perfil";
+  // Sin ?redirect= explícito, después de entrar se va al inicio.
+  const redirectTo = searchParams.get("redirect") || "/";
   const contrasenaRestablecida = searchParams.get("restablecida") === "1";
   const verificado = searchParams.get("verificado");
   const [state, formAction, pending] = useActionState(loginAction, null);

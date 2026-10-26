@@ -589,3 +589,9 @@
 - Verificación: `tsc`, `eslint` (0 errores) y `npm run build` limpios (20 rutas). Prueba de punta a punta **35/35** contra `next start` + MySQL + Gmail reales (captcha con secret de prueba en `.env.production.local` temporal, ya borrado): contraseñas distintas rechazadas; registro sin sesión + token creado; login sin confirmar bloqueado con `sinVerificar`; reenviar genera link nuevo; re-registro de cuenta sin confirmar la reemplaza; link vencido y link reusado rechazados; confirmar → `/login?verificado=1` y entra; email confirmado no se re-registra; protectora sin confirmar no aparece en el panel ni se puede aprobar; al confirmar → `?verificado=protectora` y aparece; más todo el flujo anterior (aprobación, mascota, solicitud, contacto, rechazo, recuperar/restablecer con repetir contraseña, permisos admin). Sin errores de correo en el server. Datos de prueba borrados.
 - Estado: completo.
 - Próximo paso sugerido: Tinu lo prueba en el navegador con su correo real; si está OK, pushear las 7 ramas y abrir los PRs en orden.
+
+## 76 — Después de iniciar sesión se va al inicio, no al perfil (Tinu, rama feature/verificacion-email)
+- Qué se hizo: pedido del usuario. El destino por defecto tras login (y tras aceptar una invitación) pasó de `/perfil` a `/`. Si hay `?redirect=` explícito (ej. "Adoptar" sin sesión) se respeta igual; la cuenta ADMIN sin destino explícito sigue yendo a `/admin/protectoras`. De paso: Tinu probó en navegador el registro con confirmación de correo y funciona (antes hubo que reiniciar su `npm run dev`, que tenía cargado el cliente de Prisma viejo, y se borró su cuenta de prueba `pablotinunin@gmail.com`, vacía, para registrarse de cero).
+- Archivos tocados: `app/(auth)/login/page.tsx`, `app/actions/auth.ts`, `app/actions/miembros.ts`.
+- Estado: completo (`tsc` y `eslint` limpios).
+- Próximo paso sugerido: que Tinu confirme en el navegador; después pushear las ramas.

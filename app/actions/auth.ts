@@ -58,7 +58,7 @@ async function chequeoAntiBots(
 // redirect, clásico para phishing). Solo se acepta una ruta interna.
 function rutaInternaSegura(valor: string): string {
   if (!valor.startsWith("/") || valor.startsWith("//") || valor.startsWith("/\\")) {
-    return "/perfil";
+    return "/";
   }
   return valor;
 }
@@ -69,7 +69,7 @@ export async function loginAction(
 ): Promise<AuthActionState> {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
-  const redirectTo = rutaInternaSegura(String(formData.get("redirectTo") || "/perfil"));
+  const redirectTo = rutaInternaSegura(String(formData.get("redirectTo") || "/"));
 
   const bloqueo = await chequeoAntiBots(formData, "login", 8, 60 * 1000);
   if (bloqueo) return { error: bloqueo };
@@ -116,7 +116,8 @@ export async function loginAction(
   }
 
   await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
-  redirect(user.rol === "ADMIN" && redirectTo === "/perfil" ? "/admin/protectoras" : redirectTo);
+  // El equipo de Happy Paws, sin destino explícito, va directo al panel de revisión.
+  redirect(user.rol === "ADMIN" && redirectTo === "/" ? "/admin/protectoras" : redirectTo);
 }
 
 export async function registerAdoptanteAction(

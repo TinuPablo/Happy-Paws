@@ -135,5 +135,5 @@ export async function aceptarInvitacionAction(
   if (!user) return { error: "Esta invitación ya fue usada." };
 
   await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
-  redirect("/perfil");
+  redirect("/");
 }
