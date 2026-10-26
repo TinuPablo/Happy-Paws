@@ -6,7 +6,10 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole, createSession } from "@/lib/session";
-import { enviarEmailInvitacionProtectora } from "@/lib/email";
+import { esEmailValido, sendMail } from "@/lib/mail";
+import { invitacionProtectora } from "@/lib/mail-templates";
+import { MENSAJE_LIMITE, estaLimitado, ipCliente } from "@/lib/rateLimit";
+import { MENSAJE_CAPTCHA_FALLIDO, verifyTurnstile } from "@/lib/turnstile";
 import type { RolGlobal, RolEnProtectora } from "@prisma/client";
 
 export type MiembroActionState = { error?: string; success?: string } | null;
@@ -24,6 +27,10 @@ export async function invitarMiembroAction(
   if (!email || !["COLABORADOR", "HOGAR_TRANSITO"].includes(rol)) {
     return { error: "Completá el email y elegí un rol." };
   }
+  if (!esEmailValido(email)) return { error: "Revisá el formato del email." };
+  // Cada invitación manda un correo: tope para que una cuenta no se use
+  // para mandar mails en cantidad desde la casilla de Happy Paws.
+  if (estaLimitado(`invitar:${session.userId}`, 10, 60 * 60 * 1000)) return { error: MENSAJE_LIMITE };
 
   const protectora = await prisma.protectora.findFirst({
     where: { duenioId: session.userId, estadoVerificacion: "APROBADA" },
@@ -47,9 +54,14 @@ export async function invitarMiembroAction(
   });
 
   const appUrl = process.env.APP_URL || "http://localhost:3000";
-  await enviarEmailInvitacionProtectora(email, protectora.nombre, rol, `${appUrl}/invitacion?token=${token}`);
+  const { ok } = await sendMail({
+    to: email,
+    ...invitacionProtectora(protectora.nombre, rol as "COLABORADOR" | "HOGAR_TRANSITO", `${appUrl}/invitacion?token=${token}`),
+  });
 
   revalidatePath("/perfil");
+  revalidatePath("/adopciones");
+  if (!ok) return { error: "La invitación quedó creada, pero no pudimos enviar el correo. Probá de nuevo en un rato." };
   return { success: `Invitación enviada a ${email}.` };
 }
 
@@ -63,12 +75,29 @@ export async function aceptarInvitacionAction(
   const nombre = String(formData.get("nombre") || "").trim();
   const password = String(formData.get("password") || "");
 
+  // Igual que el registro: límite por IP y captcha antes de crear la cuenta.
+  const ip = await ipCliente();
+  if (estaLimitado(`registro-ip:${ip}`, 5, 60 * 60 * 1000)) return { error: MENSAJE_LIMITE };
+  if (!(await verifyTurnstile(String(formData.get("turnstileToken") || ""), ip))) {
+    return { error: MENSAJE_CAPTCHA_FALLIDO };
+  }
+
   if (!token) return { error: "Falta el token de invitación." };
   if (!nombre) return { error: "Ingresá tu nombre." };
+  if (nombre.length > 120) return { error: "El nombre puede tener hasta 120 caracteres." };
   if (password.length < 6) return { error: "La contraseña tiene que tener al menos 6 caracteres." };
+  if (password.length > 100) return { error: "La contraseña puede tener hasta 100 caracteres." };
 
-  const invitacion = await prisma.invitacionProtectora.findUnique({ where: { token } });
-  if (!invitacion || invitacion.usedAt || invitacion.expiresAt < new Date()) {
+  const invitacion = await prisma.invitacionProtectora.findUnique({
+    where: { token },
+    include: { protectora: { select: { estadoVerificacion: true } } },
+  });
+  if (
+    !invitacion ||
+    invitacion.usedAt ||
+    invitacion.expiresAt < new Date() ||
+    invitacion.protectora.estadoVerificacion !== "APROBADA"
+  ) {
     return { error: "Esta invitación ya no es válida. Pedile a la protectora que te mande una nueva." };
   }
 
@@ -80,22 +109,27 @@ export async function aceptarInvitacionAction(
   const rolGlobal: RolGlobal = invitacion.rol === "COLABORADOR" ? "COLABORADOR" : "HOGAR_TRANSITO";
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      email: invitacion.email,
-      passwordHash,
-      nombre,
-      rol: rolGlobal,
-      membresias: {
-        create: { protectoraId: invitacion.protectoraId, rol: invitacion.rol },
+  // La invitación se marca usada en la misma transacción y solo si seguía
+  // sin usar: dos envíos a la vez no pueden crear dos cuentas.
+  const user = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.invitacionProtectora.updateMany({
+      where: { id: invitacion.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    if (count === 0) return null;
+    return tx.user.create({
+      data: {
+        email: invitacion.email,
+        passwordHash,
+        nombre,
+        rol: rolGlobal,
+        membresias: {
+          create: { protectoraId: invitacion.protectoraId, rol: invitacion.rol },
+        },
       },
-    },
+    });
   });
-
-  await prisma.invitacionProtectora.update({
-    where: { id: invitacion.id },
-    data: { usedAt: new Date() },
-  });
+  if (!user) return { error: "Esta invitación ya fue usada." };
 
   await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
   redirect("/perfil");

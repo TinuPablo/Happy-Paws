@@ -5,11 +5,10 @@ import crypto from "node:crypto";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSession, destroySession } from "@/lib/session";
-import { enviarEmailRecuperacion } from "@/lib/email";
 import { MENSAJE_LIMITE, estaLimitado, ipCliente } from "@/lib/rateLimit";
 import { MENSAJE_CAPTCHA_FALLIDO, verifyTurnstile } from "@/lib/turnstile";
-import { sendMail } from "@/lib/mail";
-import { protectoraEnRevision, solicitudProtectoraParaAdmin } from "@/lib/mail-templates";
+import { esEmailValido, sendMail } from "@/lib/mail";
+import { protectoraEnRevision, recuperacionContrasena, solicitudProtectoraParaAdmin } from "@/lib/mail-templates";
 import { estadoVerificacionDeUsuario } from "@/lib/protectora";
 import { type DatosRegistroProtectora, validarRegistroProtectora } from "@/lib/validacionProtectora";
 
@@ -109,9 +108,13 @@ export async function registerAdoptanteAction(
   if (!nombre || !email || !password) {
     return { error: "Completá nombre, email y contraseña." };
   }
+  if (nombre.length > 120) return { error: "El nombre puede tener hasta 120 caracteres." };
+  if (!esEmailValido(email)) return { error: "Revisá el formato del email." };
+  if (telefono.length > 40) return { error: "El teléfono puede tener hasta 40 caracteres." };
   if (password.length < 6) {
     return { error: "La contraseña tiene que tener al menos 6 caracteres." };
   }
+  if (password.length > 100) return { error: "La contraseña puede tener hasta 100 caracteres." };
 
   const existente = await prisma.user.findUnique({ where: { email } });
   if (existente) {
@@ -245,9 +248,15 @@ export async function solicitarRecuperacionAction(
   const mensajeGenerico = "Si ese email está registrado, te mandamos un link para recuperar tu contraseña.";
 
   // Sin límite acá, cualquiera podía usar este formulario para bombardear
-  // la casilla de otra persona con mails de recuperación repetidos.
-  const clave = `recuperar:${await ipCliente()}:${email}`;
-  if (estaLimitado(clave, 3, 60 * 60 * 1000)) {
+  // la casilla de otra persona con mails de recuperación repetidos. Se
+  // limita por IP (antes del captcha, como en login/registro) y además por
+  // IP+email.
+  const ip = await ipCliente();
+  if (estaLimitado(`recuperar-ip:${ip}`, 10, 60 * 60 * 1000)) return { error: MENSAJE_LIMITE };
+  if (!(await verifyTurnstile(String(formData.get("turnstileToken") || ""), ip))) {
+    return { error: MENSAJE_CAPTCHA_FALLIDO };
+  }
+  if (estaLimitado(`recuperar:${ip}:${email}`, 3, 60 * 60 * 1000)) {
     return { success: mensajeGenerico };
   }
 
@@ -260,7 +269,7 @@ export async function solicitarRecuperacionAction(
   });
 
   const appUrl = process.env.APP_URL || "http://localhost:3000";
-  await enviarEmailRecuperacion(user.email, `${appUrl}/restablecer?token=${token}`);
+  await sendMail({ to: user.email, ...recuperacionContrasena(`${appUrl}/restablecer?token=${token}`) });
 
   return { success: mensajeGenerico };
 }
@@ -274,17 +283,25 @@ export async function restablecerContrasenaAction(
 
   if (!token) return { error: "Falta el token de recuperación." };
   if (password.length < 6) return { error: "La contraseña tiene que tener al menos 6 caracteres." };
+  if (password.length > 100) return { error: "La contraseña puede tener hasta 100 caracteres." };
 
+  const invalido = { error: "Este link para recuperar la contraseña ya no es válido. Pedí uno nuevo." };
   const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
-  if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
-    return { error: "Este link para recuperar la contraseña ya no es válido. Pedí uno nuevo." };
-  }
+  if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) return invalido;
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.$transaction([
-    prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash } }),
-    prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } }),
-  ]);
+  // El token se marca usado solo si seguía sin usar, en la misma transacción
+  // que el cambio de contraseña: no se puede usar dos veces en paralelo.
+  const cambiada = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.passwordResetToken.updateMany({
+      where: { id: resetToken.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    if (count === 0) return false;
+    await tx.user.update({ where: { id: resetToken.userId }, data: { passwordHash } });
+    return true;
+  });
+  if (!cambiada) return invalido;
 
-  redirect("/login");
+  redirect("/login?restablecida=1");
 }

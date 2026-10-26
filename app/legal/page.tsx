@@ -22,7 +22,7 @@ export default function LegalPage() {
           <Reveal delay={60} className="card p-5">
             <h2 className="font-semibold text-[var(--text-dark)]">Propiedad intelectual</h2>
             <p className="mt-2 text-sm leading-relaxed text-[var(--text-mid)]">
-              El código fuente, la marca "Happy Paws", los diseños visuales y los contenidos de esta plataforma
+              El código fuente, la marca &ldquo;Happy Paws&rdquo;, los diseños visuales y los contenidos de esta plataforma
               son propiedad de sus autores. Queda prohibida su reproducción, distribución o modificación total
               o parcial sin autorización expresa.
             </p>

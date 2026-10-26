@@ -121,10 +121,13 @@ export function FloatingPawsBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setParticles(buildParticles());
+    // Las partículas son aleatorias: se arman recién en el cliente (en el
+    // render del servidor darían otro resultado y fallaría la hidratación),
+    // en el próximo frame para no encadenar un render síncrono.
+    const frame = requestAnimationFrame(() => setParticles(buildParticles()));
 
     const el = containerRef.current;
-    if (!el) return;
+    if (!el) return () => cancelAnimationFrame(frame);
 
     function handleMouseMove(e: MouseEvent) {
       const mx = (e.clientX / window.innerWidth - 0.5) * 2;
@@ -134,7 +137,10 @@ export function FloatingPawsBackground() {
     }
 
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
   }, []);
 
   return (

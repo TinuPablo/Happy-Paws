@@ -1,3 +1,5 @@
+import type { NextConfig } from "next";
+
 // Headers de seguridad comunes (clickjacking, MIME sniffing, etc.) — no
 // dependen de nada del entorno, se mandan siempre.
 const HEADERS_COMUNES = [
@@ -27,8 +29,7 @@ const CSP_PRODUCCION = [
   "form-action 'self'",
 ].join("; ");
 
-// @ts-ignore
-const nextConfig: any = {
+const nextConfig: NextConfig = {
   allowedDevOrigins: [
     'lake-varnish-reassign.ngrok-free.dev',
     '127.0.0.1'

@@ -14,7 +14,10 @@ type Props = {
 
 export function VacunaItem(props: Props) {
   const [editando, setEditando] = useState(false);
-  const proximaFutura = props.proximaDosis && props.proximaDosis.getTime() > Date.now();
+  // "Ahora" se fija una vez al montar: leerlo en cada render hace que el
+  // resultado cambie entre renders sin que cambien las props.
+  const [ahora] = useState(() => Date.now());
+  const proximaFutura = props.proximaDosis && props.proximaDosis.getTime() > ahora;
 
   return (
     <div className="rounded-lg border border-[var(--brown-light)] p-3">

@@ -1,12 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { solicitarRecuperacionAction } from "@/app/actions/auth";
+import TurnstileWidget, { type TurnstileWidgetHandle } from "@/app/components/TurnstileWidget";
 
 export default function RecuperarPage() {
   const [state, formAction, pending] = useActionState(solicitarRecuperacionAction, null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+
+  // Cada envío consume el token del captcha: se pide uno nuevo para poder reintentar.
+  useEffect(() => {
+    if (state) turnstileRef.current?.reset();
+  }, [state]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
@@ -30,15 +38,17 @@ export default function RecuperarPage() {
 
         <label className="mt-6 block text-sm text-[var(--text-mid)]">
           Email
-          <input type="email" name="email" required className="input" />
+          <input type="email" name="email" required maxLength={190} className="input" />
         </label>
+
+        <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
 
         {state?.error && <p className="mt-4 text-sm font-medium text-red-600">{state.error}</p>}
         {state?.success && (
           <p className="mt-4 text-sm font-medium text-[var(--green-ok)]">{state.success}</p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-dark mt-6 w-full disabled:opacity-60">
+        <button type="submit" disabled={pending || !captchaToken} className="btn-dark mt-6 w-full disabled:opacity-60">
           {pending ? "Enviando..." : "Enviar link"}
         </button>
         <Link

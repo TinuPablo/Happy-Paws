@@ -10,7 +10,15 @@ export async function PerfilAdoptante({ userId }: { userId: string }) {
   const [misSolicitudes, misFavoritos] = await Promise.all([
     prisma.solicitudAdopcion.findMany({
       where: { adoptante: { userId } },
-      include: { mascota: true },
+      include: {
+        mascota: {
+          include: {
+            protectora: {
+              select: { nombre: true, email: true, telefono: true, duenio: { select: { email: true } } },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.favorito.findMany({
@@ -30,22 +38,52 @@ export async function PerfilAdoptante({ userId }: { userId: string }) {
           </p>
         ) : (
           <div className="mt-3 space-y-2">
-            {misSolicitudes.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--brown-light)] p-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[var(--text-dark)]">{s.mascota.nombre}</p>
-                  <p className="text-xs text-[var(--text-light)]">
-                    {s.createdAt.toLocaleDateString("es-AR")}
-                  </p>
+            {misSolicitudes.map((s) => {
+              const { protectora } = s.mascota;
+              const emailProtectora = protectora.email || protectora.duenio.email;
+              return (
+                <div key={s.id} className="rounded-xl border border-[var(--brown-light)] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/mascotas/${s.mascotaId}`}
+                        className="block truncate text-sm font-medium text-[var(--text-dark)] hover:text-[var(--brown-dark)]"
+                      >
+                        {s.mascota.nombre}
+                      </Link>
+                      <p className="text-xs text-[var(--text-light)]">
+                        {protectora.nombre} · {s.createdAt.toLocaleDateString("es-AR")}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
+                      {badgeLabel(s.estado)}
+                    </span>
+                  </div>
+                  {/* Con la solicitud aprobada, el adoptante también puede
+                      escribirle a la protectora para coordinar. */}
+                  {s.estado === "APROBADA" && (
+                    <div className="mt-2 rounded-lg bg-[var(--green-ok)]/10 px-3 py-2 text-xs text-[var(--text-mid)]">
+                      <p className="font-semibold text-[var(--green-ok)]">
+                        ¡Felicitaciones! Coordiná con {protectora.nombre}:
+                      </p>
+                      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                        <a href={`mailto:${emailProtectora}`} className="break-all font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]">
+                          ✉ {emailProtectora}
+                        </a>
+                        {protectora.telefono && (
+                          <a
+                            href={`tel:${protectora.telefono.replace(/[^\d+]/g, "")}`}
+                            className="font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+                          >
+                            ☎ {protectora.telefono}
+                          </a>
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${badgeClasses(s.estado)}`}>
-                  {badgeLabel(s.estado)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Reveal>

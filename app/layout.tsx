@@ -7,6 +7,7 @@ import ContactModal from "./components/ContactModal";
 import { AuthProvider } from "./context/AuthContext";
 import { getSession, toUiRole } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { protectoraIdDeUsuario } from "@/lib/protectora";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -46,10 +47,11 @@ export default async function RootLayout({
   const esProtectora = Boolean(session) && session!.rol !== "ADOPTANTE" && !esAdmin;
   let notificacionesNoLeidas = 0;
   if (esProtectora) {
-    const protectora = await prisma.protectora.findFirst({ where: { duenioId: session!.userId } });
-    if (protectora) {
+    // Dueña o miembro (colaborador/hogar de tránsito) de una protectora aprobada.
+    const protectoraId = await protectoraIdDeUsuario(session!.userId);
+    if (protectoraId) {
       notificacionesNoLeidas = await prisma.notificacion.count({
-        where: { protectoraId: protectora.id, leida: false },
+        where: { protectoraId, leida: false },
       });
     }
   }

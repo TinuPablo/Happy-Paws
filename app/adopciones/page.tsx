@@ -206,6 +206,24 @@ export default async function AdopcionesPage() {
                         {badgeLabel(s.estado)}
                       </span>
                     </div>
+                    {/* Datos de contacto de quien solicitó, para poder
+                        conocerse y coordinar la adopción. */}
+                    <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                      <a
+                        href={`mailto:${s.adoptante.user.email}`}
+                        className="break-all font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+                      >
+                        ✉ {s.adoptante.user.email}
+                      </a>
+                      {s.adoptante.user.telefono && (
+                        <a
+                          href={`tel:${s.adoptante.user.telefono.replace(/[^\d+]/g, "")}`}
+                          className="font-medium text-[var(--brown-main)] hover:text-[var(--brown-dark)]"
+                        >
+                          ☎ {s.adoptante.user.telefono}
+                        </a>
+                      )}
+                    </p>
                     {esRespuestasQuizValidas(s.quizRespuestas) && typeof s.quizPorcentaje === "number" && (
                       <VerFormularioSolicitud
                         respuestas={s.quizRespuestas}

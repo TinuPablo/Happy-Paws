@@ -170,6 +170,97 @@ Si respondés este correo, la respuesta le llega directo a esa persona.`,
   };
 }
 
+export function recuperacionContrasena(resetUrl: string): MailTemplate {
+  return {
+    subject: "Recuperá tu contraseña — Happy Paws",
+    html: layout(
+      "Elegí una contraseña nueva",
+      `<p>Pediste restablecer tu contraseña. Si fuiste vos, usá este botón (vale por 2 horas):</p>
+       ${boton(resetUrl, "Elegir nueva contraseña")}
+       <p style="font-size:13px">Si no fuiste vos, podés ignorar este mensaje: tu contraseña sigue igual.</p>`
+    ),
+    text: `Pediste restablecer tu contraseña. Si fuiste vos, entrá a este link (vale por 2 horas):
+
+${resetUrl}
+
+Si no fuiste vos, podés ignorar este mensaje: tu contraseña sigue igual.`,
+  };
+}
+
+export function invitacionProtectora(
+  nombreProtectora: string,
+  rol: "COLABORADOR" | "HOGAR_TRANSITO",
+  inviteUrl: string
+): MailTemplate {
+  const etiquetaRol = rol === "COLABORADOR" ? "colaborador/a" : "hogar de tránsito";
+  return {
+    subject: `Te invitaron a sumarte a ${nombreProtectora} — Happy Paws`,
+    html: layout(
+      "¡Te invitaron a sumarte!",
+      `<p>${escapeHtml(nombreProtectora)} te invitó a sumarte como <strong>${etiquetaRol}</strong> en Happy Paws.</p>
+       <p>Si querés aceptar, creá tu cuenta desde este botón (vale por 7 días):</p>
+       ${boton(inviteUrl, "Aceptar invitación")}
+       <p style="font-size:13px">Si no esperabas esto, podés ignorar este mensaje.</p>`
+    ),
+    text: `${nombreProtectora} te invitó a sumarte como ${etiquetaRol} en Happy Paws.
+
+Si querés aceptar, creá tu cuenta desde este link (vale por 7 días):
+${inviteUrl}
+
+Si no esperabas esto, podés ignorar este mensaje.`,
+  };
+}
+
+export type ContactoProtectora = { nombre: string; email: string; telefono?: string | null };
+
+export function cambioEstadoSolicitud(
+  nombreMascota: string,
+  estado: "APROBADA" | "RECHAZADA",
+  protectora?: ContactoProtectora
+): MailTemplate {
+  const perfil = `${appUrl()}/perfil`;
+  const aprobada = estado === "APROBADA";
+  const nombre = escapeHtml(nombreMascota);
+
+  const contactoHtml = protectora
+    ? `<p>Podés escribirle a <strong>${escapeHtml(protectora.nombre)}</strong> a <strong>${escapeHtml(protectora.email)}</strong>${
+        protectora.telefono ? ` o al <strong>${escapeHtml(protectora.telefono)}</strong>` : ""
+      }.</p>`
+    : "";
+  const contactoText = protectora
+    ? `\nPodés escribirle a ${protectora.nombre} a ${protectora.email}${protectora.telefono ? ` o al ${protectora.telefono}` : ""}.\n`
+    : "";
+
+  return {
+    subject: `Novedades sobre tu solicitud por ${nombreMascota} — Happy Paws`,
+    html: layout(
+      aprobada ? "¡Buenas noticias! 🎉" : "Novedades sobre tu solicitud",
+      aprobada
+        ? `<p>Tu solicitud para adoptar a <strong>${nombre}</strong> fue aprobada. La protectora se va a poner en contacto con vos para coordinar los próximos pasos.</p>${contactoHtml}${boton(perfil, "Ver mi perfil")}`
+        : `<p>Tu solicitud para adoptar a <strong>${nombre}</strong> no fue aprobada esta vez. Gracias de corazón por querer darle un hogar: hay muchos peludos más esperando conocerte.</p>${boton(`${appUrl()}/mascotas`, "Ver mascotas")}`
+    ),
+    text: aprobada
+      ? `¡Buenas noticias! Tu solicitud para adoptar a ${nombreMascota} fue aprobada. La protectora se va a poner en contacto con vos para coordinar los próximos pasos.\n${contactoText}\nTu perfil: ${perfil}`
+      : `Tu solicitud para adoptar a ${nombreMascota} no fue aprobada esta vez. Gracias de corazón por querer darle un hogar: hay muchos peludos más esperando conocerte.\n\n${appUrl()}/mascotas`,
+  };
+}
+
+export function nuevaSolicitudParaProtectora(nombreAdoptante: string, nombreMascota: string): MailTemplate {
+  const panel = `${appUrl()}/adopciones`;
+  return {
+    subject: `Nueva solicitud de adopción para ${nombreMascota} — Happy Paws`,
+    html: layout(
+      "Llegó una solicitud nueva 🐾",
+      `<p><strong>${escapeHtml(nombreAdoptante)}</strong> quiere adoptar a <strong>${escapeHtml(nombreMascota)}</strong>.</p>
+       <p>Podés ver sus datos y responderle desde la sección Adopciones.</p>
+       ${boton(panel, "Ver la solicitud")}`
+    ),
+    text: `${nombreAdoptante} quiere adoptar a ${nombreMascota}.
+
+Podés ver sus datos y responderle desde la sección Adopciones: ${panel}`,
+  };
+}
+
 export function reporteConfirmacion(): MailTemplate {
   return {
     subject: "Recibimos tu reporte — Happy Paws",

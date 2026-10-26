@@ -45,7 +45,8 @@ export function Navbar({
   const navItems = navItemsPara(esProtectora, esAdmin);
   const [open, setOpen] = useState(false);
   const isHome = pathname === "/";
-  const [scrolled, setScrolled] = useState(!isHome);
+  // Solo importa en el inicio: en el resto de las páginas la barra va siempre sólida.
+  const [scrolled, setScrolled] = useState(false);
   const [pawTick, setPawTick] = useState(0);
 
   useEffect(() => {
@@ -54,10 +55,7 @@ export function Navbar({
   }, []);
 
   useEffect(() => {
-    if (!isHome) {
-      setScrolled(true);
-      return;
-    }
+    if (!isHome) return;
     function onScroll() {
       setScrolled(window.scrollY > 60);
     }
@@ -70,7 +68,7 @@ export function Navbar({
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
   }
 
-  const solid = scrolled || open;
+  const solid = !isHome || scrolled || open;
 
   return (
     <nav

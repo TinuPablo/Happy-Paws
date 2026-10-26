@@ -20,6 +20,7 @@ export default function LoginPage() {
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/perfil";
+  const contrasenaRestablecida = searchParams.get("restablecida") === "1";
   const [state, formAction, pending] = useActionState(loginAction, null);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -51,6 +52,12 @@ function LoginForm() {
         <p className="mt-1 text-sm text-[var(--text-light)]">
           Qué bueno tenerte de vuelta.
         </p>
+
+        {contrasenaRestablecida && !state?.error && (
+          <p className="mt-4 rounded-xl bg-[var(--green-ok)]/10 px-3 py-2 text-sm font-medium text-[var(--green-ok)]">
+            ¡Listo! Ya podés entrar con tu nueva contraseña.
+          </p>
+        )}
 
         <input type="hidden" name="redirectTo" value={redirectTo} />
 

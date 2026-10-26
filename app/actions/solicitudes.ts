@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { protectoraIdDeUsuario } from "@/lib/protectora";
-import { enviarEmailCambioEstadoSolicitud } from "@/lib/email";
+import { sendMail } from "@/lib/mail";
+import { cambioEstadoSolicitud } from "@/lib/mail-templates";
+import { notificarNuevaSolicitud } from "@/lib/notificaciones";
 import {
   calcularCompatibilidad,
   esRespuestasQuizValidas,
@@ -78,12 +80,16 @@ export async function crearSolicitudAction(
     }
   }
 
-  await prisma.solicitudAdopcion.create({
+  const solicitud = await prisma.solicitudAdopcion.create({
     data: { mascotaId, adoptanteId: adoptante.id, quizRespuestas, quizPorcentaje, quizEraRecomendada },
   });
 
+  // Notificación interna + correo a la protectora (nunca lanza).
+  await notificarNuevaSolicitud(solicitud.id);
+
   revalidatePath(`/mascotas/${mascotaId}`);
   revalidatePath("/perfil");
+  revalidatePath("/adopciones");
   return { success: `Solicitud enviada para adoptar a ${mascota.nombre}.` };
 }
 
@@ -100,7 +106,16 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
 
   const solicitud = await prisma.solicitudAdopcion.findUnique({
     where: { id: solicitudId },
-    include: { mascota: true, adoptante: { include: { user: true } } },
+    include: {
+      mascota: {
+        include: {
+          protectora: {
+            select: { nombre: true, email: true, telefono: true, duenio: { select: { email: true } } },
+          },
+        },
+      },
+      adoptante: { include: { user: true } },
+    },
   });
   if (!solicitud) throw new Error("Solicitud no encontrada.");
 
@@ -109,26 +124,42 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
     throw new Error("No tenés permiso sobre esta solicitud.");
   }
 
-  // Sin este chequeo, aprobar dos veces (doble click, o forzando el mismo
-  // POST de nuevo) volvía a correr todo lo que dispara una aprobación:
-  // duplicaba los 4 checkpoints de seguimiento y volvía a mandar el mail de
-  // aviso al adoptante cada vez. Una solicitud solo puede resolverse una vez.
-  if (solicitud.estado !== "PENDIENTE") {
-    throw new Error("Esta solicitud ya fue resuelta.");
+  if (nuevoEstado === "APROBADA" && solicitud.mascota.estado === "ADOPTADO") {
+    throw new Error("Esta mascota ya fue adoptada.");
   }
 
-  await prisma.solicitudAdopcion.update({
-    where: { id: solicitudId },
-    data: { estado: nuevoEstado },
-  });
+  // Una solicitud solo puede resolverse una vez: el estado PENDIENTE va en
+  // el where, así un doble click (o dos personas de la protectora a la vez)
+  // no duplica los checkpoints de seguimiento ni los correos.
+  const otrasPendientes: { id: string; email: string }[] = [];
+  const resuelta = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.solicitudAdopcion.updateMany({
+      where: { id: solicitudId, estado: "PENDIENTE" },
+      data: { estado: nuevoEstado },
+    });
+    if (count === 0) return false;
+    if (nuevoEstado !== "APROBADA") return true;
 
-  if (nuevoEstado === "APROBADA") {
     // Transferencia de "propiedad": la mascota pasa a estar adoptada por
     // este adoptante.
-    await prisma.mascota.update({
+    await tx.mascota.update({
       where: { id: solicitud.mascotaId },
       data: { estado: "ADOPTADO", adoptanteId: solicitud.adoptanteId },
     });
+
+    // El resto de las solicitudes en curso por la misma mascota se cierran:
+    // si no, la protectora podía aprobar una segunda y "re-adoptarla".
+    const pendientes = await tx.solicitudAdopcion.findMany({
+      where: { mascotaId: solicitud.mascotaId, id: { not: solicitudId }, estado: { in: ["PENDIENTE", "EN_REVISION"] } },
+      include: { adoptante: { include: { user: { select: { email: true } } } } },
+    });
+    if (pendientes.length > 0) {
+      await tx.solicitudAdopcion.updateMany({
+        where: { id: { in: pendientes.map((p) => p.id) } },
+        data: { estado: "RECHAZADA" },
+      });
+      otrasPendientes.push(...pendientes.map((p) => ({ id: p.id, email: p.adoptante.user.email })));
+    }
 
     // Seguimiento post-adopción: se programan los 4 checkpoints automáticos
     // (ver schema, SeguimientoAdopcion) a partir de hoy — "la historia de
@@ -136,7 +167,7 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
     // marcando como hechos desde la ficha de la mascota.
     const hoy = Date.now();
     const DIA_MS = 24 * 60 * 60 * 1000;
-    await prisma.seguimientoAdopcion.createMany({
+    await tx.seguimientoAdopcion.createMany({
       data: [
         { mascotaId: solicitud.mascotaId, tipo: "DIAS_7", fechaProgramada: new Date(hoy + 7 * DIA_MS) },
         { mascotaId: solicitud.mascotaId, tipo: "MES_1", fechaProgramada: new Date(hoy + 30 * DIA_MS) },
@@ -144,17 +175,30 @@ export async function actualizarEstadoSolicitudAction(formData: FormData) {
         { mascotaId: solicitud.mascotaId, tipo: "MES_6", fechaProgramada: new Date(hoy + 180 * DIA_MS) },
       ],
     });
-  }
+    return true;
+  });
+  if (!resuelta) throw new Error("Esta solicitud ya fue resuelta.");
 
-  // No debe romper la actualización si el email falla — el estado real ya
-  // quedó guardado en la base, avisar es secundario.
-  await enviarEmailCambioEstadoSolicitud(
-    solicitud.adoptante.user.email,
-    solicitud.mascota.nombre,
-    nuevoEstado
-  );
+  // Los correos van después de guardar: si fallan, el estado real ya quedó
+  // en la base (sendMail nunca lanza).
+  const { protectora } = solicitud.mascota;
+  const contacto = {
+    nombre: protectora.nombre,
+    email: protectora.email || protectora.duenio.email,
+    telefono: protectora.telefono,
+  };
+  await Promise.all([
+    sendMail({
+      to: solicitud.adoptante.user.email,
+      ...cambioEstadoSolicitud(solicitud.mascota.nombre, nuevoEstado, contacto),
+    }),
+    ...otrasPendientes.map((o) =>
+      sendMail({ to: o.email, ...cambioEstadoSolicitud(solicitud.mascota.nombre, "RECHAZADA") })
+    ),
+  ]);
 
   revalidatePath("/perfil");
+  revalidatePath("/adopciones");
   revalidatePath(`/mascotas/${solicitud.mascotaId}`);
   revalidatePath("/mascotas");
 }

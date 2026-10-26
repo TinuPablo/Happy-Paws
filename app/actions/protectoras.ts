@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
+import { esEmailValido } from "@/lib/mail";
 import { esUrlDeCloudinaryValida } from "@/lib/mediaUrl";
 
 export type LogoActionState = { error: string } | null;
@@ -21,6 +22,13 @@ export async function actualizarDatosProtectoraAction(
   const redSocial = String(formData.get("redSocial") || "").trim();
 
   if (!ubicacion) return { error: "La ubicación no puede quedar vacía." };
+  if (ubicacion.length > 120) return { error: "La ubicación puede tener hasta 120 caracteres." };
+  if (descripcion.length > 5000) return { error: "La descripción puede tener hasta 5000 caracteres." };
+  if (telefono.length > 40) return { error: "El teléfono puede tener hasta 40 caracteres." };
+  // El email de contacto se usa para avisos por correo y se muestra a los
+  // adoptantes aprobados: tiene que ser un email de verdad.
+  if (email && !esEmailValido(email)) return { error: "Revisá el formato del email de contacto." };
+  if (redSocial.length > 190) return { error: "La red social puede tener hasta 190 caracteres." };
 
   const protectora = await prisma.protectora.findFirst({
     where: { duenioId: session.userId, estadoVerificacion: "APROBADA" },

@@ -13,11 +13,33 @@ virtual — esa funcionalidad **ya no existe** y no debe reintroducirse.
 ## Stack técnico
 - Next.js (App Router) + TypeScript
 - Tailwind CSS 4
-- Datos actuales: JSON en `data/` (razas, guías, protocolos de vacunación)
-- MySQL + Prisma: **planificado, todavía NO implementado**. No conectar
-  todavía salvo que un prompt lo pida explícitamente.
+- MySQL + Prisma (implementado): toda la data real vive en la base. Los
+  JSON de `data/` quedan solo para contenido estático (razas, guías,
+  protocolos de vacunación).
+- Correo: Gmail SMTP con nodemailer (`lib/mail.ts` + plantillas en
+  `lib/mail-templates.ts`). Es el único proveedor; Resend se sacó.
+- Captcha: Cloudflare Turnstile (`app/components/TurnstileWidget.tsx` +
+  `lib/turnstile.ts`, falla cerrado) en login, registro, recuperar
+  contraseña, aceptar invitación y reportes.
+- Límite de intentos en memoria por IP (`lib/rateLimit.ts`, válido para un
+  solo proceso).
+
+## Puesta en marcha (para quien clona o hace pull)
+1. Copiar `.env.example` a `.env` y completar los valores (nunca subir
+   `.env` ni pegar sus valores en un chat).
+2. `npm install`, `npx prisma migrate deploy`, `npx prisma generate`.
+3. Opcional: `npm run db:seed` (datos demo de FUPA).
+4. `npm run admin:crear` para crear una cuenta ADMIN de Happy Paws (revisa
+   protectoras en `/admin/protectoras`), y `npm run mail:test` para
+   confirmar que salen los correos.
 
 ## Fase actual del proyecto
+**MVP funcional con backend real.** Adoptantes se registran y solicitan
+adopciones; protectoras se registran, quedan PENDIENTES hasta que un ADMIN
+de Happy Paws las verifica (se avisa por correo a la casilla `MAIL_ADMIN` y
+a la protectora), y recién ahí publican mascotas y gestionan solicitudes.
+Lo de abajo es historia de cómo se llegó acá.
+
 **Fase visual/mock COMPLETA** (prompts 01 a 11): mascota virtual eliminada,
 rutas reestructuradas, landing/mascotas/protectoras con diseño real, sesión
 mock por rol (adoptante/protectora), flujo completo de adopción simulado
@@ -64,6 +86,12 @@ animales en situación de calle.
 - **Hogar de tránsito**: rol dentro de una protectora, cuida mascotas
   temporalmente antes de la adopción definitiva.
 - **Colaborador**: rol dentro de una protectora con permisos limitados.
+- **Admin (de plataforma)**: equipo de Happy Paws (rol `ADMIN`). Verifica
+  que cada protectora nueva exista antes de habilitarla. No es lo mismo que
+  `ADMIN_PROTECTORA` (la dueña de una protectora).
+- **Verificación de protectora**: estado `PENDIENTE` / `APROBADA` /
+  `RECHAZADA`. Solo una protectora APROBADA puede iniciar sesión, operar y
+  aparecer en lo público.
 - **Solicitud de adopción**: pedido formal de un adoptante por una mascota
   puntual, con estados (pendiente, en revisión, aprobada, rechazada).
 
@@ -160,6 +188,19 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       vía localStorage, sale de la cookie firmada
 - [x] Seed de datos de ejemplo de FUPA vía Prisma (`npm run db:seed`) —
       sigue siendo data placeholder, no la real de la ONG (ver backlog)
+- [x] Correos reales por Gmail SMTP (prompt 15) — todos los avisos del
+      sitio: registro/aprobación/rechazo de protectora, nueva solicitud de
+      adopción (a la protectora), aprobación/rechazo de solicitud (al
+      adoptante, con el contacto de la protectora), recuperación de
+      contraseña, invitaciones y reportes.
+- [x] Captcha Turnstile + límite por IP (prompt 16)
+- [x] Verificación de protectoras + panel `/admin/protectoras` + rol ADMIN
+      (prompt 17)
+- [x] Formulario de reportes en el footer → tabla `Reporte` + mail a
+      `MAIL_ADMIN` con Reply-To de quien reporta (prompt 18)
+- [x] Contacto entre las partes: la protectora ve email/teléfono de quien
+      solicita en `/adopciones`; el adoptante aprobado ve el de la
+      protectora en `/perfil`.
 
 ## Backlog
 
@@ -228,27 +269,39 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       (`?especie=&tamanio=`), filtro server-side con Prisma. Edad no se
       filtra: sigue siendo texto libre (`edadTexto`), no hay un campo
       numérico cargado todavía para poder rangear.
-- [x] Recuperación de contraseña con Resend — `/recuperar` (pide el link) +
+- [x] Recuperación de contraseña (hoy por Gmail SMTP, antes Resend) — `/recuperar` (pide el link) +
       `/restablecer?token=` (elige nueva contraseña), token de un solo uso
       con expiración de 2hs (`PasswordResetToken`). El mismo mensaje se
       muestra exista o no el email, para no filtrar qué cuentas existen.
-      Código completo, pero sin probar el envío real: falta que el usuario
-      complete `RESEND_API_KEY` en su `.env` (sin eso, el link queda
-      logueado en la consola del servidor en vez de mandarse por mail).
+      Probado de punta a punta con envío real.
 - [x] Notificación por email al cambiar estado de solicitud — se manda al
-      aprobar/rechazar desde `actualizarEstadoSolicitudAction`, mismo
-      proveedor (Resend) y misma salvedad de credenciales pendientes.
+      aprobar/rechazar desde `actualizarEstadoSolicitudAction`. Al aprobar
+      una, las demás solicitudes en curso por la misma mascota se rechazan
+      solas (y se les avisa), para que no se pueda adoptar dos veces.
 - [x] Dashboard simple para protectora — 4 tiles en `/perfil` (mascotas
       totales, disponibles, solicitudes pendientes, adopciones del mes).
 - [x] Favoritos para adoptantes — tabla `Favorito` nueva, botón ☆/★ en
       `/mascotas`, `/mascotas/[id]` y listado en "Mis favoritos" en
       `/perfil`.
 - [ ] Deploy a producción (Vercel + MySQL en la nube) — no se tocó: implica
-      acceso a cuentas/infra del usuario, se hace a pedido explícito.
-- [ ] Página de términos/privacidad reales — no se creó: hoy no hay ningún
-      placeholder en el código (se ve que se sacó en algún rediseño previo,
-      no quedó rastro), y escribir texto legal "real" no es algo para
-      inventar — falta que alguien redacte el contenido real.
+      acceso a cuentas/infra del usuario, se hace a pedido explícito. Al
+      hacerlo: cargar todas las variables de `.env.example` en el hosting,
+      `APP_URL` con el dominio real, agregar el dominio en Turnstile, y
+      reemplazar `lib/rateLimit.ts` (en memoria) por un store compartido.
+- [ ] Verificar que el correo de cada usuario le pertenece (link de
+      confirmación al registrarse).
+- [ ] Que una protectora rechazada pueda corregir y reenviar su solicitud
+      sola (hoy el email queda tomado; hay que hacerlo a mano).
+- [ ] Mover los correos a un proveedor con dominio propio antes de abrir al
+      público (Gmail SMTP tiene tope diario de envíos).
+- [ ] Rotar la contraseña de aplicación de Gmail y la secret de Turnstile
+      (quedaron escritas en un chat durante el desarrollo).
+- [ ] Página de términos/privacidad reales — existe `/legal` con un texto
+      de derechos de autor tipo boilerplate, pero no términos ni política de
+      privacidad: escribir texto legal "real" no es algo para inventar —
+      falta que alguien lo redacte (debe mencionar el uso de datos de
+      contacto, los reportes y que se comparte el contacto entre protectora
+      y adoptante al aprobar una adopción).
 - [x] Colaboradores y hogares de tránsito — el modelo `MiembroProtectora`
       existía en el schema desde el principio pero nunca se pudo crear uno:
       no había registro para esos roles, y los chequeos de permisos solo

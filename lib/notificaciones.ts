@@ -1,26 +1,19 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { sendMail } from "@/lib/mail";
+import { nuevaSolicitudParaProtectora } from "@/lib/mail-templates";
 
-// El proveedor de email todavía no está decidido (ver backlog en AGENTS.md:
-// "Notificación por email... depende de una decisión de proveedor de
-// SMTP/Resend/similar que no estaba tomada"). Por ahora esto solo deja
-// constancia en el log del servidor. Cuando se elija un proveedor, se
-// reemplaza el cuerpo de esta función — nadie que la llame necesita
-// cambiar nada.
-async function enviarEmailNotificacion(destinatario: string, asunto: string, cuerpo: string) {
-  console.log(`[email pendiente de proveedor] Para: ${destinatario} — ${asunto}\n${cuerpo}`);
-}
-
-// Se llama después de crear una SolicitudAdopcion exitosamente. Crea la
-// notificación interna (visible en /perfil de la protectora) y dispara el
-// email de aviso. No lanza excepciones hacia quien la llama — un problema
-// acá no debe romper el flujo de "solicitud enviada" del adoptante.
+// Se llama después de crear una SolicitudAdopcion exitosamente (ver
+// crearSolicitudAction). Crea la notificación interna (campana del header +
+// /adopciones) y avisa por correo a la protectora. No lanza excepciones
+// hacia quien la llama — un problema acá no debe romper el flujo de
+// "solicitud enviada" del adoptante.
 export async function notificarNuevaSolicitud(solicitudId: string) {
   try {
     const solicitud = await prisma.solicitudAdopcion.findUnique({
       where: { id: solicitudId },
       include: {
-        mascota: { include: { protectora: true } },
+        mascota: { include: { protectora: { include: { duenio: { select: { email: true } } } } } },
         adoptante: { include: { user: true } },
       },
     });
@@ -37,13 +30,11 @@ export async function notificarNuevaSolicitud(solicitudId: string) {
       },
     });
 
-    if (solicitud.mascota.protectora.email) {
-      await enviarEmailNotificacion(
-        solicitud.mascota.protectora.email,
-        "Nueva solicitud de adopción en Happy Paws",
-        mensaje
-      );
-    }
+    const { protectora } = solicitud.mascota;
+    await sendMail({
+      to: protectora.email || protectora.duenio.email,
+      ...nuevaSolicitudParaProtectora(solicitud.adoptante.user.nombre, solicitud.mascota.nombre),
+    });
   } catch (error) {
     console.error("No se pudo notificar la nueva solicitud:", error);
   }
