@@ -30,6 +30,9 @@ model User {
   nombre        String
   telefono      String?
   rol           RolGlobal
+  // null = todavía no confirmó que el correo es suyo: no puede iniciar
+  // sesión (ver app/actions/verificacion.ts).
+  emailVerificadoEn DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -38,8 +41,26 @@ model User {
   membresias           MiembroProtectora[]
   adoptante            Adoptante?
   resetTokens          PasswordResetToken[]
+  verificacionTokens   EmailVerificationToken[]
 
   @@map("users")
+}
+
+// Link de "confirmá tu correo" que se manda al registrarse. Se guarda solo
+// el hash SHA-256 del token (el token en sí viaja únicamente en el mail):
+// alguien que lea la base no puede confirmar cuentas ajenas. Un solo uso,
+// vence a las 24hs.
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("email_verification_tokens")
 }
 
 // Token de un solo uso para "olvidé mi contraseña" (ver app/actions/auth.ts).

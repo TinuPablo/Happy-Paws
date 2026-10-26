@@ -1,35 +1,17 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { registerAdoptanteAction } from "@/app/actions/auth";
-import TurnstileWidget, { type TurnstileWidgetHandle } from "@/app/components/TurnstileWidget";
+import RegistroAdoptanteForm from "./RegistroAdoptanteForm";
 import RegistroProtectoraForm from "./RegistroProtectoraForm";
 
 type TipoUsuario = "adoptante" | "protectora" | null;
 
 export default function RegistroPage() {
+  // Cada formulario maneja su propio captcha y su estado: al cambiar de
+  // tipo se monta el otro desde cero.
   const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(null);
-  const [adoptanteState, adoptanteAction, adoptantePending] = useActionState(
-    registerAdoptanteAction,
-    null
-  );
-  // El form de protectora maneja su propio captcha (RegistroProtectoraForm);
-  // este es el del form de adoptante. Al cambiar de tipo, el widget se
-  // vuelve a montar y pide un token nuevo.
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
-
-  // Cada respuesta con error ya consumió el token del captcha: se pide uno nuevo.
-  useEffect(() => {
-    if (adoptanteState?.error) turnstileRef.current?.reset();
-  }, [adoptanteState]);
-
-  function elegirTipo(tipo: TipoUsuario) {
-    if (tipo !== tipoUsuario) setCaptchaToken(null);
-    setTipoUsuario(tipo);
-  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
@@ -52,7 +34,7 @@ export default function RegistroPage() {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => elegirTipo("adoptante")}
+            onClick={() => setTipoUsuario("adoptante")}
             className={`rounded-2xl border p-4 text-center transition-all duration-200 ${
               tipoUsuario === "adoptante"
                 ? "border-[var(--brown-main)] bg-[var(--brown-light)] shadow-sm"
@@ -66,7 +48,7 @@ export default function RegistroPage() {
           </button>
           <button
             type="button"
-            onClick={() => elegirTipo("protectora")}
+            onClick={() => setTipoUsuario("protectora")}
             className={`rounded-2xl border p-4 text-center transition-all duration-200 ${
               tipoUsuario === "protectora"
                 ? "border-[var(--brown-main)] bg-[var(--brown-light)] shadow-sm"
@@ -80,37 +62,7 @@ export default function RegistroPage() {
           </button>
         </div>
 
-        {tipoUsuario === "adoptante" && (
-          <form
-            action={adoptanteAction}
-            className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6 shadow-[0_16px_40px_rgba(75,40,14,0.10)]"
-          >
-            <label className="block text-sm text-[var(--text-mid)]">
-              Nombre completo
-              <input type="text" name="nombre" required className="input" />
-            </label>
-            <label className="mt-4 block text-sm text-[var(--text-mid)]">
-              Email
-              <input type="email" name="email" required className="input" />
-            </label>
-            <label className="mt-4 block text-sm text-[var(--text-mid)]">
-              Teléfono (opcional)
-              <input type="tel" name="telefono" className="input" />
-            </label>
-            <label className="mt-4 block text-sm text-[var(--text-mid)]">
-              Contraseña
-              <input type="password" name="password" required className="input" />
-            </label>
-            <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
-            {adoptanteState?.error && (
-              <p className="mt-4 text-sm font-medium text-red-600">{adoptanteState.error}</p>
-            )}
-            <button type="submit" disabled={adoptantePending || !captchaToken} className="btn-dark mt-6 w-full disabled:opacity-60">
-              {adoptantePending ? "Creando cuenta..." : "Crear cuenta"}
-            </button>
-          </form>
-        )}
-
+        {tipoUsuario === "adoptante" && <RegistroAdoptanteForm />}
         {tipoUsuario === "protectora" && <RegistroProtectoraForm />}
 
         <Link

@@ -288,8 +288,17 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
       hacerlo: cargar todas las variables de `.env.example` en el hosting,
       `APP_URL` con el dominio real, agregar el dominio en Turnstile, y
       reemplazar `lib/rateLimit.ts` (en memoria) por un store compartido.
-- [ ] Verificar que el correo de cada usuario le pertenece (link de
-      confirmación al registrarse).
+- [x] Verificar que el correo de cada usuario le pertenece — al
+      registrarse (adoptante o protectora) no se inicia sesión: llega un
+      link "Confirmar mi correo" (24hs, un solo uso, guardado como hash en
+      `EmailVerificationToken`) que lleva a `/verificar` (confirma con un
+      botón, no al abrir el link) y después a `/login`. Sin confirmar no se
+      puede entrar; el login ofrece "Reenviarme el correo". Una protectora
+      recién entra a la cola de `/admin/protectoras` (y se avisa a
+      `MAIL_ADMIN`) cuando confirma. Re-registrarse con un email que nunca
+      se confirmó reemplaza esa cuenta. Aceptar una invitación o restablecer
+      la contraseña también cuentan como confirmación. En todos los lugares
+      donde se elige contraseña se pide repetirla.
 - [ ] Que una protectora rechazada pueda corregir y reenviar su solicitud
       sola (hoy el email queda tomado; hay que hacerlo a mano).
 - [ ] Mover los correos a un proveedor con dominio propio antes de abrir al

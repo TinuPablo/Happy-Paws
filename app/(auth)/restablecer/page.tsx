@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useActionState, useState } from "react";
+import { Suspense, useActionState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
 import { restablecerContrasenaAction } from "@/app/actions/auth";
+import PasswordConfirmFields from "@/app/components/PasswordConfirmFields";
 
 export default function RestablecerPage() {
   return (
@@ -19,7 +19,6 @@ function RestablecerForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const [state, formAction, pending] = useActionState(restablecerContrasenaAction, null);
-  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--brown-light)]/40 to-[var(--brown-lightest)] px-6 py-10">
@@ -50,26 +49,9 @@ function RestablecerForm() {
           </p>
         ) : (
           <>
-            <label className="mt-6 block text-sm text-[var(--text-mid)]">
-              Nueva contraseña
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  required
-                  minLength={6}
-                  className="input pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-light)]"
-                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </label>
+            <div className="mt-2">
+              <PasswordConfirmFields label="Nueva contraseña" />
+            </div>
 
             {state?.error && <p className="mt-4 text-sm font-medium text-red-600">{state.error}</p>}
 

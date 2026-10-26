@@ -87,6 +87,7 @@ export async function aceptarInvitacionAction(
   if (nombre.length > 120) return { error: "El nombre puede tener hasta 120 caracteres." };
   if (password.length < 6) return { error: "La contraseña tiene que tener al menos 6 caracteres." };
   if (password.length > 100) return { error: "La contraseña puede tener hasta 100 caracteres." };
+  if (password !== String(formData.get("password2") || "")) return { error: "Las contraseñas no coinciden." };
 
   const invitacion = await prisma.invitacionProtectora.findUnique({
     where: { token },
@@ -123,6 +124,8 @@ export async function aceptarInvitacionAction(
         passwordHash,
         nombre,
         rol: rolGlobal,
+        // La invitación llegó a este correo: ya está probado que es suyo.
+        emailVerificadoEn: new Date(),
         membresias: {
           create: { protectoraId: invitacion.protectoraId, rol: invitacion.rol },
         },

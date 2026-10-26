@@ -21,6 +21,7 @@ async function main() {
       passwordHash: fupaPasswordHash,
       nombre: "FUPA",
       rol: "ADMIN_PROTECTORA",
+      emailVerificadoEn: new Date(),
     },
   });
 
@@ -47,6 +48,7 @@ async function main() {
       passwordHash,
       nombre: "Huellitas de Punilla",
       rol: "ADMIN_PROTECTORA",
+      emailVerificadoEn: new Date(),
     },
   });
 
@@ -162,6 +164,7 @@ async function main() {
       passwordHash,
       nombre: "Ana Adoptante",
       rol: "ADOPTANTE",
+      emailVerificadoEn: new Date(),
       adoptante: { create: {} },
     },
   });

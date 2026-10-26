@@ -170,6 +170,31 @@ Si respondés este correo, la respuesta le llega directo a esa persona.`,
   };
 }
 
+export function verificacionEmail(nombre: string, verificarUrl: string, esProtectora: boolean): MailTemplate {
+  const siguiente = esProtectora
+    ? "Cuando lo confirmes, tu solicitud pasa a revisión del equipo de Happy Paws y te escribimos a este correo."
+    : "Cuando lo confirmes, ya vas a poder iniciar sesión y conocer a los peludos que buscan familia.";
+  return {
+    subject: "Confirmá tu correo — Happy Paws",
+    html: layout(
+      `¡Hola, ${escapeHtml(nombre)}!`,
+      `<p>Gracias por sumarte a Happy Paws. Para activar tu cuenta, confirmá que este correo es tuyo (el botón vale por 24 horas):</p>
+       ${boton(verificarUrl, "Confirmar mi correo")}
+       <p>${siguiente}</p>
+       <p style="font-size:13px">Si no creaste una cuenta, podés ignorar este mensaje.</p>`
+    ),
+    text: `¡Hola, ${nombre}!
+
+Gracias por sumarte a Happy Paws. Para activar tu cuenta, confirmá que este correo es tuyo entrando a este link (vale por 24 horas):
+
+${verificarUrl}
+
+${siguiente}
+
+Si no creaste una cuenta, podés ignorar este mensaje.`,
+  };
+}
+
 export function recuperacionContrasena(resetUrl: string): MailTemplate {
   return {
     subject: "Recuperá tu contraseña — Happy Paws",

@@ -21,6 +21,7 @@ export type DatosRegistroProtectora = {
   ubicacion: string;
   email: string;
   password: string;
+  password2: string;
   telefono: string;
   instagram: string;
   facebook: string;
@@ -57,6 +58,7 @@ export function validarRegistroProtectora(d: DatosRegistroProtectora): string | 
   if (d.email.length > L.email || !EMAIL_REGEX.test(d.email)) return "Revisá el formato del email.";
   if (d.password.length < L.passwordMin) return `La contraseña tiene que tener al menos ${L.passwordMin} caracteres.`;
   if (d.password.length > L.password) return `La contraseña puede tener hasta ${L.password} caracteres.`;
+  if (d.password !== d.password2) return "Las contraseñas no coinciden.";
   if (d.telefono.length > L.telefono || !TELEFONO_REGEX.test(d.telefono)) {
     return "Revisá el teléfono: solo números, espacios, guiones, paréntesis o +.";
   }

@@ -35,7 +35,7 @@ export async function aprobarProtectoraAction(
   // updateMany con el estado en el where: si dos personas aprueban a la
   // vez (o doble click), solo la primera cambia algo y manda el correo.
   const { count } = await prisma.protectora.updateMany({
-    where: { id: protectoraId, estadoVerificacion: "PENDIENTE" },
+    where: { id: protectoraId, estadoVerificacion: "PENDIENTE", duenio: { emailVerificadoEn: { not: null } } },
     data: { estadoVerificacion: "APROBADA", fechaRevision: new Date(), motivoRechazo: null },
   });
   if (count === 0) return { error: "Esta solicitud ya no está pendiente." };
@@ -59,7 +59,7 @@ export async function rechazarProtectoraAction(
   if (motivo.length > MOTIVO_MAX) return { error: `El motivo puede tener hasta ${MOTIVO_MAX} caracteres.` };
 
   const { count } = await prisma.protectora.updateMany({
-    where: { id: protectoraId, estadoVerificacion: "PENDIENTE" },
+    where: { id: protectoraId, estadoVerificacion: "PENDIENTE", duenio: { emailVerificadoEn: { not: null } } },
     data: { estadoVerificacion: "RECHAZADA", motivoRechazo: motivo, fechaRevision: new Date() },
   });
   if (count === 0) return { error: "Esta solicitud ya no está pendiente." };

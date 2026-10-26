@@ -29,13 +29,21 @@ export default async function AdminProtectorasPage({
   const { tab } = await searchParams;
   const verRevisadas = tab === "revisadas";
 
+  // Una protectora entra a la cola recién cuando confirmó su correo: antes
+  // de eso no tiene sentido revisarla (y el motivo de un rechazo no le
+  // llegaría a nadie).
+  const pendienteConfirmada = {
+    estadoVerificacion: "PENDIENTE",
+    duenio: { emailVerificadoEn: { not: null } },
+  } as const;
+
   const [protectoras, pendientes] = await Promise.all([
     prisma.protectora.findMany({
-      where: verRevisadas ? { estadoVerificacion: { not: "PENDIENTE" } } : { estadoVerificacion: "PENDIENTE" },
+      where: verRevisadas ? { estadoVerificacion: { not: "PENDIENTE" } } : pendienteConfirmada,
       include: { duenio: { select: { email: true } } },
       orderBy: verRevisadas ? { fechaRevision: "desc" } : { fechaSolicitud: "asc" },
     }),
-    prisma.protectora.count({ where: { estadoVerificacion: "PENDIENTE" } }),
+    prisma.protectora.count({ where: pendienteConfirmada }),
   ]);
 
   const tabClase = (activa: boolean) =>

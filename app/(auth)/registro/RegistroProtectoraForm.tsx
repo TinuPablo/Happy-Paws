@@ -1,10 +1,11 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef, useState, type FormEvent } from "react";
-import Link from "next/link";
 import { registerProtectoraAction } from "@/app/actions/auth";
 import TurnstileWidget, { type TurnstileWidgetHandle } from "@/app/components/TurnstileWidget";
+import PasswordConfirmFields from "@/app/components/PasswordConfirmFields";
 import { LIMITES_PROTECTORA as L, validarRegistroProtectora } from "@/lib/validacionProtectora";
+import RevisaTuCorreo from "./RevisaTuCorreo";
 
 export default function RegistroProtectoraForm() {
   const [state, formAction, pending] = useActionState(registerProtectoraAction, null);
@@ -31,6 +32,7 @@ export default function RegistroProtectoraForm() {
       ubicacion: campo("ubicacion"),
       email: campo("email").toLowerCase(),
       password: String(fd.get("password") || ""),
+      password2: String(fd.get("password2") || ""),
       telefono: campo("telefono"),
       instagram: campo("instagram"),
       facebook: campo("facebook"),
@@ -43,20 +45,7 @@ export default function RegistroProtectoraForm() {
     if (!error) startTransition(() => formAction(fd));
   }
 
-  if (state?.enviado) {
-    return (
-      <div className="mt-6 rounded-2xl border border-[var(--brown-light)] bg-white p-6 text-center shadow-[0_16px_40px_rgba(75,40,14,0.10)]">
-        <span className="block text-3xl">📬</span>
-        <h2 className="mt-3 text-lg font-bold text-[var(--brown-dark)]">Solicitud enviada</h2>
-        <p className="mt-2 text-sm text-[var(--text-mid)]">
-          La estamos revisando; te escribimos a tu correo. Puede demorar hasta 72 horas hábiles.
-        </p>
-        <Link href="/" className="btn-dark mt-6 inline-flex">
-          Volver al inicio
-        </Link>
-      </div>
-    );
-  }
+  if (state?.enviadoA) return <RevisaTuCorreo email={state.enviadoA} esProtectora />;
 
   const error = errorCliente ?? state?.error;
 
@@ -129,10 +118,7 @@ export default function RegistroProtectoraForm() {
         />
       </label>
 
-      <label className="mt-4 block text-sm text-[var(--text-mid)]">
-        Contraseña
-        <input type="password" name="password" required minLength={L.passwordMin} maxLength={L.password} className="input" />
-      </label>
+      <PasswordConfirmFields minLength={L.passwordMin} maxLength={L.password} />
 
       <TurnstileWidget ref={turnstileRef} onToken={setCaptchaToken} />
       {error && <p className="mt-4 text-sm font-medium text-red-600">{error}</p>}

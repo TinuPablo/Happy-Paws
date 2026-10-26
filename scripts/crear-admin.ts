@@ -43,7 +43,8 @@ async function main() {
   if (password !== repetida) throw new Error("Las contraseñas no coinciden.");
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.user.create({ data: { email, nombre, passwordHash, rol: "ADMIN" } });
+  // Lo crea alguien con acceso a la base: no hace falta confirmar el correo.
+  await prisma.user.create({ data: { email, nombre, passwordHash, rol: "ADMIN", emailVerificadoEn: new Date() } });
   console.log(`\nListo: ${email} ya puede iniciar sesión y entrar a /admin/protectoras.`);
 }
 

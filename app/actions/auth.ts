@@ -8,11 +8,31 @@ import { createSession, destroySession } from "@/lib/session";
 import { MENSAJE_LIMITE, estaLimitado, ipCliente } from "@/lib/rateLimit";
 import { MENSAJE_CAPTCHA_FALLIDO, verifyTurnstile } from "@/lib/turnstile";
 import { esEmailValido, sendMail } from "@/lib/mail";
-import { protectoraEnRevision, recuperacionContrasena, solicitudProtectoraParaAdmin } from "@/lib/mail-templates";
+import { recuperacionContrasena } from "@/lib/mail-templates";
 import { estadoVerificacionDeUsuario } from "@/lib/protectora";
 import { type DatosRegistroProtectora, validarRegistroProtectora } from "@/lib/validacionProtectora";
+import { alConfirmarEmail, borrarCuentaSinVerificar, enviarVerificacion, hashToken } from "@/lib/verificacionEmail";
 
-export type AuthActionState = { error: string } | null;
+// sinVerificar: la cuenta existe y la contraseña es correcta, pero todavía
+// no confirmó su correo — el login muestra "Reenviarme el correo".
+export type AuthActionState = { error: string; sinVerificar?: boolean } | null;
+
+// Registro: no inicia sesión, manda el link de confirmación y el form
+// muestra "Te mandamos un correo a <enviadoA>".
+export type RegistroState = { error?: string; enviadoA?: string } | null;
+
+const MENSAJE_PASSWORDS_DISTINTAS = "Las contraseñas no coinciden.";
+
+// Si el email ya existe pero nunca se confirmó, esa cuenta se descarta y se
+// deja registrar de nuevo (ver borrarCuentaSinVerificar). Devuelve true si
+// el email sigue tomado por una cuenta real.
+async function emailTomado(email: string): Promise<boolean> {
+  const existente = await prisma.user.findUnique({ where: { email }, select: { id: true, emailVerificadoEn: true } });
+  if (!existente) return false;
+  if (existente.emailVerificadoEn) return true;
+  await borrarCuentaSinVerificar(existente.id);
+  return false;
+}
 
 // Primer paso de login y registro, antes de mirar contraseñas, crear
 // usuarios o mandar correos: límite por IP y después el captcha (en ese
@@ -79,6 +99,12 @@ export async function loginAction(
 
   // Recién con la contraseña correcta se informa el estado de verificación
   // — antes de eso no hay que dejar adivinar qué cuentas existen.
+  if (!user.emailVerificadoEn) {
+    return {
+      error: "Todavía no confirmaste tu correo. Buscá el mail que te mandamos (fijate también en spam).",
+      sinVerificar: true,
+    };
+  }
   if (user.rol !== "ADOPTANTE" && user.rol !== "ADMIN") {
     const estado = await estadoVerificacionDeUsuario(user.id);
     if (estado === "PENDIENTE") {
@@ -94,13 +120,14 @@ export async function loginAction(
 }
 
 export async function registerAdoptanteAction(
-  _prevState: AuthActionState,
+  _prevState: RegistroState,
   formData: FormData
-): Promise<AuthActionState> {
+): Promise<RegistroState> {
   const nombre = String(formData.get("nombre") || "").trim();
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const telefono = String(formData.get("telefono") || "").trim();
   const password = String(formData.get("password") || "");
+  const password2 = String(formData.get("password2") || "");
 
   const bloqueo = await chequeoAntiBots(formData, "registro", 5, 60 * 60 * 1000);
   if (bloqueo) return { error: bloqueo };
@@ -115,14 +142,16 @@ export async function registerAdoptanteAction(
     return { error: "La contraseña tiene que tener al menos 6 caracteres." };
   }
   if (password.length > 100) return { error: "La contraseña puede tener hasta 100 caracteres." };
+  if (password !== password2) return { error: MENSAJE_PASSWORDS_DISTINTAS };
 
-  const existente = await prisma.user.findUnique({ where: { email } });
-  if (existente) {
+  if (await emailTomado(email)) {
     return { error: "Ese email ya está registrado. Iniciá sesión en vez de crear una cuenta nueva." };
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
+  // La cuenta nace sin verificar: no se inicia sesión hasta que confirme
+  // desde el link que le llega por correo.
   const user = await prisma.user.create({
     data: {
       email,
@@ -134,22 +163,26 @@ export async function registerAdoptanteAction(
     },
   });
 
-  await createSession({ userId: user.id, rol: user.rol, nombre: user.nombre });
-  redirect("/perfil");
+  const { ok } = await enviarVerificacion(user);
+  if (!ok) {
+    return {
+      error: "Creamos tu cuenta, pero no pudimos mandarte el correo de confirmación. Probá iniciar sesión en un rato para que te lo reenviemos.",
+    };
+  }
+  return { enviadoA: email };
 }
 
-export type RegistroProtectoraState = { error?: string; enviado?: boolean } | null;
-
 export async function registerProtectoraAction(
-  _prevState: RegistroProtectoraState,
+  _prevState: RegistroState,
   formData: FormData
-): Promise<RegistroProtectoraState> {
+): Promise<RegistroState> {
   const campo = (nombre: string) => String(formData.get(nombre) || "").trim();
   const datos: DatosRegistroProtectora = {
     nombreProtectora: campo("nombreProtectora"),
     ubicacion: campo("ubicacion"),
     email: campo("email").toLowerCase(),
     password: String(formData.get("password") || ""),
+    password2: String(formData.get("password2") || ""),
     telefono: campo("telefono"),
     instagram: campo("instagram"),
     facebook: campo("facebook"),
@@ -165,8 +198,7 @@ export async function registerProtectoraAction(
   const errorValidacion = validarRegistroProtectora(datos);
   if (errorValidacion) return { error: errorValidacion };
 
-  const existente = await prisma.user.findUnique({ where: { email: datos.email } });
-  if (existente) {
+  if (await emailTomado(datos.email)) {
     return { error: "Ese email ya está registrado. Iniciá sesión en vez de crear una cuenta nueva." };
   }
 
@@ -174,7 +206,9 @@ export async function registerProtectoraAction(
 
   // La protectora nace PENDIENTE: no puede entrar ni aparece en los
   // listados hasta que alguien de Happy Paws la apruebe en /admin/protectoras.
-  await prisma.user.create({
+  // Y antes de eso tiene que confirmar su correo: recién ahí entra a la cola
+  // de revisión y se avisa al admin (ver alConfirmarEmail).
+  const user = await prisma.user.create({
     data: {
       email: datos.email,
       passwordHash,
@@ -200,33 +234,79 @@ export async function registerProtectoraAction(
     },
   });
 
-  // Si algún correo no sale, el registro igual quedó guardado y la
-  // solicitud aparece en el panel admin; sendMail ya loguea el error.
-  const mailAdmin = process.env.MAIL_ADMIN;
-  if (!mailAdmin) console.warn("[registro] MAIL_ADMIN no configurado — no se avisó de la nueva protectora.");
-  await Promise.all([
-    sendMail({ to: datos.email, ...protectoraEnRevision(datos.nombreProtectora) }),
-    mailAdmin
-      ? sendMail({
-          to: mailAdmin,
-          replyTo: datos.email,
-          ...solicitudProtectoraParaAdmin({
-            nombre: datos.nombreProtectora,
-            ubicacion: datos.ubicacion,
-            email: datos.email,
-            telefono: datos.telefono,
-            instagram: datos.instagram,
-            facebook: datos.facebook,
-            sitioWeb: datos.sitioWeb,
-            nombreResponsable: datos.nombreResponsable,
-            cargoResponsable: datos.cargoResponsable,
-            textoVerificacion: datos.textoVerificacion,
-          }),
-        })
-      : null,
-  ]);
+  const { ok } = await enviarVerificacion(user);
+  if (!ok) {
+    return {
+      error: "Guardamos tu solicitud, pero no pudimos mandarte el correo de confirmación. Probá iniciar sesión en un rato para que te lo reenviemos.",
+    };
+  }
+  return { enviadoA: datos.email };
+}
 
-  return { enviado: true };
+export type VerificacionState = { error?: string } | null;
+
+// Botón "Confirmar mi correo" de /verificar. Se confirma con un POST (y no
+// solo con abrir el link) porque Gmail/Outlook a veces abren los links de
+// los mails para revisarlos, y eso gastaría el token sin que la persona
+// hiciera nada.
+export async function confirmarEmailAction(
+  _prevState: VerificacionState,
+  formData: FormData
+): Promise<VerificacionState> {
+  const token = String(formData.get("token") || "");
+  const invalido = {
+    error: "Este link de confirmación ya no es válido. Iniciá sesión y te mandamos uno nuevo.",
+  };
+  if (!token || token.length > 200) return invalido;
+
+  const registro = await prisma.emailVerificationToken.findUnique({
+    where: { tokenHash: hashToken(token) },
+    include: { user: { select: { id: true, rol: true, emailVerificadoEn: true } } },
+  });
+  if (!registro || registro.usedAt || registro.expiresAt < new Date()) return invalido;
+
+  // Token marcado como usado solo si seguía sin usar, en la misma
+  // transacción: dos clicks a la vez no disparan dos veces los avisos.
+  const confirmado = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.emailVerificationToken.updateMany({
+      where: { id: registro.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    if (count === 0) return false;
+    const { count: nuevos } = await tx.user.updateMany({
+      where: { id: registro.userId, emailVerificadoEn: null },
+      data: { emailVerificadoEn: new Date() },
+    });
+    return nuevos > 0;
+  });
+
+  if (confirmado) await alConfirmarEmail(registro.userId);
+
+  redirect(registro.user.rol === "ADMIN_PROTECTORA" ? "/login?verificado=protectora" : "/login?verificado=1");
+}
+
+export type ReenviarState = { error?: string; success?: string } | null;
+
+// "Reenviarme el correo" desde el login. Mismo mensaje exista o no la
+// cuenta (no dejar adivinar qué emails están registrados).
+export async function reenviarVerificacionAction(
+  _prevState: ReenviarState,
+  formData: FormData
+): Promise<ReenviarState> {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const mensajeGenerico = "Si la cuenta existe y todavía no está confirmada, te mandamos un correo nuevo.";
+
+  const ip = await ipCliente();
+  if (estaLimitado(`reenviar-ip:${ip}`, 10, 60 * 60 * 1000)) return { error: MENSAJE_LIMITE };
+  if (!(await verifyTurnstile(String(formData.get("turnstileToken") || ""), ip))) {
+    return { error: MENSAJE_CAPTCHA_FALLIDO };
+  }
+  if (!esEmailValido(email)) return { error: "Revisá el formato del email." };
+  if (estaLimitado(`reenviar:${email}`, 3, 60 * 60 * 1000)) return { success: mensajeGenerico };
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (user && !user.emailVerificadoEn) await enviarVerificacion(user);
+  return { success: mensajeGenerico };
 }
 
 export async function logoutAction() {
@@ -280,10 +360,12 @@ export async function restablecerContrasenaAction(
 ): Promise<AuthActionState> {
   const token = String(formData.get("token") || "");
   const password = String(formData.get("password") || "");
+  const password2 = String(formData.get("password2") || "");
 
   if (!token) return { error: "Falta el token de recuperación." };
   if (password.length < 6) return { error: "La contraseña tiene que tener al menos 6 caracteres." };
   if (password.length > 100) return { error: "La contraseña puede tener hasta 100 caracteres." };
+  if (password !== password2) return { error: MENSAJE_PASSWORDS_DISTINTAS };
 
   const invalido = { error: "Este link para recuperar la contraseña ya no es válido. Pedí uno nuevo." };
   const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
@@ -297,11 +379,17 @@ export async function restablecerContrasenaAction(
       where: { id: resetToken.id, usedAt: null },
       data: { usedAt: new Date() },
     });
-    if (count === 0) return false;
+    if (count === 0) return null;
     await tx.user.update({ where: { id: resetToken.userId }, data: { passwordHash } });
-    return true;
+    // El link llegó a ese correo, así que también prueba que es suyo.
+    const { count: recienVerificado } = await tx.user.updateMany({
+      where: { id: resetToken.userId, emailVerificadoEn: null },
+      data: { emailVerificadoEn: new Date() },
+    });
+    return { recienVerificado: recienVerificado > 0 };
   });
   if (!cambiada) return invalido;
+  if (cambiada.recienVerificado) await alConfirmarEmail(resetToken.userId);
 
   redirect("/login?restablecida=1");
 }
