@@ -595,3 +595,9 @@
 - Archivos tocados: `app/(auth)/login/page.tsx`, `app/actions/auth.ts`, `app/actions/miembros.ts`.
 - Estado: completo (`tsc` y `eslint` limpios).
 - Próximo paso sugerido: que Tinu confirme en el navegador; después pushear las ramas.
+
+## 77 — Push de las 7 ramas + guía en AGENTS.md para sincronizar la PC de Daniel (Tinu, rama feature/verificacion-email)
+- Qué se hizo: con autorización explícita del usuario se pushearon a GitHub `feature/mail-infra`, `feature/captcha`, `feature/verificacion-protectoras`, `feature/reportes-contacto`, `fix/vulnerabilidades-dependencias`, `feature/mvp-pulido` y `feature/verificacion-email` (apiladas; la última contiene todo). `main` no se tocó; falta abrir el PR (no hay `gh` instalado: https://github.com/TinuPablo/Happy-Paws/compare/main...feature/verificacion-email). Antes del push se revisó que ningún commit tuviera claves reales. Después se agregó a `AGENTS.md` la sección "Instrucciones para el agente: sincronizar la PC de Daniel": 7 pasos en PowerShell (traer código desde main o desde la rama si el PR no está mergeado, `npm install`, agregar las 6 variables vacías al `.env` sin leerlo para que Daniel solo pegue las claves, chequeos true/false + verificación real de Gmail y Turnstile sin mandar mails, apagar el dev server viejo + migraciones, build, `admin:crear` que corre Daniel, prueba en navegador) y reglas (no pedir claves en el chat, no commitear, parar ante errores). Los comandos de verificación se probaron acá tal cual (Gmail OK, Turnstile OK, y con una secret falsa da FALLA). Se incluyó también el cambio `#`→`##` que `next dev` hace solo en el bloque de reglas de Next.
+- Archivos tocados: `AGENTS.md`, `PROGRESS_LOG.md`.
+- Estado: completo localmente; este commit queda pendiente de push.
+- Próximo paso sugerido: pushear este commit, abrir el PR y pasarle a Daniel las 3 claves por privado.

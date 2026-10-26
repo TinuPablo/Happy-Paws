@@ -33,6 +33,140 @@ virtual — esa funcionalidad **ya no existe** y no debe reintroducirse.
    protectoras en `/admin/protectoras`), y `npm run mail:test` para
    confirmar que salen los correos.
 
+## Instrucciones para el agente: sincronizar la PC de Daniel (octubre 2026)
+> Agente: si estás corriendo en la PC de Daniel y te pide "actualizá el
+> proyecto", "traé los cambios de Tinu" o similar, seguí estos pasos EN
+> ORDEN, en PowerShell, desde la raíz del proyecto. Lo único que tiene que
+> hacer Daniel a mano es pegar las claves en `.env` (paso 3) y elegir la
+> contraseña de su admin (paso 6). Al terminar, dejá una entrada en
+> PROGRESS_LOG.md como siempre.
+
+**Qué cambió (resumen para el agente):** correos reales por Gmail SMTP,
+captcha Cloudflare Turnstile, verificación de protectoras por un ADMIN de
+Happy Paws (`/admin/protectoras`), formulario de reportes en el footer,
+confirmación de correo al registrarse + "repetí la contraseña", avisos de
+solicitudes por mail y contacto entre protectora y adoptante. Tres
+migraciones nuevas de Prisma. Detalle en PROGRESS_LOG.md, entradas 69 a 76.
+
+**Reglas mientras hacés esto:**
+- NUNCA pidas a Daniel que te pegue las claves en el chat, ni las leas ni las
+  muestres. Para chequear si están cargadas, imprimí solo `true/false`
+  (comando del paso 3). Daniel las recibe de Tinu por mensaje privado.
+- No commitees ni pushees nada en estos pasos (solo es traer cambios).
+- Si algún paso falla, pará y mostrale a Daniel el error; no improvises
+  arreglos sobre la base de datos.
+
+**Paso 1 — Traer el código.**
+```
+git status
+git fetch origin
+```
+Si `git status` muestra cambios sin commitear de Daniel, preguntale qué
+hacer con ellos antes de seguir (no los descartes). Después:
+- Si el PR ya está mergeado en `main` (comprobalo con
+  `git log origin/main --oneline -15` y buscá el commit "Pide confirmar el
+  correo al registrarse y repetir la contraseña"):
+  ```
+  git checkout main
+  git pull origin main
+  ```
+- Si todavía no está mergeado (Daniel quiere probarlo antes de aprobar el
+  PR), usá la rama que contiene todo:
+  ```
+  git checkout feature/verificacion-email
+  git pull origin feature/verificacion-email
+  ```
+
+**Paso 2 — Dependencias.** Hay paquetes nuevos (`nodemailer`,
+`@marsidev/react-turnstile`), se sacó `resend` y `next` pasó a 16.4.2.
+```
+npm install
+```
+
+**Paso 3 — Variables de entorno (lo único que pega Daniel).**
+Agregá al FINAL de su `.env` (sin tocar ni leer lo que ya tiene) este bloque
+con los valores vacíos, solo si esas variables no existen todavía:
+```
+# --- Correo (Gmail SMTP) ---
+SMTP_USER="happypawsvcp@gmail.com"
+SMTP_PASS=""
+MAIL_ADMIN="happypawsvcp@gmail.com"
+APP_URL="http://localhost:3000"
+
+# --- Captcha (Cloudflare Turnstile) ---
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+TURNSTILE_SECRET_KEY=""
+```
+Para saber cuáles existen sin leer valores:
+```
+Select-String -Path .env -Pattern '^\s*(SMTP_USER|SMTP_PASS|MAIL_ADMIN|APP_URL|NEXT_PUBLIC_TURNSTILE_SITE_KEY|TURNSTILE_SECRET_KEY)\s*=' | ForEach-Object { ($_.Line -split '=')[0] }
+```
+Escribí en el `.env` con `[System.IO.File]::AppendAllText(...)` usando
+UTF-8 sin BOM (no `Set-Content`/`Out-File`, que en PowerShell 5 rompen la
+codificación). Después pedile a Daniel: "Abrí `.env` y pegá entre las
+comillas `SMTP_PASS`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` y
+`TURNSTILE_SECRET_KEY` (te las pasa Tinu por privado). Avisame cuando
+esté." Y esperá. Las variables `RESEND_API_KEY` y `EMAIL_FROM` ya no se
+usan: puede borrarlas o dejarlas, da igual.
+
+Cuando avise, comprobá que estén cargadas (solo imprime true/false):
+```
+npx tsx --env-file=.env -e "for (const k of ['DATABASE_URL','SESSION_SECRET','SMTP_USER','SMTP_PASS','MAIL_ADMIN','APP_URL','NEXT_PUBLIC_TURNSTILE_SITE_KEY','TURNSTILE_SECRET_KEY']) console.log(k, !!process.env[k])"
+```
+Todas tienen que dar `true`. Para confirmar que la contraseña de Gmail y la
+clave secreta del captcha son correctas, sin mandar ningún mail:
+```
+npx tsx --env-file=.env -e "require('nodemailer').createTransport({host:'smtp.gmail.com',port:465,secure:true,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS}}).verify().then(()=>console.log('Gmail OK')).catch(e=>console.log('Gmail FALLA:',e.code))"
+npx tsx --env-file=.env -e "fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',body:new URLSearchParams({secret:process.env.TURNSTILE_SECRET_KEY,response:'x'})}).then(r=>r.json()).then(d=>console.log(d['error-codes'].includes('invalid-input-secret')?'Turnstile FALLA: secret incorrecta':'Turnstile OK'))"
+```
+Si alguno falla, lo más probable es que se haya pegado mal (espacios de
+más, comillas): pedile a Daniel que lo revise.
+
+**Paso 4 — Base de datos.** Antes, apagá cualquier `npm run dev` que esté
+corriendo (si no, queda usando el cliente de Prisma viejo y tira
+`Unknown field emailVerificadoEn`):
+```
+Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+npx prisma migrate deploy
+npx prisma generate
+```
+Tiene que aplicar `verificacion_protectoras`, `reportes` y
+`verificacion_email`. La última marca como "correo confirmado" a todos los
+usuarios que ya existían en su base, así que nadie queda afuera.
+
+**Paso 5 — Comprobar que compila.**
+```
+npx tsc --noEmit
+npm run build
+```
+
+**Paso 6 — Cuenta admin de Daniel (la hace él).** `admin:crear` pide datos
+por teclado y la contraseña oculta, así que no lo podés correr vos:
+pedile a Daniel que corra en su terminal `npm run admin:crear` y elija
+email (puede ser `danielXXX+admin@gmail.com` u otro que no esté
+registrado) y contraseña (mínimo 8). Esa cuenta es la que revisa
+protectoras nuevas en `/admin/protectoras`.
+
+**Paso 7 — Levantar y probar.**
+```
+npm run dev
+```
+Y decile a Daniel que pruebe en el navegador:
+1. `/login`: tiene que aparecer el recuadro del captcha y ponerse en ✓ solo
+   a los segundos (no hace falta clickearlo). Si no aparece: el dominio con
+   el que entra no está habilitado en Cloudflare Turnstile (con
+   `localhost` anda; si usa ngrok u otro dominio, Tinu tiene que agregarlo
+   en el panel de Turnstile → el widget → Hostnames).
+2. Registro como adoptante con un correo suyo → "Revisá tu correo" → mail
+   "Confirmá tu correo" → botón → login con "¡Correo confirmado!" → entra
+   y cae en el inicio.
+3. Opcional: `npm run mail:test` manda un correo de prueba a
+   `happypawsvcp@gmail.com`.
+
+**Si algo se rompe:** lo más común es (a) `npm run dev` viejo corriendo →
+reiniciarlo; (b) claves mal pegadas → paso 3; (c) migraciones sin aplicar →
+paso 4. Los correos de prueba de Gmail a veces caen en spam.
+
 ## Fase actual del proyecto
 **MVP funcional con backend real.** Adoptantes se registran y solicitan
 adopciones; protectoras se registran, quedan PENDIENTES hasta que un ADMIN
@@ -338,7 +472,7 @@ resumen más reciente y no hace falta releer todo el código para ubicarte.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
